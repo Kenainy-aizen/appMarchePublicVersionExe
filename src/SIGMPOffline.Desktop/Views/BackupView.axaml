@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SIGMPOffline.Desktop.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+             x:Class="SIGMPOffline.Desktop.Views.BackupView"
+             x:DataType="vm:BackupViewModel">
+
+    <ScrollViewer>
+        <StackPanel Spacing="16">
+            <TextBlock Classes="page-title" Text="Sauvegarde &amp; Restauration" />
+
+            <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding Erreur}" Foreground="#B91C1C" TextWrapping="Wrap" />
+            </Border>
+            <Border Classes="success" IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding Message}" Foreground="#15803D" TextWrapping="Wrap" />
+            </Border>
+
+            <Border Classes="card">
+                <StackPanel Spacing="6">
+                    <TextBlock Classes="section-title" Text="Base de données active" />
+                    <TextBlock Text="{Binding BaseDeDonneesPath}" Foreground="#334155" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+                <StackPanel Spacing="10">
+                    <TextBlock Classes="section-title" Text="Sauvegarder vers un support externe (clé USB)" />
+                    <TextBlock Text="Dossier de destination (laisser vide = dossier de sauvegardes par défaut)"
+                               Foreground="#64748B" />
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBox Text="{Binding DossierDestination}" Width="420"
+                                 PlaceholderText="/media/usb/SIGMP" />
+                        <Button Content="Parcourir…" Command="{Binding ParcourirDossierCommand}" />
+                        <Button Content="Sauvegarder" Command="{Binding SauvegarderCommand}" Classes="accent" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+                <StackPanel Spacing="10">
+                    <TextBlock Classes="section-title" Text="Restaurer depuis un fichier de sauvegarde" />
+                    <TextBlock Text="Chemin du fichier .db à restaurer (redémarrage requis après restauration)"
+                               Foreground="#64748B" />
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBox Text="{Binding FichierRestauration}" Width="420"
+                                 PlaceholderText="/media/usb/SIGMP/sigmp-backup-....db" />
+                        <Button Content="Parcourir…" Command="{Binding ParcourirFichierRestaurationCommand}" />
+                        <Button Content="Restaurer" Command="{Binding RestaurerCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

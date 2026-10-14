@@ -1,0 +1,31 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dlg="using:SIGMPOffline.Desktop.ViewModels.Dialogs"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="440" d:DesignHeight="220"
+        x:Class="SIGMPOffline.Desktop.Views.Dialogs.TefDialogWindow"
+        x:DataType="dlg:TefDialogViewModel"
+        Title="{Binding Titre}"
+        Width="440" SizeToContent="Height"
+        CanResize="False" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+
+    <StackPanel Margin="20" Spacing="16">
+        <TextBlock Text="{Binding Titre}" FontSize="16" FontWeight="SemiBold" />
+
+        <StackPanel Spacing="6">
+            <TextBlock Text="Référence du TEF *" />
+            <TextBox Text="{Binding RefTef}" PlaceholderText="ex. TEF-2026-001" />
+        </StackPanel>
+
+        <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Text="{Binding Erreur}" Foreground="#B91C1C" TextWrapping="Wrap" />
+        </Border>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Content="Annuler" Command="{Binding AnnulerCommand}" />
+            <Button Content="Enregistrer" Command="{Binding ValiderCommand}" Classes="accent" />
+        </StackPanel>
+    </StackPanel>
+</Window>

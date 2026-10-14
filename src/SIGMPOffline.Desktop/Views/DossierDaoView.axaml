@@ -1,0 +1,125 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SIGMPOffline.Desktop.ViewModels"
+             xmlns:ent="using:SIGMPOffline.Domain.Entities"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="960" d:DesignHeight="640"
+             x:Class="SIGMPOffline.Desktop.Views.DossierDaoView"
+             x:DataType="vm:DossierDaoViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
+        <!-- Barre d'actions -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+            <TextBlock Classes="page-title" Text="DAO &amp; Attribution" VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                <Button Content="Nouveau dossier" Command="{Binding NouveauDossierCommand}" Classes="accent" />
+                <Button Content="Modifier" Command="{Binding ModifierDossierCommand}" IsEnabled="{Binding AUnDossier}" />
+                <Button Content="Supprimer" Command="{Binding SupprimerDossierCommand}" IsEnabled="{Binding AUnDossier}" />
+                <Button Content="Actualiser" Command="{Binding ChargerCommand}" />
+            </StackPanel>
+        </Grid>
+
+        <StackPanel Grid.Row="1" Spacing="8">
+            <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding Erreur}" Foreground="#B91C1C" TextWrapping="Wrap" />
+            </Border>
+            <Border Classes="success" IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding Message}" Foreground="#15803D" TextWrapping="Wrap" />
+            </Border>
+        </StackPanel>
+
+        <Grid Grid.Row="2" ColumnDefinitions="300,*" ColumnSpacing="12">
+            <!-- Liste des dossiers -->
+            <Border Classes="card">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Classes="section-title" Text="Dossiers d'appel d'offres" />
+                    <ListBox ItemsSource="{Binding Dossiers}"
+                             SelectedItem="{Binding DossierSelectionne}"
+                             Background="Transparent">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="ent:DossierDao">
+                                <StackPanel Margin="0,4">
+                                    <TextBlock Text="{Binding RefDossier}" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding ObjetDossier}" Foreground="#64748B"
+                                               FontSize="12" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- Candidats & acheteurs du dossier sélectionné -->
+            <Border Grid.Column="1" Classes="card">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,8">
+                        <TextBlock Classes="section-title" Text="{Binding DossierSelectionne.RefDossier}" />
+                        <TextBlock Text="{Binding DossierSelectionne.ObjetDossier}"
+                                   Foreground="#64748B" TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <TabControl>
+                        <TabItem Header="Candidats">
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,8">
+                                    <Button Content="Ajouter" Command="{Binding AjouterCandidatCommand}" IsEnabled="{Binding AUnDossier}" />
+                                    <Button Content="Modifier" Command="{Binding ModifierCandidatCommand}" IsEnabled="{Binding AUnCandidat}" />
+                                    <Button Content="Supprimer" Command="{Binding SupprimerCandidatCommand}" IsEnabled="{Binding AUnCandidat}" />
+                                    <Button Content="Désigner retenu" Command="{Binding DesignerRetenuCommand}" IsEnabled="{Binding AUnCandidat}" />
+                                </StackPanel>
+
+                                <ListBox ItemsSource="{Binding Candidats}"
+                                         SelectedItem="{Binding CandidatSelectionne}"
+                                         Background="Transparent">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate x:DataType="ent:Candidat">
+                                            <Grid ColumnDefinitions="*,160,80" Margin="0,4">
+                                                <TextBlock Grid.Column="0" Text="{Binding NomEntreprise}" FontWeight="SemiBold" />
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{Binding MontantOffre, StringFormat='{}{0:N0} FCFA'}"
+                                                           HorizontalAlignment="Right" />
+                                                <TextBlock Grid.Column="2"
+                                                           Text="Retenu"
+                                                           Foreground="#16A34A"
+                                                           FontWeight="Bold"
+                                                           HorizontalAlignment="Right"
+                                                           IsVisible="{Binding EstRetenu}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </DockPanel>
+                        </TabItem>
+
+                        <TabItem Header="Acheteurs">
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,8">
+                                    <Button Content="Ajouter" Command="{Binding AjouterAcheteurCommand}" IsEnabled="{Binding AUnDossier}" />
+                                    <Button Content="Modifier" Command="{Binding ModifierAcheteurCommand}" IsEnabled="{Binding AUnAcheteur}" />
+                                    <Button Content="Supprimer" Command="{Binding SupprimerAcheteurCommand}" IsEnabled="{Binding AUnAcheteur}" />
+                                </StackPanel>
+
+                                <ListBox ItemsSource="{Binding Acheteurs}"
+                                         SelectedItem="{Binding AcheteurSelectionne}"
+                                         Background="Transparent">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate x:DataType="ent:AcheteurDao">
+                                            <Grid ColumnDefinitions="*,160,140" Margin="0,4">
+                                                <TextBlock Grid.Column="0" Text="{Binding RaisonSociale}" FontWeight="SemiBold" />
+                                                <TextBlock Grid.Column="1" Text="{Binding NumStat}" Foreground="#64748B" />
+                                                <TextBlock Grid.Column="2"
+                                                           Text="{Binding DateAchat, StringFormat='{}{0:dd/MM/yyyy}'}"
+                                                           HorizontalAlignment="Right" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </DockPanel>
+                        </TabItem>
+                    </TabControl>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

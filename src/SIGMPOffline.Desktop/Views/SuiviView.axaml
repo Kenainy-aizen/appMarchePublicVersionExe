@@ -1,0 +1,150 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SIGMPOffline.Desktop.ViewModels"
+             xmlns:ent="using:SIGMPOffline.Domain.Entities"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="960" d:DesignHeight="650"
+             x:Class="SIGMPOffline.Desktop.Views.SuiviView"
+             x:DataType="vm:SuiviViewModel">
+
+    <Grid RowDefinitions="Auto,*" RowSpacing="12">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+            <TextBlock Classes="page-title" Text="Suivi d'exécution" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Content="Actualiser" Command="{Binding ChargerCommand}" />
+        </Grid>
+
+        <Grid Grid.Row="1" ColumnDefinitions="300,*" ColumnSpacing="12">
+            <!-- Liste des marchés -->
+            <Border Classes="card">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Classes="section-title" Text="Marchés" />
+                    <ListBox ItemsSource="{Binding Marches}"
+                             SelectedItem="{Binding MarcheSelectionne}"
+                             Background="Transparent">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="ent:Marche">
+                                <StackPanel Margin="0,4">
+                                    <TextBlock Text="{Binding RefMarche}" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding ObjetMarche}" Foreground="#64748B"
+                                               FontSize="12" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <ScrollViewer Grid.Column="1">
+                <StackPanel Spacing="12">
+                    <!-- Messages -->
+                    <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                        <TextBlock Text="{Binding Erreur}" Foreground="#B91C1C" TextWrapping="Wrap" />
+                    </Border>
+                    <Border Classes="success" IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                        <TextBlock Text="{Binding Message}" Foreground="#15803D" TextWrapping="Wrap" />
+                    </Border>
+
+                    <!-- Situation -->
+                    <Border Classes="card">
+                        <StackPanel Spacing="8">
+                            <TextBlock Classes="section-title" Text="Situation d'exécution" />
+
+                            <Grid ColumnDefinitions="220,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Classes="kpi-label" Text="Objet du marché" />
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Situation.ObjetMarche}" TextWrapping="Wrap" />
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Classes="kpi-label" Text="Ordre de service (OS)" />
+                                <TextBlock Grid.Row="1" Grid.Column="1"
+                                           Text="{Binding Situation.DateOS, StringFormat='{}{0:dd/MM/yyyy}', TargetNullValue='Non émis'}" />
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Classes="kpi-label" Text="Titre d'engagement financier" />
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Situation.RefTef, TargetNullValue='—'}" />
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Classes="kpi-label" Text="Date limite d'exécution" />
+                                <TextBlock Grid.Row="3" Grid.Column="1"
+                                           Text="{Binding Situation.DateLimiteExecution, StringFormat='{}{0:dd/MM/yyyy}', TargetNullValue='—'}" />
+
+                                <TextBlock Grid.Row="4" Grid.Column="0" Classes="kpi-label" Text="Jours restants" />
+                                <Grid Grid.Row="4" Grid.Column="1" ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Text="{Binding Situation.JoursRestants, TargetNullValue='—'}" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="⛔ En retard"
+                                               Foreground="#DC2626"
+                                               FontWeight="Bold"
+                                               IsVisible="{Binding Situation.EstEnRetard}" />
+                                </Grid>
+
+                                <TextBlock Grid.Row="5" Grid.Column="0" Classes="kpi-label" Text="Statut" />
+                                <Grid Grid.Row="5" Grid.Column="1" ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0"
+                                               Text="{Binding Situation.Statut, Converter={StaticResource EnumLibelle}}" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="✅ Clôturé"
+                                               Foreground="#16A34A"
+                                               FontWeight="Bold"
+                                               IsVisible="{Binding Situation.EstCloture}" />
+                                </Grid>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Actions -->
+                    <Border Classes="card">
+                        <StackPanel Spacing="12">
+                            <TextBlock Classes="section-title" Text="Actions" />
+                            <WrapPanel Orientation="Horizontal" IsEnabled="{Binding PeutModifier}">
+                                <Button Content="Émettre l'OS" Command="{Binding EmettreOsCommand}" Margin="0,0,8,8" />
+                                <Button Content="Enregistrer le TEF" Command="{Binding EnregistrerTefCommand}" Margin="0,0,8,8" />
+                                <Button Content="Réception provisoire" Command="{Binding ReceptionProvisoireCommand}" Margin="0,0,8,8" />
+                                <Button Content="Réception définitive" Command="{Binding ReceptionDefinitiveCommand}" Margin="0,0,8,8" />
+                                <Button Content="Clôturer le marché" Command="{Binding CloturerCommand}" Classes="accent" Margin="0,0,8,8" />
+                            </WrapPanel>
+                            <TextBlock Text="Ce marché est clôturé : aucune nouvelle action n'est possible."
+                                       Foreground="#16A34A" TextWrapping="Wrap"
+                                       IsVisible="{Binding Situation.EstCloture}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Avenants -->
+                    <Border Classes="card">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,8">
+                                <TextBlock Classes="section-title" Text="Avenants" Margin="0" />
+                                <WrapPanel Orientation="Horizontal" IsEnabled="{Binding PeutModifier}">
+                                    <Button Content="Ajouter" Command="{Binding AjouterAvenantCommand}" Margin="0,0,8,8" />
+                                    <Button Content="Modifier" Command="{Binding ModifierAvenantCommand}"
+                                            IsEnabled="{Binding AUnAvenant}" Margin="0,0,8,8" />
+                                    <Button Content="Supprimer" Command="{Binding SupprimerAvenantCommand}"
+                                            IsEnabled="{Binding AUnAvenant}" Margin="0,0,8,8" />
+                                </WrapPanel>
+                            </StackPanel>
+
+                            <ListBox ItemsSource="{Binding Avenants}"
+                                     SelectedItem="{Binding AvenantSelectionne}"
+                                     Background="Transparent">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="ent:Avenant">
+                                        <Grid ColumnDefinitions="110,120,*,160,130" Margin="0,4">
+                                            <TextBlock Grid.Column="0" Text="{Binding NumAvenant}" FontWeight="SemiBold" />
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding DateAvenant, StringFormat='{}{0:dd/MM/yyyy}'}" />
+                                            <TextBlock Grid.Column="2" Text="{Binding Motif}" Foreground="#64748B"
+                                                       TextWrapping="Wrap" />
+                                            <TextBlock Grid.Column="3"
+                                                       Text="{Binding VariationMontant, StringFormat='{}{0:N0} FCFA'}"
+                                                       HorizontalAlignment="Right" />
+                                            <TextBlock Grid.Column="4"
+                                                       Text="{Binding ProlongationDelaiJours, StringFormat='{}{0:+0;-0;0} j'}"
+                                                       HorizontalAlignment="Right" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </DockPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

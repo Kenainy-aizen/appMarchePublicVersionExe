@@ -1,0 +1,55 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dlg="using:SIGMPOffline.Desktop.ViewModels.Dialogs"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="340"
+        x:Class="SIGMPOffline.Desktop.Views.Dialogs.ElementMarcheDialogWindow"
+        x:DataType="dlg:ElementMarcheDialogViewModel"
+        Title="{Binding Titre}"
+        Width="520" SizeToContent="Height"
+        CanResize="False" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+
+    <StackPanel Margin="20" Spacing="16">
+        <TextBlock Text="{Binding Titre}" FontSize="16" FontWeight="SemiBold" />
+
+        <Grid ColumnDefinitions="170,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+              RowSpacing="10" ColumnSpacing="10">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Code de l'élément *" VerticalAlignment="Center" />
+            <TextBox Grid.Row="0" Grid.Column="1"
+                     Text="{Binding CodeElement}"
+                     IsEnabled="{Binding CodeElementModifiable}"
+                     PlaceholderText="ex. ART-001" />
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Libellé *" VerticalAlignment="Center" />
+            <TextBox Grid.Row="1" Grid.Column="1"
+                     Text="{Binding Libelle}"
+                     AcceptsReturn="True" TextWrapping="Wrap" MinHeight="56" />
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Prix unitaire (FCFA)" VerticalAlignment="Center" />
+            <NumericUpDown Grid.Row="2" Grid.Column="1"
+                           Value="{Binding PrixUnitaire}"
+                           Minimum="0" FormatString="N0" ShowButtonSpinner="False" />
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Quantité" VerticalAlignment="Center" />
+            <NumericUpDown Grid.Row="3" Grid.Column="1"
+                           Value="{Binding Quantite}"
+                           Minimum="0" Increment="0.1" FormatString="N2" ShowButtonSpinner="False" />
+
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="Unité" VerticalAlignment="Center" />
+            <TextBox Grid.Row="4" Grid.Column="1"
+                     Text="{Binding Unite}"
+                     PlaceholderText="ex. m², unité, forfait" />
+        </Grid>
+
+        <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Text="{Binding Erreur}" Foreground="#B91C1C" TextWrapping="Wrap" />
+        </Border>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Content="Annuler" Command="{Binding AnnulerCommand}" />
+            <Button Content="Enregistrer" Command="{Binding ValiderCommand}" Classes="accent" />
+        </StackPanel>
+    </StackPanel>
+</Window>

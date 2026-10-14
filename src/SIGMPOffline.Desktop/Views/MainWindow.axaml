@@ -1,0 +1,46 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SIGMPOffline.Desktop.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="720"
+        x:Class="SIGMPOffline.Desktop.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Width="1200" Height="720"
+        MinWidth="900" MinHeight="600"
+        Title="SIGMP Offline — Suivi des Marchés Publics">
+
+    <DockPanel>
+        <!-- Menu latéral -->
+        <Border DockPanel.Dock="Left" Width="250" Background="#152238">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Margin="20,20,20,12" Spacing="2">
+                    <TextBlock Text="SIGMP Offline" Foreground="White" FontSize="20" FontWeight="Bold" />
+                    <TextBlock Text="Suivi des Marchés Publics" Foreground="#9FB3C8" FontSize="12" />
+                </StackPanel>
+
+                <ListBox ItemsSource="{Binding NavigationItems}"
+                         SelectedItem="{Binding SelectedItem}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Foreground="#E2E8F0"
+                         Margin="8">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:NavigationItem">
+                            <StackPanel Orientation="Horizontal" Spacing="12" Margin="4,6">
+                                <TextBlock Text="{Binding Icone}" FontSize="16" />
+                                <TextBlock Text="{Binding Titre}" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+
+        <!-- Contenu de la page courante -->
+        <Border Background="#F4F6F9">
+            <ContentControl Content="{Binding CurrentPage}" Margin="20" />
+        </Border>
+    </DockPanel>
+</Window>

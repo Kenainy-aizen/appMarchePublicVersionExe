@@ -1,0 +1,49 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dlg="using:SIGMPOffline.Desktop.ViewModels.Dialogs"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="280"
+        x:Class="SIGMPOffline.Desktop.Views.Dialogs.PpmEnteteDialogWindow"
+        x:DataType="dlg:PpmEnteteDialogViewModel"
+        Title="{Binding Titre}"
+        Width="480" SizeToContent="Height"
+        CanResize="False" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+
+    <StackPanel Margin="20" Spacing="16">
+        <TextBlock Text="{Binding Titre}" FontSize="16" FontWeight="SemiBold" />
+
+        <Grid ColumnDefinitions="170,*" RowDefinitions="Auto,Auto,Auto,Auto"
+              RowSpacing="10" ColumnSpacing="10">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Numéro du PPM *" VerticalAlignment="Center" />
+            <TextBox Grid.Row="0" Grid.Column="1"
+                     Text="{Binding NumPPM}"
+                     IsEnabled="{Binding NumPpmModifiable}"
+                     PlaceholderText="ex. PPM-2026" />
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Exercice budgétaire *" VerticalAlignment="Center" />
+            <NumericUpDown Grid.Row="1" Grid.Column="1"
+                           Value="{Binding AnneeExercice}"
+                           Minimum="2000" Maximum="2100"
+                           FormatString="N0" ShowButtonSpinner="False" />
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Autorité contractante *" VerticalAlignment="Center" />
+            <TextBox Grid.Row="2" Grid.Column="1"
+                     Text="{Binding AutoriteContractante}"
+                     PlaceholderText="PRMP - Ministère…" />
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Date d'élaboration" VerticalAlignment="Center" />
+            <DatePicker Grid.Row="3" Grid.Column="1" SelectedDate="{Binding DateElaboration}" />
+        </Grid>
+
+        <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Text="{Binding Erreur}" Foreground="#B91C1C" TextWrapping="Wrap" />
+        </Border>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Content="Annuler" Command="{Binding AnnulerCommand}" />
+            <Button Content="Enregistrer" Command="{Binding ValiderCommand}" Classes="accent" />
+        </StackPanel>
+    </StackPanel>
+</Window>

@@ -1,0 +1,22 @@
+<Project>
+
+  <!--
+    Propriétés communes à TOUS les projets de la solution.
+    Objectif : une seule source de vérité pour le TFM, la nullabilité, etc.
+    Un projet peut surcharger une valeur dans son propre <PropertyGroup>.
+  -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+
+    <!-- Métadonnées produit -->
+    <Product>SIGMP Offline</Product>
+    <Company>PRMP</Company>
+    <Version>0.1.0</Version>
+    <Authors>PRMP</Authors>
+  </PropertyGroup>
+
+</Project>

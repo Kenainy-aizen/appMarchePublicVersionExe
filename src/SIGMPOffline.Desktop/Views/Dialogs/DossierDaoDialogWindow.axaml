@@ -1,0 +1,56 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dlg="using:SIGMPOffline.Desktop.ViewModels.Dialogs"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="540" d:DesignHeight="360"
+        x:Class="SIGMPOffline.Desktop.Views.Dialogs.DossierDaoDialogWindow"
+        x:DataType="dlg:DossierDaoDialogViewModel"
+        Title="{Binding Titre}"
+        Width="540" SizeToContent="Height"
+        CanResize="False" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+
+    <StackPanel Margin="20" Spacing="16">
+        <TextBlock Text="{Binding Titre}" FontSize="16" FontWeight="SemiBold" />
+
+        <Grid ColumnDefinitions="170,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+              RowSpacing="10" ColumnSpacing="10">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Référence du dossier *" VerticalAlignment="Center" />
+            <TextBox Grid.Row="0" Grid.Column="1"
+                     Text="{Binding RefDossier}"
+                     IsEnabled="{Binding RefDossierModifiable}"
+                     PlaceholderText="ex. DAO-2026-001" />
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Ligne du PPM *" VerticalAlignment="Center" />
+            <ComboBox Grid.Row="1" Grid.Column="1"
+                      HorizontalAlignment="Stretch"
+                      ItemsSource="{Binding Lignes}"
+                      SelectedItem="{Binding LigneSelectionnee}" />
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Objet du dossier *" VerticalAlignment="Center" />
+            <TextBox Grid.Row="2" Grid.Column="1"
+                     Text="{Binding ObjetDossier}"
+                     AcceptsReturn="True" TextWrapping="Wrap" MinHeight="56" />
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Coût du cahier des charges (FCFA)" VerticalAlignment="Center" />
+            <NumericUpDown Grid.Row="3" Grid.Column="1"
+                           Value="{Binding CoutCahierCharges}"
+                           Minimum="0" FormatString="N0" ShowButtonSpinner="False" />
+
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="Montant de la caution (FCFA)" VerticalAlignment="Center" />
+            <NumericUpDown Grid.Row="4" Grid.Column="1"
+                           Value="{Binding MontantCaution}"
+                           Minimum="0" FormatString="N0" ShowButtonSpinner="False" />
+        </Grid>
+
+        <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Text="{Binding Erreur}" Foreground="#B91C1C" TextWrapping="Wrap" />
+        </Border>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Content="Annuler" Command="{Binding AnnulerCommand}" />
+            <Button Content="Enregistrer" Command="{Binding ValiderCommand}" Classes="accent" />
+        </StackPanel>
+    </StackPanel>
+</Window>

@@ -1,0 +1,100 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SIGMPOffline.Desktop.ViewModels"
+             xmlns:models="using:SIGMPOffline.Services.Models"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+             x:Class="SIGMPOffline.Desktop.Views.DashboardView"
+             x:DataType="vm:DashboardViewModel">
+
+    <ScrollViewer>
+        <StackPanel Spacing="16">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Classes="page-title" Text="Tableau de bord" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Content="Actualiser" Command="{Binding ChargerCommand}" />
+            </Grid>
+
+            <!-- Indicateurs -->
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <Border Classes="card" Width="150">
+                    <StackPanel>
+                        <TextBlock Classes="kpi-label" Text="Marchés" />
+                        <TextBlock Classes="kpi-value" Text="{Binding TotalMarches}" />
+                    </StackPanel>
+                </Border>
+                <Border Classes="card" Width="150">
+                    <StackPanel>
+                        <TextBlock Classes="kpi-label" Text="En cours" />
+                        <TextBlock Classes="kpi-value" Text="{Binding MarchesEnCours}" Foreground="#2563EB" />
+                    </StackPanel>
+                </Border>
+                <Border Classes="card" Width="150">
+                    <StackPanel>
+                        <TextBlock Classes="kpi-label" Text="Clôturés" />
+                        <TextBlock Classes="kpi-value" Text="{Binding MarchesClotures}" Foreground="#16A34A" />
+                    </StackPanel>
+                </Border>
+                <Border Classes="card" Width="150">
+                    <StackPanel>
+                        <TextBlock Classes="kpi-label" Text="En retard" />
+                        <TextBlock Classes="kpi-value" Text="{Binding MarchesEnRetard}" Foreground="#DC2626" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <Border Classes="card">
+                <StackPanel>
+                    <TextBlock Classes="kpi-label" Text="Montant total des marchés (HT)" />
+                    <TextBlock Classes="kpi-value"
+                               Text="{Binding MontantTotalHt, StringFormat='{}{0:N0} FCFA'}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Erreurs -->
+            <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding Erreur}" Foreground="#B91C1C" TextWrapping="Wrap" />
+            </Border>
+
+            <!-- Alertes -->
+            <Border Classes="card">
+                <StackPanel>
+                    <TextBlock Classes="section-title" Text="Alertes de dépassement de délai" />
+
+                    <TextBlock Text="Aucun marché en retard. 👍"
+                               Foreground="#64748B"
+                               IsVisible="{Binding !Alertes.Count}" />
+
+                    <ItemsControl ItemsSource="{Binding Alertes}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:AlerteRetard">
+                                <Border Background="#FEF2F2"
+                                        BorderBrush="#FCA5A5"
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        Padding="12"
+                                        Margin="0,4">
+                                    <Grid ColumnDefinitions="*,120,120">
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding RefMarche}" FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding ObjetMarche}" Foreground="#64748B" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1"
+                                                   VerticalAlignment="Center"
+                                                   Text="{Binding DateLimite, StringFormat='Limite : {0:dd/MM/yyyy}'}" />
+                                        <TextBlock Grid.Column="2"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Right"
+                                                   Foreground="#DC2626"
+                                                   FontWeight="Bold"
+                                                   Text="{Binding JoursDeRetard, StringFormat='+{0} j'}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

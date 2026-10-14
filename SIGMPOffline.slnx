@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SIGMPOffline.Data/SIGMPOffline.Data.csproj" />
+    <Project Path="src/SIGMPOffline.Desktop/SIGMPOffline.Desktop.csproj" />
+    <Project Path="src/SIGMPOffline.Domain/SIGMPOffline.Domain.csproj" />
+    <Project Path="src/SIGMPOffline.Services/SIGMPOffline.Services.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SIGMPOffline.Data.Tests/SIGMPOffline.Data.Tests.csproj" />
+    <Project Path="tests/SIGMPOffline.Desktop.Tests/SIGMPOffline.Desktop.Tests.csproj" />
+    <Project Path="tests/SIGMPOffline.Domain.Tests/SIGMPOffline.Domain.Tests.csproj" />
+    <Project Path="tests/SIGMPOffline.Services.Tests/SIGMPOffline.Services.Tests.csproj" />
+  </Folder>
+</Solution>
