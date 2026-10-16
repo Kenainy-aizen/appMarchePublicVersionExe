@@ -11,45 +11,47 @@
         CanResize="False" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
 
-    <StackPanel Margin="20" Spacing="16">
-        <TextBlock Text="{Binding Titre}" FontSize="16" FontWeight="SemiBold" />
+    <StackPanel Margin="22" Spacing="16">
+        <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
 
-        <Grid ColumnDefinitions="170,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto"
-              RowSpacing="10" ColumnSpacing="10">
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Référence du dossier *" VerticalAlignment="Center" />
+        <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+              RowSpacing="12" ColumnSpacing="12">
+            <TextBlock Classes="field-label" Grid.Row="0" Grid.Column="0">Référence du dossier <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
             <TextBox Grid.Row="0" Grid.Column="1"
                      Text="{Binding RefDossier}"
                      IsEnabled="{Binding RefDossierModifiable}"
                      PlaceholderText="ex. DAO-2026-001" />
 
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="Ligne du PPM *" VerticalAlignment="Center" />
+            <TextBlock Classes="field-label" Grid.Row="1" Grid.Column="0">Ligne du PPM <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
             <ComboBox Grid.Row="1" Grid.Column="1"
                       HorizontalAlignment="Stretch"
                       ItemsSource="{Binding Lignes}"
                       SelectedItem="{Binding LigneSelectionnee}" />
 
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Objet du dossier *" VerticalAlignment="Center" />
+            <TextBlock Classes="field-label" Grid.Row="2" Grid.Column="0">Objet du dossier <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
             <TextBox Grid.Row="2" Grid.Column="1"
                      Text="{Binding ObjetDossier}"
                      AcceptsReturn="True" TextWrapping="Wrap" MinHeight="56" />
 
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="Coût du cahier des charges (FCFA)" VerticalAlignment="Center" />
+            <TextBlock Classes="field-label" Grid.Row="3" Grid.Column="0">Coût du cahier des charges (FCFA)</TextBlock>
             <NumericUpDown Grid.Row="3" Grid.Column="1"
                            Value="{Binding CoutCahierCharges}"
                            Minimum="0" FormatString="N0" ShowButtonSpinner="False" />
 
-            <TextBlock Grid.Row="4" Grid.Column="0" Text="Montant de la caution (FCFA)" VerticalAlignment="Center" />
+            <TextBlock Classes="field-label" Grid.Row="4" Grid.Column="0">Montant de la caution (FCFA)</TextBlock>
             <NumericUpDown Grid.Row="4" Grid.Column="1"
                            Value="{Binding MontantCaution}"
                            Minimum="0" FormatString="N0" ShowButtonSpinner="False" />
         </Grid>
 
         <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-            <TextBlock Text="{Binding Erreur}" Foreground="#B91C1C" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
         </Border>
 
+        <Border Classes="divider" />
+
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button Content="Annuler" Command="{Binding AnnulerCommand}" />
+            <Button Content="Annuler" Command="{Binding AnnulerCommand}" Classes="ghost" />
             <Button Content="Enregistrer" Command="{Binding ValiderCommand}" Classes="accent" />
         </StackPanel>
     </StackPanel>

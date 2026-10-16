@@ -1,0 +1,140 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Palette de design (design tokens) — SIGMP Offline.
+        Les couleurs sont déclarées par variante de thème (Light / Dark) via ThemeDictionaries.
+        Les vues ne doivent plus référencer de code hexadécimal en dur : elles consomment
+        ces jetons avec {DynamicResource ...} pour que le changement de thème soit immédiat.
+    -->
+
+    <ResourceDictionary.ThemeDictionaries>
+
+        <!-- ===================== THÈME CLAIR ===================== -->
+        <ResourceDictionary x:Key="Light">
+
+            <!-- Accent Fluent (bleu institutionnel) -->
+            <Color x:Key="SystemAccentColor">#2563EB</Color>
+            <Color x:Key="SystemAccentColorLight1">#3B82F6</Color>
+            <Color x:Key="SystemAccentColorLight2">#60A5FA</Color>
+            <Color x:Key="SystemAccentColorLight3">#93C5FD</Color>
+            <Color x:Key="SystemAccentColorDark1">#1D4ED8</Color>
+            <Color x:Key="SystemAccentColorDark2">#1E40AF</Color>
+            <Color x:Key="SystemAccentColorDark3">#1E3A8A</Color>
+
+            <!-- Surfaces -->
+            <SolidColorBrush x:Key="AppBackgroundBrush" Color="#F4F6FA" />
+            <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="SurfaceAltBrush" Color="#EEF2F7" />
+            <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#E7EDF5" />
+
+            <!-- Barre latérale -->
+            <SolidColorBrush x:Key="SidebarBrush" Color="#12233B" />
+            <SolidColorBrush x:Key="SidebarHoverBrush" Color="#1C3350" />
+            <SolidColorBrush x:Key="SidebarActiveBrush" Color="#2563EB" />
+            <SolidColorBrush x:Key="SidebarTextBrush" Color="#C3D2E2" />
+            <SolidColorBrush x:Key="SidebarTextActiveBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="SidebarMutedBrush" Color="#8296AB" />
+            <SolidColorBrush x:Key="SidebarDividerBrush" Color="#1E3350" />
+
+            <!-- Texte -->
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1B2430" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="#5B6B7C" />
+            <SolidColorBrush x:Key="TextDisabledBrush" Color="#9AA7B4" />
+            <SolidColorBrush x:Key="TextOnAccentBrush" Color="#FFFFFF" />
+
+            <!-- Bordures & séparateurs -->
+            <SolidColorBrush x:Key="BorderBrush" Color="#DCE3EA" />
+            <SolidColorBrush x:Key="DividerBrush" Color="#E8EDF2" />
+
+            <!-- Accent -->
+            <SolidColorBrush x:Key="AccentBrush" Color="#2563EB" />
+            <SolidColorBrush x:Key="AccentHoverBrush" Color="#1D4ED8" />
+            <SolidColorBrush x:Key="AccentPressedBrush" Color="#1E40AF" />
+            <SolidColorBrush x:Key="AccentSubtleBrush" Color="#E3EDFD" />
+
+            <!-- Sémantique -->
+            <SolidColorBrush x:Key="SuccessBrush" Color="#15803D" />
+            <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="#ECFDF3" />
+            <SolidColorBrush x:Key="SuccessBorderBrush" Color="#A7F3D0" />
+            <SolidColorBrush x:Key="InfoBrush" Color="#1D4ED8" />
+            <SolidColorBrush x:Key="InfoSurfaceBrush" Color="#EFF6FF" />
+            <SolidColorBrush x:Key="InfoBorderBrush" Color="#BFDBFE" />
+            <SolidColorBrush x:Key="WarningBrush" Color="#B45309" />
+            <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#FFF7ED" />
+            <SolidColorBrush x:Key="WarningBorderBrush" Color="#FED7AA" />
+            <SolidColorBrush x:Key="DangerBrush" Color="#DC2626" />
+            <SolidColorBrush x:Key="DangerHoverBrush" Color="#B91C1C" />
+            <SolidColorBrush x:Key="DangerPressedBrush" Color="#991B1B" />
+            <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#FEF2F2" />
+            <SolidColorBrush x:Key="DangerBorderBrush" Color="#FCA5A5" />
+        </ResourceDictionary>
+
+        <!-- ===================== THÈME SOMBRE ===================== -->
+        <ResourceDictionary x:Key="Dark">
+
+            <Color x:Key="SystemAccentColor">#3B82F6</Color>
+            <Color x:Key="SystemAccentColorLight1">#60A5FA</Color>
+            <Color x:Key="SystemAccentColorLight2">#93C5FD</Color>
+            <Color x:Key="SystemAccentColorLight3">#BFDBFE</Color>
+            <Color x:Key="SystemAccentColorDark1">#2563EB</Color>
+            <Color x:Key="SystemAccentColorDark2">#1D4ED8</Color>
+            <Color x:Key="SystemAccentColorDark3">#1E40AF</Color>
+
+            <!-- Surfaces -->
+            <SolidColorBrush x:Key="AppBackgroundBrush" Color="#0E1621" />
+            <SolidColorBrush x:Key="SurfaceBrush" Color="#16202B" />
+            <SolidColorBrush x:Key="SurfaceAltBrush" Color="#1E2A38" />
+            <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#24313F" />
+
+            <!-- Barre latérale -->
+            <SolidColorBrush x:Key="SidebarBrush" Color="#0A121C" />
+            <SolidColorBrush x:Key="SidebarHoverBrush" Color="#16273A" />
+            <SolidColorBrush x:Key="SidebarActiveBrush" Color="#2563EB" />
+            <SolidColorBrush x:Key="SidebarTextBrush" Color="#A6B6C6" />
+            <SolidColorBrush x:Key="SidebarTextActiveBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="SidebarMutedBrush" Color="#6E8095" />
+            <SolidColorBrush x:Key="SidebarDividerBrush" Color="#16273A" />
+
+            <!-- Texte -->
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="#E6EDF3" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="#9FB0C0" />
+            <SolidColorBrush x:Key="TextDisabledBrush" Color="#63738A" />
+            <SolidColorBrush x:Key="TextOnAccentBrush" Color="#FFFFFF" />
+
+            <!-- Bordures & séparateurs -->
+            <SolidColorBrush x:Key="BorderBrush" Color="#26333F" />
+            <SolidColorBrush x:Key="DividerBrush" Color="#1E2A38" />
+
+            <!-- Accent -->
+            <SolidColorBrush x:Key="AccentBrush" Color="#3B82F6" />
+            <SolidColorBrush x:Key="AccentHoverBrush" Color="#60A5FA" />
+            <SolidColorBrush x:Key="AccentPressedBrush" Color="#2563EB" />
+            <SolidColorBrush x:Key="AccentSubtleBrush" Color="#172A45" />
+
+            <!-- Sémantique -->
+            <SolidColorBrush x:Key="SuccessBrush" Color="#4ADE80" />
+            <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="#10291D" />
+            <SolidColorBrush x:Key="SuccessBorderBrush" Color="#1E5B3A" />
+            <SolidColorBrush x:Key="InfoBrush" Color="#7FB0FB" />
+            <SolidColorBrush x:Key="InfoSurfaceBrush" Color="#111F33" />
+            <SolidColorBrush x:Key="InfoBorderBrush" Color="#1E3A5F" />
+            <SolidColorBrush x:Key="WarningBrush" Color="#FBBF24" />
+            <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#2A2110" />
+            <SolidColorBrush x:Key="WarningBorderBrush" Color="#7C5210" />
+            <SolidColorBrush x:Key="DangerBrush" Color="#F87171" />
+            <SolidColorBrush x:Key="DangerHoverBrush" Color="#FCA5A5" />
+            <SolidColorBrush x:Key="DangerPressedBrush" Color="#EF4444" />
+            <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#2A1416" />
+            <SolidColorBrush x:Key="DangerBorderBrush" Color="#7F1D1D" />
+        </ResourceDictionary>
+
+    </ResourceDictionary.ThemeDictionaries>
+
+    <!-- ===================== JETONS GÉOMÉTRIQUES (indépendants du thème) ===================== -->
+    <CornerRadius x:Key="RadiusControl">6</CornerRadius>
+    <CornerRadius x:Key="RadiusPanel">8</CornerRadius>
+    <CornerRadius x:Key="RadiusCard">10</CornerRadius>
+    <CornerRadius x:Key="RadiusPill">999</CornerRadius>
+
+</ResourceDictionary>

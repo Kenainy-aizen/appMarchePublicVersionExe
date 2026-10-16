@@ -11,20 +11,22 @@
         CanResize="False" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
 
-    <StackPanel Margin="20" Spacing="16">
-        <TextBlock Text="{Binding Titre}" FontSize="16" FontWeight="SemiBold" />
+    <StackPanel Margin="22" Spacing="16">
+        <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
 
         <StackPanel Spacing="6">
-            <TextBlock Text="Référence du TEF *" />
+            <TextBlock Classes="field-label">Référence du TEF <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
             <TextBox Text="{Binding RefTef}" PlaceholderText="ex. TEF-2026-001" />
         </StackPanel>
 
         <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-            <TextBlock Text="{Binding Erreur}" Foreground="#B91C1C" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
         </Border>
 
+        <Border Classes="divider" />
+
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button Content="Annuler" Command="{Binding AnnulerCommand}" />
+            <Button Content="Annuler" Command="{Binding AnnulerCommand}" Classes="ghost" />
             <Button Content="Enregistrer" Command="{Binding ValiderCommand}" Classes="accent" />
         </StackPanel>
     </StackPanel>

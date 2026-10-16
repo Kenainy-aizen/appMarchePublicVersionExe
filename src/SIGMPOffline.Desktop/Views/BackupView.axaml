@@ -9,49 +9,61 @@
 
     <ScrollViewer>
         <StackPanel Spacing="16">
-            <TextBlock Classes="page-title" Text="Sauvegarde &amp; Restauration" />
 
+            <!-- En-tête -->
+            <StackPanel Spacing="2">
+                <TextBlock Classes="page-title" Text="Sauvegarde &amp; Restauration" />
+                <TextBlock Classes="page-subtitle"
+                           Text="Copiez la base sur une clé USB ou restaurez une sauvegarde." />
+            </StackPanel>
+
+            <!-- Messages -->
             <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                <TextBlock Text="{Binding Erreur}" Foreground="#B91C1C" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
             </Border>
             <Border Classes="success" IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                <TextBlock Text="{Binding Message}" Foreground="#15803D" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
             </Border>
 
+            <!-- Base active -->
             <Border Classes="card">
                 <StackPanel Spacing="6">
                     <TextBlock Classes="section-title" Text="Base de données active" />
-                    <TextBlock Text="{Binding BaseDeDonneesPath}" Foreground="#334155" TextWrapping="Wrap" />
+                    <TextBlock Classes="muted" Text="{Binding BaseDeDonneesPath}" TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
 
+            <!-- Sauvegarde -->
             <Border Classes="card">
-                <StackPanel Spacing="10">
+                <StackPanel Spacing="12">
                     <TextBlock Classes="section-title" Text="Sauvegarder vers un support externe (clé USB)" />
-                    <TextBlock Text="Dossier de destination (laisser vide = dossier de sauvegardes par défaut)"
-                               Foreground="#64748B" />
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBox Text="{Binding DossierDestination}" Width="420"
-                                 PlaceholderText="/media/usb/SIGMP" />
-                        <Button Content="Parcourir…" Command="{Binding ParcourirDossierCommand}" />
-                        <Button Content="Sauvegarder" Command="{Binding SauvegarderCommand}" Classes="accent" />
-                    </StackPanel>
+                    <TextBlock Classes="muted"
+                               Text="Dossier de destination (laisser vide = dossier de sauvegardes par défaut)" />
+                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                        <TextBox Text="{Binding DossierDestination}" PlaceholderText="/media/usb/SIGMP" />
+                        <Button Grid.Column="1" Content="Parcourir…" Command="{Binding ParcourirDossierCommand}" />
+                        <Button Grid.Column="2" Content="Sauvegarder" Command="{Binding SauvegarderCommand}" Classes="accent" />
+                    </Grid>
                 </StackPanel>
             </Border>
 
+            <!-- Restauration -->
             <Border Classes="card">
-                <StackPanel Spacing="10">
+                <StackPanel Spacing="12">
                     <TextBlock Classes="section-title" Text="Restaurer depuis un fichier de sauvegarde" />
-                    <TextBlock Text="Chemin du fichier .db à restaurer (redémarrage requis après restauration)"
-                               Foreground="#64748B" />
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBox Text="{Binding FichierRestauration}" Width="420"
+                    <Border Classes="warning">
+                        <TextBlock TextWrapping="Wrap"
+                                   Text="La restauration remplace toutes les données actuelles par celles de la sauvegarde. Un redémarrage est recommandé ensuite." />
+                    </Border>
+                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                        <TextBox Text="{Binding FichierRestauration}"
                                  PlaceholderText="/media/usb/SIGMP/sigmp-backup-....db" />
-                        <Button Content="Parcourir…" Command="{Binding ParcourirFichierRestaurationCommand}" />
-                        <Button Content="Restaurer" Command="{Binding RestaurerCommand}" />
-                    </StackPanel>
+                        <Button Grid.Column="1" Content="Parcourir…" Command="{Binding ParcourirFichierRestaurationCommand}" />
+                        <Button Grid.Column="2" Content="Restaurer" Command="{Binding RestaurerCommand}" />
+                    </Grid>
                 </StackPanel>
             </Border>
+
         </StackPanel>
     </ScrollViewer>
 </UserControl>

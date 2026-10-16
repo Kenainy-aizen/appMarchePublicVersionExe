@@ -8,43 +8,47 @@
              x:Class="SIGMPOffline.Desktop.Views.MarcheView"
              x:DataType="vm:MarcheViewModel">
 
-    <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
-        <!-- Barre d'actions -->
+    <Grid RowDefinitions="Auto,Auto,*" RowSpacing="14">
+
+        <!-- En-tête + barre d'actions -->
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
-            <TextBlock Classes="page-title" Text="Marchés &amp; Bordereaux" VerticalAlignment="Center" />
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+            <StackPanel Spacing="2">
+                <TextBlock Classes="page-title" Text="Marchés &amp; Bordereaux" />
+                <TextBlock Classes="page-subtitle" Text="Marchés attribués et détail quantitatif/estimatif." />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
                 <Button Content="Nouveau marché" Command="{Binding NouveauMarcheCommand}" Classes="accent" />
                 <Button Content="Modifier" Command="{Binding ModifierMarcheCommand}" IsEnabled="{Binding AUnMarche}" />
-                <Button Content="Supprimer" Command="{Binding SupprimerMarcheCommand}" IsEnabled="{Binding AUnMarche}" />
-                <Button Content="Actualiser" Command="{Binding ChargerCommand}" />
+                <Button Content="Supprimer" Command="{Binding SupprimerMarcheCommand}" IsEnabled="{Binding AUnMarche}" Classes="danger" />
+                <Button Content="Actualiser" Command="{Binding ChargerCommand}" Classes="ghost" />
             </StackPanel>
         </Grid>
 
+        <!-- Messages -->
         <StackPanel Grid.Row="1" Spacing="8">
             <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                <TextBlock Text="{Binding Erreur}" Foreground="#B91C1C" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
             </Border>
             <Border Classes="success" IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                <TextBlock Text="{Binding Message}" Foreground="#15803D" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
             </Border>
         </StackPanel>
 
-        <Grid Grid.Row="2" ColumnDefinitions="340,*" ColumnSpacing="12">
+        <Grid Grid.Row="2" ColumnDefinitions="340,*" ColumnSpacing="14">
+
             <!-- Liste des marchés -->
             <Border Classes="card">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Classes="section-title" Text="Marchés" />
-                    <ListBox ItemsSource="{Binding Marches}"
-                             SelectedItem="{Binding MarcheSelectionne}"
-                             Background="Transparent">
+                    <TextBlock DockPanel.Dock="Top" Classes="section-title" Text="Marchés" Margin="0,0,0,10" />
+                    <ListBox ItemsSource="{Binding Marches}" SelectedItem="{Binding MarcheSelectionne}">
                         <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="ent:Marche">
-                                <StackPanel Margin="0,4">
+                                <StackPanel Margin="0,2" Spacing="2">
                                     <TextBlock Text="{Binding RefMarche}" FontWeight="SemiBold" />
-                                    <TextBlock Text="{Binding ObjetMarche}" Foreground="#64748B"
+                                    <TextBlock Text="{Binding ObjetMarche}" Classes="muted"
                                                FontSize="12" TextWrapping="Wrap" />
                                     <TextBlock Text="{Binding MontantTTC, StringFormat='{}{0:N0} FCFA TTC'}"
-                                               Foreground="#334155" FontSize="12" />
+                                               FontSize="12" FontWeight="Medium" />
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -55,34 +59,56 @@
             <!-- Bordereau du marché sélectionné -->
             <Border Grid.Column="1" Classes="card">
                 <DockPanel>
-                    <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,8">
+                    <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,10">
                         <TextBlock Classes="section-title" Text="{Binding MarcheSelectionne.RefMarche}" />
-                        <TextBlock Text="{Binding MarcheSelectionne.ObjetMarche}" Foreground="#64748B"
-                                   TextWrapping="Wrap" />
-                        <Grid ColumnDefinitions="*,*,*" Margin="0,4,0,0">
-                            <TextBlock Grid.Column="0"
-                                       Text="{Binding MarcheSelectionne.MontantHT, StringFormat='HT : {0:N0} FCFA'}" />
-                            <TextBlock Grid.Column="1"
-                                       Text="{Binding MarcheSelectionne.MontantTTC, StringFormat='TTC : {0:N0} FCFA'}" />
-                            <TextBlock Grid.Column="2"
-                                       Text="{Binding MarcheSelectionne.DelaiExecutionJours, StringFormat='Délai : {0} j'}" />
-                        </Grid>
+                        <TextBlock Classes="muted" Text="{Binding MarcheSelectionne.ObjetMarche}" TextWrapping="Wrap" />
                     </StackPanel>
 
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8"
+                    <!-- Synthèse des montants -->
+                    <Border DockPanel.Dock="Top" Classes="panel" Margin="0,0,0,12">
+                        <Grid ColumnDefinitions="*,*,*">
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBlock Classes="kpi-label" Text="Montant HT" />
+                                <TextBlock FontWeight="SemiBold"
+                                           Text="{Binding MarcheSelectionne.MontantHT, StringFormat='{}{0:N0} FCFA'}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Classes="kpi-label" Text="Montant TTC" />
+                                <TextBlock FontWeight="SemiBold"
+                                           Text="{Binding MarcheSelectionne.MontantTTC, StringFormat='{}{0:N0} FCFA'}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="2">
+                                <TextBlock Classes="kpi-label" Text="Délai d'exécution" />
+                                <TextBlock FontWeight="SemiBold"
+                                           Text="{Binding MarcheSelectionne.DelaiExecutionJours, StringFormat='{}{0} jours'}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Actions bordereau -->
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,10"
                                 IsEnabled="{Binding AUnMarche}">
                         <Button Content="Ajouter un élément" Command="{Binding AjouterElementCommand}" Classes="accent" />
                         <Button Content="Modifier" Command="{Binding ModifierElementCommand}" IsEnabled="{Binding AUnElement}" />
-                        <Button Content="Supprimer" Command="{Binding SupprimerElementCommand}" IsEnabled="{Binding AUnElement}" />
-                        <Button Content="Recalculer les montants" Command="{Binding RecalculerMontantsCommand}" />
+                        <Button Content="Supprimer" Command="{Binding SupprimerElementCommand}" IsEnabled="{Binding AUnElement}" Classes="danger" />
+                        <Button Content="Recalculer les montants" Command="{Binding RecalculerMontantsCommand}" Classes="ghost" />
                     </StackPanel>
 
-                    <ListBox ItemsSource="{Binding Elements}"
-                             SelectedItem="{Binding ElementSelectionne}"
-                             Background="Transparent">
+                    <Border DockPanel.Dock="Top" Classes="list-header">
+                        <Grid ColumnDefinitions="90,*,120,90,80,140">
+                            <TextBlock Grid.Column="0" Text="Code" />
+                            <TextBlock Grid.Column="1" Text="Libellé" />
+                            <TextBlock Grid.Column="2" Text="Prix unitaire" HorizontalAlignment="Right" />
+                            <TextBlock Grid.Column="3" Text="Qté" HorizontalAlignment="Right" />
+                            <TextBlock Grid.Column="4" Text="Unité" HorizontalAlignment="Center" />
+                            <TextBlock Grid.Column="5" Text="Montant" HorizontalAlignment="Right" />
+                        </Grid>
+                    </Border>
+
+                    <ListBox ItemsSource="{Binding Elements}" SelectedItem="{Binding ElementSelectionne}">
                         <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="ent:ElementMarche">
-                                <Grid ColumnDefinitions="90,*,120,90,80,140" Margin="0,4">
+                                <Grid ColumnDefinitions="90,*,120,90,80,140">
                                     <TextBlock Grid.Column="0" Text="{Binding CodeElement}" FontWeight="SemiBold" />
                                     <TextBlock Grid.Column="1" Text="{Binding Libelle}" TextWrapping="Wrap" />
                                     <TextBlock Grid.Column="2"
@@ -90,11 +116,11 @@
                                                HorizontalAlignment="Right" />
                                     <TextBlock Grid.Column="3" Text="{Binding Quantite, StringFormat='x {0:N2}'}"
                                                HorizontalAlignment="Right" />
-                                    <TextBlock Grid.Column="4" Text="{Binding Unite}" Foreground="#64748B" />
+                                    <TextBlock Grid.Column="4" Text="{Binding Unite}" Classes="muted"
+                                               HorizontalAlignment="Center" />
                                     <TextBlock Grid.Column="5"
                                                Text="{Binding MontantLigne, StringFormat='{}{0:N0} FCFA'}"
-                                               FontWeight="SemiBold"
-                                               HorizontalAlignment="Right" />
+                                               FontWeight="SemiBold" HorizontalAlignment="Right" />
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>

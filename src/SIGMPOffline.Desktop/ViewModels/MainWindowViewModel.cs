@@ -1,4 +1,7 @@
+using Avalonia;
+using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace SIGMPOffline.Desktop.ViewModels;
 
@@ -9,6 +12,9 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     [ObservableProperty] private NavigationItem _selectedItem;
     [ObservableProperty] private ViewModelBase _currentPage;
+
+    /// <summary>Indique si le thème sombre est actif (pilote l'icône de bascule).</summary>
+    [ObservableProperty] private bool _estThemeSombre;
 
     /// <summary>Entrées du menu latéral (un module par page).</summary>
     public IReadOnlyList<NavigationItem> NavigationItems { get; }
@@ -23,20 +29,36 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         NavigationItems = new List<NavigationItem>
         {
-            new("Tableau de bord", "📊", dashboard),
-            new("Plan de passation (PPM)", "🗂️", ppm),
-            new("DAO & Attribution", "📁", dao),
-            new("Marchés", "📄", marches),
-            new("Suivi d'exécution", "⏱️", suivi),
-            new("Sauvegarde", "💾", backup)
+            new("Tableau de bord", Icones.TableauDeBord, dashboard),
+            new("Plan de passation (PPM)", Icones.Ppm, ppm),
+            new("DAO & Attribution", Icones.Dao, dao),
+            new("Marchés", Icones.Marche, marches),
+            new("Suivi d'exécution", Icones.Suivi, suivi),
+            new("Sauvegarde", Icones.Sauvegarde, backup)
         };
 
         _selectedItem = NavigationItems[0];
         _currentPage = _selectedItem.ViewModel;
+
+        _estThemeSombre = Application.Current?.ActualThemeVariant == ThemeVariant.Dark;
     }
 
     /// <summary>Charge la page initiale (appelé au démarrage).</summary>
     public Task InitialiserAsync() => ActiverAsync(CurrentPage);
+
+    /// <summary>Bascule entre le thème clair et le thème sombre.</summary>
+    [RelayCommand]
+    private void BasculerTheme()
+    {
+        if (Application.Current is not { } app)
+        {
+            return;
+        }
+
+        var versSombre = app.ActualThemeVariant != ThemeVariant.Dark;
+        app.RequestedThemeVariant = versSombre ? ThemeVariant.Dark : ThemeVariant.Light;
+        EstThemeSombre = versSombre;
+    }
 
     partial void OnSelectedItemChanged(NavigationItem value)
     {

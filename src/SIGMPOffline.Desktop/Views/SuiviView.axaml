@@ -8,25 +8,30 @@
              x:Class="SIGMPOffline.Desktop.Views.SuiviView"
              x:DataType="vm:SuiviViewModel">
 
-    <Grid RowDefinitions="Auto,*" RowSpacing="12">
+    <Grid RowDefinitions="Auto,*" RowSpacing="14">
+
+        <!-- En-tête -->
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
-            <TextBlock Classes="page-title" Text="Suivi d'exécution" VerticalAlignment="Center" />
-            <Button Grid.Column="1" Content="Actualiser" Command="{Binding ChargerCommand}" />
+            <StackPanel Spacing="2">
+                <TextBlock Classes="page-title" Text="Suivi d'exécution" />
+                <TextBlock Classes="page-subtitle" Text="Ordres de service, TEF, réceptions, avenants et clôture." />
+            </StackPanel>
+            <Button Grid.Column="1" Classes="ghost" Content="Actualiser"
+                    Command="{Binding ChargerCommand}" VerticalAlignment="Top" />
         </Grid>
 
-        <Grid Grid.Row="1" ColumnDefinitions="300,*" ColumnSpacing="12">
+        <Grid Grid.Row="1" ColumnDefinitions="300,*" ColumnSpacing="14">
+
             <!-- Liste des marchés -->
             <Border Classes="card">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Classes="section-title" Text="Marchés" />
-                    <ListBox ItemsSource="{Binding Marches}"
-                             SelectedItem="{Binding MarcheSelectionne}"
-                             Background="Transparent">
+                    <TextBlock DockPanel.Dock="Top" Classes="section-title" Text="Marchés" Margin="0,0,0,10" />
+                    <ListBox ItemsSource="{Binding Marches}" SelectedItem="{Binding MarcheSelectionne}">
                         <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="ent:Marche">
-                                <StackPanel Margin="0,4">
+                                <StackPanel Margin="0,2">
                                     <TextBlock Text="{Binding RefMarche}" FontWeight="SemiBold" />
-                                    <TextBlock Text="{Binding ObjetMarche}" Foreground="#64748B"
+                                    <TextBlock Text="{Binding ObjetMarche}" Classes="muted"
                                                FontSize="12" TextWrapping="Wrap" />
                                 </StackPanel>
                             </DataTemplate>
@@ -37,54 +42,50 @@
 
             <ScrollViewer Grid.Column="1">
                 <StackPanel Spacing="12">
+
                     <!-- Messages -->
                     <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                        <TextBlock Text="{Binding Erreur}" Foreground="#B91C1C" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
                     </Border>
                     <Border Classes="success" IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                        <TextBlock Text="{Binding Message}" Foreground="#15803D" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
                     </Border>
 
-                    <!-- Situation -->
+                    <!-- Situation d'exécution -->
                     <Border Classes="card">
-                        <StackPanel Spacing="8">
+                        <StackPanel Spacing="12">
                             <TextBlock Classes="section-title" Text="Situation d'exécution" />
 
-                            <Grid ColumnDefinitions="220,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6">
-                                <TextBlock Grid.Row="0" Grid.Column="0" Classes="kpi-label" Text="Objet du marché" />
+                            <Grid ColumnDefinitions="230,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Classes="field-label" Text="Objet du marché" />
                                 <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Situation.ObjetMarche}" TextWrapping="Wrap" />
 
-                                <TextBlock Grid.Row="1" Grid.Column="0" Classes="kpi-label" Text="Ordre de service (OS)" />
+                                <TextBlock Grid.Row="1" Grid.Column="0" Classes="field-label" Text="Ordre de service (OS)" />
                                 <TextBlock Grid.Row="1" Grid.Column="1"
                                            Text="{Binding Situation.DateOS, StringFormat='{}{0:dd/MM/yyyy}', TargetNullValue='Non émis'}" />
 
-                                <TextBlock Grid.Row="2" Grid.Column="0" Classes="kpi-label" Text="Titre d'engagement financier" />
+                                <TextBlock Grid.Row="2" Grid.Column="0" Classes="field-label" Text="Titre d'engagement financier" />
                                 <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Situation.RefTef, TargetNullValue='—'}" />
 
-                                <TextBlock Grid.Row="3" Grid.Column="0" Classes="kpi-label" Text="Date limite d'exécution" />
+                                <TextBlock Grid.Row="3" Grid.Column="0" Classes="field-label" Text="Date limite d'exécution" />
                                 <TextBlock Grid.Row="3" Grid.Column="1"
                                            Text="{Binding Situation.DateLimiteExecution, StringFormat='{}{0:dd/MM/yyyy}', TargetNullValue='—'}" />
 
-                                <TextBlock Grid.Row="4" Grid.Column="0" Classes="kpi-label" Text="Jours restants" />
-                                <Grid Grid.Row="4" Grid.Column="1" ColumnDefinitions="*,Auto">
-                                    <TextBlock Grid.Column="0" Text="{Binding Situation.JoursRestants, TargetNullValue='—'}" />
-                                    <TextBlock Grid.Column="1"
-                                               Text="⛔ En retard"
-                                               Foreground="#DC2626"
-                                               FontWeight="Bold"
-                                               IsVisible="{Binding Situation.EstEnRetard}" />
-                                </Grid>
+                                <TextBlock Grid.Row="4" Grid.Column="0" Classes="field-label" Text="Jours restants" />
+                                <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{Binding Situation.JoursRestants, TargetNullValue='—'}" VerticalAlignment="Center" />
+                                    <Border Classes="badge danger" IsVisible="{Binding Situation.EstEnRetard}">
+                                        <TextBlock Text="En retard" />
+                                    </Border>
+                                </StackPanel>
 
-                                <TextBlock Grid.Row="5" Grid.Column="0" Classes="kpi-label" Text="Statut" />
-                                <Grid Grid.Row="5" Grid.Column="1" ColumnDefinitions="*,Auto">
-                                    <TextBlock Grid.Column="0"
-                                               Text="{Binding Situation.Statut, Converter={StaticResource EnumLibelle}}" />
-                                    <TextBlock Grid.Column="1"
-                                               Text="✅ Clôturé"
-                                               Foreground="#16A34A"
-                                               FontWeight="Bold"
-                                               IsVisible="{Binding Situation.EstCloture}" />
-                                </Grid>
+                                <TextBlock Grid.Row="5" Grid.Column="0" Classes="field-label" Text="Statut" />
+                                <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{Binding Situation.Statut, Converter={StaticResource EnumLibelle}}" VerticalAlignment="Center" />
+                                    <Border Classes="badge success" IsVisible="{Binding Situation.EstCloture}">
+                                        <TextBlock Text="Clôturé" />
+                                    </Border>
+                                </StackPanel>
                             </Grid>
                         </StackPanel>
                     </Border>
@@ -100,37 +101,44 @@
                                 <Button Content="Réception définitive" Command="{Binding ReceptionDefinitiveCommand}" Margin="0,0,8,8" />
                                 <Button Content="Clôturer le marché" Command="{Binding CloturerCommand}" Classes="accent" Margin="0,0,8,8" />
                             </WrapPanel>
-                            <TextBlock Text="Ce marché est clôturé : aucune nouvelle action n'est possible."
-                                       Foreground="#16A34A" TextWrapping="Wrap"
-                                       IsVisible="{Binding Situation.EstCloture}" />
+                            <Border Classes="success" IsVisible="{Binding Situation.EstCloture}">
+                                <TextBlock Text="Ce marché est clôturé : aucune nouvelle action n'est possible." TextWrapping="Wrap" />
+                            </Border>
                         </StackPanel>
                     </Border>
 
                     <!-- Avenants -->
                     <Border Classes="card">
                         <DockPanel>
-                            <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,8">
-                                <TextBlock Classes="section-title" Text="Avenants" Margin="0" />
+                            <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0,0,0,10">
+                                <TextBlock Classes="section-title" Text="Avenants" />
                                 <WrapPanel Orientation="Horizontal" IsEnabled="{Binding PeutModifier}">
-                                    <Button Content="Ajouter" Command="{Binding AjouterAvenantCommand}" Margin="0,0,8,8" />
+                                    <Button Content="Ajouter" Command="{Binding AjouterAvenantCommand}" Classes="accent" Margin="0,0,8,0" />
                                     <Button Content="Modifier" Command="{Binding ModifierAvenantCommand}"
-                                            IsEnabled="{Binding AUnAvenant}" Margin="0,0,8,8" />
+                                            IsEnabled="{Binding AUnAvenant}" Margin="0,0,8,0" />
                                     <Button Content="Supprimer" Command="{Binding SupprimerAvenantCommand}"
-                                            IsEnabled="{Binding AUnAvenant}" Margin="0,0,8,8" />
+                                            IsEnabled="{Binding AUnAvenant}" Classes="danger" />
                                 </WrapPanel>
                             </StackPanel>
 
-                            <ListBox ItemsSource="{Binding Avenants}"
-                                     SelectedItem="{Binding AvenantSelectionne}"
-                                     Background="Transparent">
+                            <Border DockPanel.Dock="Top" Classes="list-header">
+                                <Grid ColumnDefinitions="110,120,*,160,130">
+                                    <TextBlock Grid.Column="0" Text="N°" />
+                                    <TextBlock Grid.Column="1" Text="Date" />
+                                    <TextBlock Grid.Column="2" Text="Motif" />
+                                    <TextBlock Grid.Column="3" Text="Variation" HorizontalAlignment="Right" />
+                                    <TextBlock Grid.Column="4" Text="Délai" HorizontalAlignment="Right" />
+                                </Grid>
+                            </Border>
+
+                            <ListBox ItemsSource="{Binding Avenants}" SelectedItem="{Binding AvenantSelectionne}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="ent:Avenant">
-                                        <Grid ColumnDefinitions="110,120,*,160,130" Margin="0,4">
+                                        <Grid ColumnDefinitions="110,120,*,160,130">
                                             <TextBlock Grid.Column="0" Text="{Binding NumAvenant}" FontWeight="SemiBold" />
                                             <TextBlock Grid.Column="1"
                                                        Text="{Binding DateAvenant, StringFormat='{}{0:dd/MM/yyyy}'}" />
-                                            <TextBlock Grid.Column="2" Text="{Binding Motif}" Foreground="#64748B"
-                                                       TextWrapping="Wrap" />
+                                            <TextBlock Grid.Column="2" Text="{Binding Motif}" Classes="muted" TextWrapping="Wrap" />
                                             <TextBlock Grid.Column="3"
                                                        Text="{Binding VariationMontant, StringFormat='{}{0:N0} FCFA'}"
                                                        HorizontalAlignment="Right" />
@@ -143,6 +151,7 @@
                             </ListBox>
                         </DockPanel>
                     </Border>
+
                 </StackPanel>
             </ScrollViewer>
         </Grid>

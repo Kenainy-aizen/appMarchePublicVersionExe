@@ -8,28 +8,66 @@
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Width="1200" Height="720"
-        MinWidth="900" MinHeight="600"
+        MinWidth="960" MinHeight="620"
         Title="SIGMP Offline — Suivi des Marchés Publics">
 
     <DockPanel>
-        <!-- Menu latéral -->
-        <Border DockPanel.Dock="Left" Width="250" Background="#152238">
+        <!-- ============ Barre latérale ============ -->
+        <Border DockPanel.Dock="Left" Width="264" Background="{DynamicResource SidebarBrush}">
             <DockPanel>
-                <StackPanel DockPanel.Dock="Top" Margin="20,20,20,12" Spacing="2">
-                    <TextBlock Text="SIGMP Offline" Foreground="White" FontSize="20" FontWeight="Bold" />
-                    <TextBlock Text="Suivi des Marchés Publics" Foreground="#9FB3C8" FontSize="12" />
-                </StackPanel>
 
-                <ListBox ItemsSource="{Binding NavigationItems}"
+                <!-- En-tête / marque -->
+                <Border DockPanel.Dock="Top" Padding="20,22,20,18">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Border Width="38" Height="38" CornerRadius="9" Background="{DynamicResource AccentBrush}">
+                            <TextBlock Text="S" FontSize="19" FontWeight="Bold"
+                                       Foreground="{DynamicResource TextOnAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="SIGMP Offline" FontSize="17" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource SidebarTextActiveBrush}" />
+                            <TextBlock Text="Suivi des Marchés Publics" FontSize="11"
+                                       Foreground="{DynamicResource SidebarMutedBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Pied de page -->
+                <Border DockPanel.Dock="Bottom" Padding="16,12"
+                        BorderBrush="{DynamicResource SidebarDividerBrush}" BorderThickness="0,1,0,0">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Version 1.0" FontSize="11"
+                                       Foreground="{DynamicResource SidebarMutedBrush}" />
+                            <TextBlock Text="100 % hors-ligne" FontSize="11"
+                                       Foreground="{DynamicResource SidebarMutedBrush}" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Classes="icon sidebar"
+                                Command="{Binding BasculerThemeCommand}"
+                                ToolTip.Tip="Changer de thème">
+                            <Panel>
+                                <!-- Soleil (thème clair actif) -->
+                                <PathIcon Width="18" Height="18" IsVisible="{Binding !EstThemeSombre}"
+                                          Data="M12 8 A4 4 0 1 0 12 16 A4 4 0 1 0 12 8 Z M11 1 H13 V4 H11 Z M11 20 H13 V23 H11 Z M1 11 H4 V13 H1 Z M20 11 H23 V13 H20 Z M4 5 H6 V7 H4 Z M18 5 H20 V7 H18 Z M4 17 H6 V19 H4 Z M18 17 H20 V19 H18 Z" />
+                                <!-- Lune (thème sombre actif) -->
+                                <PathIcon Width="18" Height="18" IsVisible="{Binding EstThemeSombre}"
+                                          Data="M20.6 14.9 A9 9 0 1 1 9.1 3.4 A7 7 0 0 0 20.6 14.9 Z" />
+                            </Panel>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Navigation -->
+                <ListBox Classes="nav"
+                         ItemsSource="{Binding NavigationItems}"
                          SelectedItem="{Binding SelectedItem}"
-                         Background="Transparent"
-                         BorderThickness="0"
-                         Foreground="#E2E8F0"
-                         Margin="8">
+                         Margin="10,2,10,10">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:NavigationItem">
-                            <StackPanel Orientation="Horizontal" Spacing="12" Margin="4,6">
-                                <TextBlock Text="{Binding Icone}" FontSize="16" />
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <PathIcon Data="{Binding Icone}" Width="18" Height="18"
+                                          VerticalAlignment="Center" />
                                 <TextBlock Text="{Binding Titre}" VerticalAlignment="Center" />
                             </StackPanel>
                         </DataTemplate>
@@ -38,9 +76,9 @@
             </DockPanel>
         </Border>
 
-        <!-- Contenu de la page courante -->
-        <Border Background="#F4F6F9">
-            <ContentControl Content="{Binding CurrentPage}" Margin="20" />
+        <!-- ============ Contenu de la page courante ============ -->
+        <Border Background="{DynamicResource AppBackgroundBrush}">
+            <ContentControl Content="{Binding CurrentPage}" Margin="24" />
         </Border>
     </DockPanel>
 </Window>

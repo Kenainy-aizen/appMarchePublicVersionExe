@@ -8,43 +8,47 @@
              x:Class="SIGMPOffline.Desktop.Views.PpmView"
              x:DataType="vm:PpmViewModel">
 
-    <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
-        <!-- Barre d'actions -->
+    <Grid RowDefinitions="Auto,Auto,*" RowSpacing="14">
+
+        <!-- En-tête + barre d'actions -->
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
-            <TextBlock Classes="page-title" Text="Plan de Passation des Marchés" VerticalAlignment="Center" />
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+            <StackPanel Spacing="2">
+                <TextBlock Classes="page-title" Text="Plan de Passation des Marchés" />
+                <TextBlock Classes="page-subtitle" Text="Plans annuels et lignes de passation." />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
                 <Button Content="Nouveau PPM" Command="{Binding NouveauPpmCommand}" Classes="accent" />
                 <Button Content="Modifier" Command="{Binding ModifierPpmCommand}" IsEnabled="{Binding AUnEntete}" />
-                <Button Content="Supprimer" Command="{Binding SupprimerPpmCommand}" IsEnabled="{Binding AUnEntete}" />
-                <Button Content="Actualiser" Command="{Binding ChargerCommand}" />
+                <Button Content="Supprimer" Command="{Binding SupprimerPpmCommand}" IsEnabled="{Binding AUnEntete}" Classes="danger" />
+                <Button Content="Actualiser" Command="{Binding ChargerCommand}" Classes="ghost" />
             </StackPanel>
         </Grid>
 
+        <!-- Messages -->
         <StackPanel Grid.Row="1" Spacing="8">
             <Border Classes="error"
                     IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                <TextBlock Text="{Binding Erreur}" Foreground="#B91C1C" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
             </Border>
             <Border Classes="success"
                     IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                <TextBlock Text="{Binding Message}" Foreground="#15803D" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
             </Border>
         </StackPanel>
 
-        <Grid Grid.Row="2" ColumnDefinitions="320,*" ColumnSpacing="12">
+        <Grid Grid.Row="2" ColumnDefinitions="320,*" ColumnSpacing="14">
+
             <!-- Liste des PPM -->
             <Border Classes="card">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Classes="section-title" Text="Plans (PPM)" />
-                    <ListBox ItemsSource="{Binding Entetes}"
-                             SelectedItem="{Binding EnteteSelectionne}"
-                             Background="Transparent">
+                    <TextBlock DockPanel.Dock="Top" Classes="section-title" Text="Plans (PPM)" Margin="0,0,0,10" />
+                    <ListBox ItemsSource="{Binding Entetes}" SelectedItem="{Binding EnteteSelectionne}">
                         <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="ent:PpmEntete">
-                                <StackPanel Margin="0,4">
+                                <StackPanel Margin="0,2">
                                     <TextBlock Text="{Binding NumPPM}" FontWeight="SemiBold" />
                                     <TextBlock Text="{Binding AnneeExercice, StringFormat='Exercice {0}'}"
-                                               Foreground="#64748B" FontSize="12" />
+                                               Classes="muted" FontSize="12" />
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -55,34 +59,38 @@
             <!-- Détails du PPM sélectionné -->
             <Border Grid.Column="1" Classes="card">
                 <DockPanel>
-                    <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,8">
+                    <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,12">
                         <TextBlock Classes="section-title" Text="Lignes de détail" />
-                        <TextBlock Foreground="#64748B"
-                                   Text="{Binding EnteteSelectionne.AutoriteContractante}" />
-                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-                            <Button Content="Ajouter une ligne"
-                                    Command="{Binding AjouterDetailCommand}"
-                                    IsEnabled="{Binding AUnEntete}" />
-                            <Button Content="Modifier"
-                                    Command="{Binding ModifierDetailCommand}"
-                                    IsEnabled="{Binding AUnDetail}" />
-                            <Button Content="Supprimer"
-                                    Command="{Binding SupprimerDetailCommand}"
-                                    IsEnabled="{Binding AUnDetail}" />
-                        </StackPanel>
+                        <TextBlock Classes="muted" Text="{Binding EnteteSelectionne.AutoriteContractante}" />
                     </StackPanel>
 
-                    <ListBox ItemsSource="{Binding Details}"
-                             SelectedItem="{Binding DetailSelectionne}"
-                             Background="Transparent">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,10">
+                        <Button Content="Ajouter une ligne" Command="{Binding AjouterDetailCommand}"
+                                IsEnabled="{Binding AUnEntete}" Classes="accent" />
+                        <Button Content="Modifier" Command="{Binding ModifierDetailCommand}"
+                                IsEnabled="{Binding AUnDetail}" />
+                        <Button Content="Supprimer" Command="{Binding SupprimerDetailCommand}"
+                                IsEnabled="{Binding AUnDetail}" Classes="danger" />
+                    </StackPanel>
+
+                    <Border DockPanel.Dock="Top" Classes="list-header">
+                        <Grid ColumnDefinitions="110,*,150,170">
+                            <TextBlock Grid.Column="0" Text="N°" />
+                            <TextBlock Grid.Column="1" Text="Objet" />
+                            <TextBlock Grid.Column="2" Text="Nature" />
+                            <TextBlock Grid.Column="3" Text="Montant estimatif" HorizontalAlignment="Right" />
+                        </Grid>
+                    </Border>
+
+                    <ListBox ItemsSource="{Binding Details}" SelectedItem="{Binding DetailSelectionne}">
                         <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="ent:PpmDetail">
-                                <Grid ColumnDefinitions="110,*,150,170" Margin="0,6">
+                                <Grid ColumnDefinitions="110,*,150,170">
                                     <TextBlock Grid.Column="0" Text="{Binding NumPPMDetail}" FontWeight="SemiBold" />
                                     <TextBlock Grid.Column="1" Text="{Binding ObjetProjet}" TextWrapping="Wrap" />
                                     <TextBlock Grid.Column="2"
                                                Text="{Binding NatureMarche, Converter={StaticResource EnumLibelle}}"
-                                               Foreground="#475569" />
+                                               Classes="muted" />
                                     <TextBlock Grid.Column="3"
                                                Text="{Binding MontantEstimatif, StringFormat='{}{0:N0} FCFA'}"
                                                HorizontalAlignment="Right" />

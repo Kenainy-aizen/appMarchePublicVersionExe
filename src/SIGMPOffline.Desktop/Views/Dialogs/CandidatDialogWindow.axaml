@@ -11,34 +11,36 @@
         CanResize="False" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
 
-    <StackPanel Margin="20" Spacing="16">
-        <TextBlock Text="{Binding Titre}" FontSize="16" FontWeight="SemiBold" />
+    <StackPanel Margin="22" Spacing="16">
+        <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
 
-        <Grid ColumnDefinitions="170,*" RowDefinitions="Auto,Auto,Auto,Auto"
-              RowSpacing="10" ColumnSpacing="10">
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Nom de l'entreprise *" VerticalAlignment="Center" />
+        <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto"
+              RowSpacing="12" ColumnSpacing="12">
+            <TextBlock Classes="field-label" Grid.Row="0" Grid.Column="0">Nom de l'entreprise <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
             <TextBox Grid.Row="0" Grid.Column="1"
                      Text="{Binding NomEntreprise}"
                      PlaceholderText="ex. SARL BTP Conseil" />
 
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="N° statistique" VerticalAlignment="Center" />
+            <TextBlock Classes="field-label" Grid.Row="1" Grid.Column="0">N° statistique</TextBlock>
             <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding NumStat}" />
 
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="N° NIF" VerticalAlignment="Center" />
+            <TextBlock Classes="field-label" Grid.Row="2" Grid.Column="0">N° NIF</TextBlock>
             <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding NumNIF}" />
 
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="Montant de l'offre (FCFA)" VerticalAlignment="Center" />
+            <TextBlock Classes="field-label" Grid.Row="3" Grid.Column="0">Montant de l'offre (FCFA)</TextBlock>
             <NumericUpDown Grid.Row="3" Grid.Column="1"
                            Value="{Binding MontantOffre}"
                            Minimum="0" FormatString="N0" ShowButtonSpinner="False" />
         </Grid>
 
         <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-            <TextBlock Text="{Binding Erreur}" Foreground="#B91C1C" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
         </Border>
 
+        <Border Classes="divider" />
+
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button Content="Annuler" Command="{Binding AnnulerCommand}" />
+            <Button Content="Annuler" Command="{Binding AnnulerCommand}" Classes="ghost" />
             <Button Content="Enregistrer" Command="{Binding ValiderCommand}" Classes="accent" />
         </StackPanel>
     </StackPanel>

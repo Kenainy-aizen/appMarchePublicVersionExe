@@ -3,28 +3,30 @@
         xmlns:dlg="using:SIGMPOffline.Desktop.ViewModels.Dialogs"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="220"
+        mc:Ignorable="d" d:DesignWidth="440" d:DesignHeight="220"
         x:Class="SIGMPOffline.Desktop.Views.Dialogs.DateDialogWindow"
         x:DataType="dlg:DateDialogViewModel"
         Title="{Binding Titre}"
-        Width="420" SizeToContent="Height"
+        Width="440" SizeToContent="Height"
         CanResize="False" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
 
-    <StackPanel Margin="20" Spacing="16">
-        <TextBlock Text="{Binding Titre}" FontSize="16" FontWeight="SemiBold" />
+    <StackPanel Margin="22" Spacing="16">
+        <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
 
-        <StackPanel Orientation="Horizontal" Spacing="12">
-            <TextBlock Text="{Binding Libelle}" VerticalAlignment="Center" Width="140" TextWrapping="Wrap" />
-            <DatePicker SelectedDate="{Binding Date}" HorizontalAlignment="Stretch" />
-        </StackPanel>
+        <Grid ColumnDefinitions="160,*" ColumnSpacing="12">
+            <TextBlock Grid.Column="0" Classes="field-label" Text="{Binding Libelle}" TextWrapping="Wrap" />
+            <DatePicker Grid.Column="1" SelectedDate="{Binding Date}" HorizontalAlignment="Stretch" />
+        </Grid>
 
         <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-            <TextBlock Text="{Binding Erreur}" Foreground="#B91C1C" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
         </Border>
 
+        <Border Classes="divider" />
+
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button Content="Annuler" Command="{Binding AnnulerCommand}" />
+            <Button Content="Annuler" Command="{Binding AnnulerCommand}" Classes="ghost" />
             <Button Content="Valider" Command="{Binding ValiderCommand}" Classes="accent" />
         </StackPanel>
     </StackPanel>

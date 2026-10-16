@@ -3,11 +3,17 @@
              x:Class="SIGMPOffline.Desktop.App"
              xmlns:local="using:SIGMPOffline.Desktop"
              xmlns:conv="using:SIGMPOffline.Desktop.Converters"
-             RequestedThemeVariant="Light">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+             RequestedThemeVariant="Default">
+             <!-- "Default" suit le thème du système ; la bascule manuelle est proposée dans la barre latérale. -->
 
     <Application.Resources>
-        <conv:EnumLibelleConverter x:Key="EnumLibelle" />
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://SIGMPOffline.Desktop/Styles/Palette.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <conv:EnumLibelleConverter x:Key="EnumLibelle" />
+        </ResourceDictionary>
     </Application.Resources>
 
     <Application.DataTemplates>
@@ -16,60 +22,6 @@
 
     <Application.Styles>
         <FluentTheme />
-
-        <!-- Carte de contenu -->
-        <Style Selector="Border.card">
-            <Setter Property="Background" Value="White" />
-            <Setter Property="BorderBrush" Value="#E2E8F0" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="Padding" Value="16" />
-        </Style>
-
-        <!-- Titre de page -->
-        <Style Selector="TextBlock.page-title">
-            <Setter Property="FontSize" Value="24" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="Foreground" Value="#1F2A44" />
-        </Style>
-
-        <!-- Sous-titre de section -->
-        <Style Selector="TextBlock.section-title">
-            <Setter Property="FontSize" Value="16" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="#1F2A44" />
-            <Setter Property="Margin" Value="0,0,0,8" />
-        </Style>
-
-        <!-- Libellé de KPI -->
-        <Style Selector="TextBlock.kpi-label">
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Foreground" Value="#64748B" />
-        </Style>
-
-        <!-- Valeur de KPI -->
-        <Style Selector="TextBlock.kpi-value">
-            <Setter Property="FontSize" Value="26" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="Foreground" Value="#1F2A44" />
-        </Style>
-
-        <!-- Encart d'erreur -->
-        <Style Selector="Border.error">
-            <Setter Property="Background" Value="#FEF2F2" />
-            <Setter Property="BorderBrush" Value="#FCA5A5" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="Padding" Value="10" />
-        </Style>
-
-        <!-- Encart de succès -->
-        <Style Selector="Border.success">
-            <Setter Property="Background" Value="#F0FDF4" />
-            <Setter Property="BorderBrush" Value="#86EFAC" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="Padding" Value="10" />
-        </Style>
+        <StyleInclude Source="avares://SIGMPOffline.Desktop/Styles/Controls.axaml" />
     </Application.Styles>
 </Application>

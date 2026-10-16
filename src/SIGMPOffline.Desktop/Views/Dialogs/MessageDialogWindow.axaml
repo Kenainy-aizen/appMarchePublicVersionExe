@@ -3,21 +3,24 @@
         xmlns:dlg="using:SIGMPOffline.Desktop.ViewModels.Dialogs"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="200"
+        mc:Ignorable="d" d:DesignWidth="440" d:DesignHeight="200"
         x:Class="SIGMPOffline.Desktop.Views.Dialogs.MessageDialogWindow"
         x:DataType="dlg:MessageDialogViewModel"
         Title="{Binding Titre}"
-        Width="440" SizeToContent="Height"
+        Width="460" SizeToContent="Height"
         CanResize="False" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
 
-    <StackPanel Margin="20" Spacing="16">
-        <TextBlock Text="{Binding Titre}" FontSize="16" FontWeight="SemiBold" />
-        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" Foreground="#334155" />
+    <StackPanel Margin="22" Spacing="16">
+        <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
+        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+
+        <Border Classes="divider" />
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button Content="Annuler"
                     Command="{Binding AnnulerCommand}"
+                    Classes="ghost"
                     IsVisible="{Binding AfficherAnnuler}" />
             <Button Content="{Binding LibelleValider}"
                     Command="{Binding ValiderCommand}"
