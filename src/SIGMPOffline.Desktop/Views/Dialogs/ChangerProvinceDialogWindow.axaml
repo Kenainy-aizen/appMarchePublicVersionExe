@@ -1,0 +1,53 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dlg="using:SIGMPOffline.Desktop.ViewModels.Dialogs"
+        xmlns:dom="using:SIGMPOffline.Domain.Entities"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="300"
+        x:Class="SIGMPOffline.Desktop.Views.Dialogs.ChangerProvinceDialogWindow"
+        x:DataType="dlg:ChangerProvinceDialogViewModel"
+        Title="{Binding Titre}"
+        Width="520" SizeToContent="Height"
+        CanResize="False" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+
+    <StackPanel Margin="22" Spacing="16">
+        <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
+
+        <TextBlock Classes="muted" TextWrapping="Wrap"
+                   Text="Choisissez la province à ouvrir puis saisissez son mot de passe." />
+
+        <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto"
+              RowSpacing="12" ColumnSpacing="12">
+            <TextBlock Classes="field-label" Grid.Row="0" Grid.Column="0" Text="Province" />
+            <ComboBox Grid.Row="0" Grid.Column="1"
+                      ItemsSource="{Binding Provinces}"
+                      SelectedItem="{Binding ProvinceSelectionnee}"
+                      HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="dom:Province">
+                        <TextBlock Text="{Binding NomProvince}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <TextBlock Classes="field-label" Grid.Row="1" Grid.Column="0">
+                Mot de passe <Run Foreground="{DynamicResource DangerBrush}">*</Run>
+            </TextBlock>
+            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding MotDePasse}" PasswordChar="●" />
+        </Grid>
+
+        <Border Classes="error"
+                IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
+        </Border>
+
+        <Border Classes="divider" />
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Content="Annuler" Command="{Binding AnnulerCommand}" Classes="ghost" />
+            <Button Content="Ouvrir la province" Command="{Binding ValiderCommand}" Classes="accent" />
+        </StackPanel>
+    </StackPanel>
+</Window>

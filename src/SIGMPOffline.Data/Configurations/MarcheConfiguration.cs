@@ -26,14 +26,24 @@ public class MarcheConfiguration : IEntityTypeConfiguration<Marche>
             .HasMaxLength(40)
             .IsRequired();
 
-        builder.HasIndex(x => x.RefDossier);
-        builder.HasIndex(x => x.IdCandidatTitulaire);
-        builder.HasIndex(x => x.StatutExecution);
+        builder.Property(x => x.NumStatTitulaire).HasMaxLength(50);
 
-        // Titulaire : candidat retenu (relation optionnelle).
+        builder.HasIndex(x => x.RefDossier);
+        builder.HasIndex(x => x.NumStatTitulaire);
+        builder.HasIndex(x => x.StatutExecution);
+        builder.HasIndex(x => x.IdProvince);
+
+        // Rattachement (optionnel) à une province : isolation multi-provinces.
+        builder.HasOne(x => x.Province)
+            .WithMany()
+            .HasForeignKey(x => x.IdProvince)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Titulaire : acheteur identifié par son numéro de statistique (relation optionnelle).
         builder.HasOne(x => x.Titulaire)
             .WithMany()
-            .HasForeignKey(x => x.IdCandidatTitulaire)
+            .HasPrincipalKey(x => x.NumStat)
+            .HasForeignKey(x => x.NumStatTitulaire)
             .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(x => x.Elements)

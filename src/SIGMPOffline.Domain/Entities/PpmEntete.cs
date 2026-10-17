@@ -1,13 +1,21 @@
+using SIGMPOffline.Domain.Common;
+
 namespace SIGMPOffline.Domain.Entities;
 
 /// <summary>
 /// En-tête du Plan de Passation des Marchés (PPM) pour un exercice budgétaire.
 /// Table : <c>PPMEntete</c>.
 /// </summary>
-public class PpmEntete
+public class PpmEntete : IProvinceScoped
 {
     /// <summary>Numéro du PPM (clé primaire).</summary>
     public string NumPPM { get; set; } = string.Empty;
+
+    /// <summary>Clé étrangère vers la province propriétaire des données.</summary>
+    public int? IdProvince { get; set; }
+
+    /// <summary>Province propriétaire des données.</summary>
+    public Province? Province { get; set; }
 
     /// <summary>Année / exercice budgétaire.</summary>
     public int AnneeExercice { get; set; }

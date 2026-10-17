@@ -54,15 +54,26 @@ public static class GraphSeeder
             MontantCaution = 100_000m
         });
 
+        var numStatTitulaire = $"STAT-{refMarche}";
+
         var candidat = await dao.AjouterCandidatAsync(refDossier, new Candidat
         {
             NomEntreprise = "ACME BTP",
-            NumStat = "STAT-1",
+            NumStat = numStatTitulaire,
             NumNIF = "NIF-1",
             MontantOffre = 900_000m
         });
 
         await dao.DesignerRetenuAsync(refDossier, candidat.IdCandidat);
+
+        // L'acheteur titulaire : la clé étrangère du marché pointe sur son numéro de statistique.
+        await dao.AjouterAcheteurAsync(refDossier, new AcheteurDao
+        {
+            RaisonSociale = "ACME BTP",
+            NumStat = numStatTitulaire,
+            NumNIF = "NIF-1",
+            DateAchat = new DateTime(2026, 1, 5)
+        });
 
         await marches.CreerDepuisDossierAsync(new Marche
         {
@@ -71,7 +82,8 @@ public static class GraphSeeder
             ObjetMarche = "Réhabilitation route bitumée",
             MontantHT = 900_000m,
             MontantTTC = 1_062_000m,
-            DelaiExecutionJours = delaiJours
+            DelaiExecutionJours = delaiJours,
+            NumStatTitulaire = numStatTitulaire
         });
 
         return refMarche;

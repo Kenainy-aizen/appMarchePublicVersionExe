@@ -17,6 +17,8 @@ public class UnitOfWork : IUnitOfWork
         Ppm = new PpmRepository(_context);
         Dossiers = new DossierDaoRepository(_context);
         Marches = new MarcheRepository(_context);
+        Provinces = new ProvinceRepository(_context);
+        Configuration = new ConfigurationAppRepository(_context);
     }
 
     /// <inheritdoc />
@@ -27,6 +29,15 @@ public class UnitOfWork : IUnitOfWork
 
     /// <inheritdoc />
     public IMarcheRepository Marches { get; }
+
+    /// <inheritdoc />
+    public IProvinceRepository Provinces { get; }
+
+    /// <inheritdoc />
+    public IConfigurationAppRepository Configuration { get; }
+
+    /// <inheritdoc />
+    public void DetacherTout() => _context.ChangeTracker.Clear();
 
     /// <inheritdoc />
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

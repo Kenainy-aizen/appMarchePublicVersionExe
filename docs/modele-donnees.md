@@ -9,19 +9,25 @@ Base de données : **SQLite** local (via EF Core + `Microsoft.Data.Sqlite`).
 
 | # | Entité | Clé primaire | Clés étrangères | Rôle |
 |---|--------|--------------|-----------------|------|
-| 1 | `PPMEntete` | `NumPPM` | — | En-tête du Plan de Passation des Marchés |
+| 1 | `PPMEntete` | `NumPPM` | `IdProvince → Province` | En-tête du Plan de Passation des Marchés |
 | 2 | `PPMDetail` | `NumPPMDetail` | `NumPPMEntete → PPMEntete` | Lignes du PPM |
-| 3 | `DossierDAO` | `RefDossier` | `NumPPMDetail → PPMDetail` | Dossier d'Appel d'Offres |
-| 4 | `AcheteurDAO` | `IdAcheteur` | `RefDossier → DossierDAO` | Acheteur du dossier DAO |
+| 3 | `DossierDAO` | `RefDossier` | `NumPPMDetail → PPMDetail`, `IdProvince → Province` | Dossier d'Appel d'Offres |
+| 4 | `AcheteurDAO` | `IdAcheteur` | `RefDossier → DossierDAO` | Acheteur du dossier DAO (et titulaire possible) |
 | 5 | `Candidat` | `IdCandidat` | `RefDossier → DossierDAO` | Soumissionnaire / candidat |
-| 6 | `Marche` | `RefMarche` | `RefDossier → DossierDAO`, `NumStatTitulaire → AcheteurDAO` | Contrat formalisé |
+| 6 | `Marche` | `RefMarche` | `RefDossier → DossierDAO`, `NumStatTitulaire → AcheteurDAO`, `IdProvince → Province` | Contrat formalisé |
 | 7 | `ElementMarche` | `CodeElement` | `RefMarche → Marche` | Articles / bordereau |
 | 8 | `SuiviExecution` | `IdSuivi` | `RefMarche → Marche` | TEF, OS, réceptions, clôture |
 | 9 | `Avenant` | `IdAvenant` | `RefMarche → Marche` | Avenants au marché |
+| 10 | `Province` | `IdProvince` | — | Province gérée (mot de passe, isolation des données) |
+| 11 | `ConfigurationApp` | `Id` | — | Configuration globale (propriétaire PRMP) |
 
 ## Schéma relationnel (texte)
 
 ```
+ConfigurationApp (1 ligne)
+
+Province (1) ──< (N) PPMEntete │ DossierDAO │ Marche
+
 PPMEntete (1) ──< (N) PPMDetail (1) ──< (N) DossierDAO
                                                │
                         ┌──────────────────────┼──────────────────────┐
@@ -33,10 +39,16 @@ PPMEntete (1) ──< (N) PPMDetail (1) ──< (N) DossierDAO
                   (N) ElementMarche       (1) SuiviExecution      (N) Avenant
 ```
 
+> **Isolation multi-provinces** : `PPMEntete`, `DossierDAO` et `Marche` portent la clé
+> étrangère `IdProvince`. Toutes les entités filles héritent de la province de leur
+> parent. L'application n'expose que les données de la province ouverte ; les
+> nouvelles entités y sont automatiquement rattachées.
+
 ## Détail des champs
 
 ### 1. PPMEntete
 - `NumPPM` (PK) — numéro du PPM
+- `IdProvince` (FK → Province.IdProvince, nullable) — province propriétaire
 - `AnneeExercice` — exercice budgétaire
 - `AutoriteContractante` — autorité contractante
 - `DateElaboration` — date d'élaboration
@@ -51,6 +63,7 @@ PPMEntete (1) ──< (N) PPMDetail (1) ──< (N) DossierDAO
 ### 3. DossierDAO
 - `RefDossier` (PK)
 - `NumPPMDetail` (FK → PPMDetail.NumPPMDetail)
+- `IdProvince` (FK → Province.IdProvince, nullable) — province propriétaire
 - `DateCreation`, `ObjetDossier`, `CoutCahierCharges`, `MontantCaution`
 
 ### 4. AcheteurDAO
@@ -67,6 +80,7 @@ PPMEntete (1) ──< (N) PPMDetail (1) ──< (N) DossierDAO
 - `RefMarche` (PK)
 - `RefDossier` (FK → DossierDAO.RefDossier)
 - `NumStatTitulaire` (FK → AcheteurDAO.NumStat)
+- `IdProvince` (FK → Province.IdProvince, nullable) — province propriétaire
 - `ObjetMarche`, `MontantHT`, `MontantTTC`, `DelaiExecutionJours`, `StatutExecution`
 
 ### 7. ElementMarche
@@ -83,6 +97,31 @@ PPMEntete (1) ──< (N) PPMDetail (1) ──< (N) DossierDAO
 - `IdAvenant` (PK)
 - `RefMarche` (FK → Marche.RefMarche)
 - `NumAvenant`, `Motif`, `VariationMontant`, `ProlongationDelaiJours`, `DateAvenant`
+
+### 10. Province
+- `IdProvince` (PK, auto-incrément)
+- `NomProvince` (unique)
+- `PasswordHash` — condensat PBKDF2 du mot de passe
+- `Salt` — sel aléatoire (Base64)
+- `DateCreation`
+
+### 11. ConfigurationApp
+- `Id` (PK)
+- `NomProprietairePRMP` — responsable PRMP / propriétaire de l'application
+- `DateInstallation` — date de la première configuration
+
+## Authentification et isolation (multi-provinces)
+
+- **Premier lancement** (aucune configuration) : un assistant crée `ConfigurationApp`
+  puis la première `Province`, et ouvre immédiatement sa session.
+- **Lancements suivants** : écran de connexion — choix de la province + mot de passe.
+- **Mots de passe** : hachés avec **PBKDF2** (HMAC-SHA-256, 120 000 itérations, sel de
+  16 octets, condensat de 32 octets) ; comparaison à temps constant. Aucun mot de passe
+  en clair n'est stocké.
+- **Isolation** : filtres de requête globaux EF Core basés sur la province active ;
+  les nouvelles entités sont automatiquement rattachées à la province ouverte.
+- **Gestion** : créer une province, changer de province (mot de passe requis) et
+  changer le mot de passe d'une province.
 
 ## Règles métier clés (Suivi d'exécution)
 

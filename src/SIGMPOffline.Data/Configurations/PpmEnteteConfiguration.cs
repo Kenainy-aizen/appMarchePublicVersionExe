@@ -20,6 +20,13 @@ public class PpmEnteteConfiguration : IEntityTypeConfiguration<PpmEntete>
         builder.Property(x => x.NumDerniereMAJ).HasMaxLength(50);
 
         builder.HasIndex(x => x.AnneeExercice);
+        builder.HasIndex(x => x.IdProvince);
+
+        // Rattachement (optionnel) à une province : isolation multi-provinces.
+        builder.HasOne(x => x.Province)
+            .WithMany()
+            .HasForeignKey(x => x.IdProvince)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(x => x.Details)
             .WithOne(x => x.Entete)

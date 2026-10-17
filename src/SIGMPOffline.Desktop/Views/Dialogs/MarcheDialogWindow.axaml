@@ -32,7 +32,7 @@
             <TextBlock Classes="field-label" Grid.Row="2" Grid.Column="0">Titulaire (attributaire)</TextBlock>
             <ComboBox Grid.Row="2" Grid.Column="1"
                       HorizontalAlignment="Stretch"
-                      ItemsSource="{Binding Candidats}"
+                      ItemsSource="{Binding Titulaires}"
                       SelectedItem="{Binding TitulaireSelectionne}" />
 
             <TextBlock Classes="field-label" Grid.Row="3" Grid.Column="0">Objet du marché <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
@@ -40,12 +40,12 @@
                      Text="{Binding ObjetMarche}"
                      AcceptsReturn="True" TextWrapping="Wrap" MinHeight="56" />
 
-            <TextBlock Classes="field-label" Grid.Row="4" Grid.Column="0">Montant HT (FCFA)</TextBlock>
+            <TextBlock Classes="field-label" Grid.Row="4" Grid.Column="0">Montant HT (Ar)</TextBlock>
             <NumericUpDown Grid.Row="4" Grid.Column="1"
                            Value="{Binding MontantHT}"
                            Minimum="0" FormatString="N0" ShowButtonSpinner="False" />
 
-            <TextBlock Classes="field-label" Grid.Row="5" Grid.Column="0">Montant TTC (FCFA)</TextBlock>
+            <TextBlock Classes="field-label" Grid.Row="5" Grid.Column="0">Montant TTC (Ar)</TextBlock>
             <NumericUpDown Grid.Row="5" Grid.Column="1"
                            Value="{Binding MontantTTC}"
                            Minimum="0" FormatString="N0" ShowButtonSpinner="False" />

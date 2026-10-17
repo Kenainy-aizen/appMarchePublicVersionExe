@@ -10,6 +10,53 @@ namespace SIGMPOffline.Data.Database;
 /// </summary>
 public static class DbSeeder
 {
+    /// <summary>
+    /// Rattache à la province indiquée les données créées avant l'introduction du
+    /// multi-provinces (colonne <c>IdProvince</c> encore nulle). Sans cela, ces
+    /// données resteraient invisibles et entreraient en conflit avec le jeu de
+    /// démonstration sur les clés primaires.
+    /// </summary>
+    /// <returns>Le nombre d'entités rattachées.</returns>
+    public static async Task<int> AdopterDonneesSansProvinceAsync(
+        AppDbContext context,
+        int idProvince,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        var ppmExistants = await context.PpmEntetes.IgnoreQueryFilters()
+            .Where(e => e.IdProvince == null)
+            .ToListAsync(cancellationToken);
+        foreach (var entete in ppmExistants)
+        {
+            entete.IdProvince = idProvince;
+        }
+
+        var dossiersExistants = await context.DossiersDao.IgnoreQueryFilters()
+            .Where(e => e.IdProvince == null)
+            .ToListAsync(cancellationToken);
+        foreach (var dossier in dossiersExistants)
+        {
+            dossier.IdProvince = idProvince;
+        }
+
+        var marchesExistants = await context.Marches.IgnoreQueryFilters()
+            .Where(e => e.IdProvince == null)
+            .ToListAsync(cancellationToken);
+        foreach (var marche in marchesExistants)
+        {
+            marche.IdProvince = idProvince;
+        }
+
+        var total = ppmExistants.Count + dossiersExistants.Count + marchesExistants.Count;
+        if (total > 0)
+        {
+            await context.SaveChangesAsync(cancellationToken);
+        }
+
+        return total;
+    }
+
     /// <summary>Sème les données de démo. Retourne <c>true</c> si des données ont été créées.</summary>
     public static async Task<bool> SeedAsync(AppDbContext context, CancellationToken cancellationToken = default)
     {
@@ -73,6 +120,11 @@ public static class DbSeeder
         dos1.Candidats.Add(c2);
         dos1.Candidats.Add(c3);
 
+        // Acheteurs (ayant acquis le cahier des charges) ; le titulaire du marché en fait partie.
+        var a1 = nouvelAcheteur("ENTREPRISE ROUTES SA", "STAT-1001", "NIF-1001", new DateTime(2026, 1, 5));
+        dos1.Acheteurs.Add(a1);
+        dos1.Acheteurs.Add(nouvelAcheteur("BTP CONSTRUCTIONS SARL", "STAT-1002", "NIF-1002", new DateTime(2026, 1, 6)));
+
         var m1 = new Marche
         {
             RefMarche = "M-2026-001",
@@ -82,7 +134,7 @@ public static class DbSeeder
             MontantTTC = 2_773_000_000m,
             DelaiExecutionJours = 120,
             StatutExecution = StatutExecution.EnCours,
-            Titulaire = c1,
+            NumStatTitulaire = a1.NumStat,
             Suivi = new SuiviExecution
             {
                 RefMarche = "M-2026-001",
@@ -112,6 +164,9 @@ public static class DbSeeder
         var c4 = nouveauCandidat("AUTO DISTRIBUTION SA", "STAT-2001", "NIF-2001", 812_000_000m, retenu: true);
         dos2.Candidats.Add(c4);
 
+        var a2 = nouvelAcheteur("AUTO DISTRIBUTION SA", "STAT-2001", "NIF-2001", new DateTime(2026, 6, 1));
+        dos2.Acheteurs.Add(a2);
+
         var m2 = new Marche
         {
             RefMarche = "M-2026-002",
@@ -121,7 +176,7 @@ public static class DbSeeder
             MontantTTC = 958_160_000m,
             DelaiExecutionJours = 180,
             StatutExecution = StatutExecution.EnCours,
-            Titulaire = c4,
+            NumStatTitulaire = a2.NumStat,
             Suivi = new SuiviExecution
             {
                 RefMarche = "M-2026-002",
@@ -140,6 +195,9 @@ public static class DbSeeder
         var c5 = nouveauCandidat("CONSEIL & SYSTEMES", "STAT-3001", "NIF-3001", 43_000_000m, retenu: true);
         dos3.Candidats.Add(c5);
 
+        var a3 = nouvelAcheteur("CONSEIL & SYSTEMES", "STAT-3001", "NIF-3001", new DateTime(2026, 1, 20));
+        dos3.Acheteurs.Add(a3);
+
         var m3 = new Marche
         {
             RefMarche = "M-2026-003",
@@ -149,7 +207,7 @@ public static class DbSeeder
             MontantTTC = 50_740_000m,
             DelaiExecutionJours = 60,
             StatutExecution = StatutExecution.Cloture,
-            Titulaire = c5,
+            NumStatTitulaire = a3.NumStat,
             Suivi = new SuiviExecution
             {
                 RefMarche = "M-2026-003",
@@ -184,6 +242,19 @@ public static class DbSeeder
             ObjetDossier = objet,
             CoutCahierCharges = coutCahierCharges,
             MontantCaution = montantCaution
+        };
+
+    private static AcheteurDao nouvelAcheteur(
+        string raisonSociale,
+        string numStat,
+        string numNif,
+        DateTime dateAchat)
+        => new()
+        {
+            RaisonSociale = raisonSociale,
+            NumStat = numStat,
+            NumNIF = numNif,
+            DateAchat = dateAchat
         };
 
     private static Candidat nouveauCandidat(

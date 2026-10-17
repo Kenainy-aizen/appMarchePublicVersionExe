@@ -214,14 +214,40 @@ public class DossierDaoServiceTests
         {
             IdAcheteur = acheteur.IdAcheteur,
             RaisonSociale = "Fournisseur Y",
-            NumStat = "S2",
+            NumStat = "S1",
             DateAchat = acheteur.DateAchat
         });
 
         var dossier = await service.ObtenirAsync("DOS-001");
         var relu = Assert.Single(dossier.Acheteurs);
         Assert.Equal("Fournisseur Y", relu.RaisonSociale);
-        Assert.Equal("S2", relu.NumStat);
+        Assert.Equal("S1", relu.NumStat);
+    }
+
+    [Fact]
+    public async Task ModifierAcheteurAsync_refuse_le_changement_de_num_stat()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        var numDetail = await SeedLignePpmAsync(db);
+        var service = new DossierDaoService(db.UnitOfWork);
+        await service.CreerAsync(NouveauDossier(numDetail));
+
+        var acheteur = await service.AjouterAcheteurAsync("DOS-001", new AcheteurDao
+        {
+            RaisonSociale = "Fournisseur X",
+            NumStat = "S1"
+        });
+
+        // NumStat est la cible de la clé étrangère Marche.NumStatTitulaire : il est immuable.
+        await Assert.ThrowsAsync<DomainException>(() => service.ModifierAcheteurAsync(
+            "DOS-001",
+            new AcheteurDao
+            {
+                IdAcheteur = acheteur.IdAcheteur,
+                RaisonSociale = "Fournisseur Y",
+                NumStat = "S2",
+                DateAchat = acheteur.DateAchat
+            }));
     }
 
     [Fact]

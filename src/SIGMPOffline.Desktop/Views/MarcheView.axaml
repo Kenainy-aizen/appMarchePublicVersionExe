@@ -47,7 +47,7 @@
                                     <TextBlock Text="{Binding RefMarche}" FontWeight="SemiBold" />
                                     <TextBlock Text="{Binding ObjetMarche}" Classes="muted"
                                                FontSize="12" TextWrapping="Wrap" />
-                                    <TextBlock Text="{Binding MontantTTC, StringFormat='{}{0:N0} FCFA TTC'}"
+                                    <TextBlock Text="{Binding MontantTTC, StringFormat='{}{0:N0} Ar TTC'}"
                                                FontSize="12" FontWeight="Medium" />
                                 </StackPanel>
                             </DataTemplate>
@@ -70,12 +70,12 @@
                             <StackPanel Grid.Column="0" Spacing="2">
                                 <TextBlock Classes="kpi-label" Text="Montant HT" />
                                 <TextBlock FontWeight="SemiBold"
-                                           Text="{Binding MarcheSelectionne.MontantHT, StringFormat='{}{0:N0} FCFA'}" />
+                                           Text="{Binding MarcheSelectionne.MontantHT, StringFormat='{}{0:N0} Ar'}" />
                             </StackPanel>
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock Classes="kpi-label" Text="Montant TTC" />
                                 <TextBlock FontWeight="SemiBold"
-                                           Text="{Binding MarcheSelectionne.MontantTTC, StringFormat='{}{0:N0} FCFA'}" />
+                                           Text="{Binding MarcheSelectionne.MontantTTC, StringFormat='{}{0:N0} Ar'}" />
                             </StackPanel>
                             <StackPanel Grid.Column="2" Spacing="2">
                                 <TextBlock Classes="kpi-label" Text="Délai d'exécution" />
@@ -112,14 +112,14 @@
                                     <TextBlock Grid.Column="0" Text="{Binding CodeElement}" FontWeight="SemiBold" />
                                     <TextBlock Grid.Column="1" Text="{Binding Libelle}" TextWrapping="Wrap" />
                                     <TextBlock Grid.Column="2"
-                                               Text="{Binding PrixUnitaire, StringFormat='{}{0:N0} FCFA'}"
+                                               Text="{Binding PrixUnitaire, StringFormat='{}{0:N0} Ar'}"
                                                HorizontalAlignment="Right" />
                                     <TextBlock Grid.Column="3" Text="{Binding Quantite, StringFormat='x {0:N2}'}"
                                                HorizontalAlignment="Right" />
                                     <TextBlock Grid.Column="4" Text="{Binding Unite}" Classes="muted"
                                                HorizontalAlignment="Center" />
                                     <TextBlock Grid.Column="5"
-                                               Text="{Binding MontantLigne, StringFormat='{}{0:N0} FCFA'}"
+                                               Text="{Binding MontantLigne, StringFormat='{}{0:N0} Ar'}"
                                                FontWeight="SemiBold" HorizontalAlignment="Right" />
                                 </Grid>
                             </DataTemplate>

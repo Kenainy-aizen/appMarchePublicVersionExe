@@ -16,6 +16,18 @@ public interface IUnitOfWork : IAsyncDisposable
     /// <summary>Repository des marchés.</summary>
     IMarcheRepository Marches { get; }
 
+    /// <summary>Repository des provinces.</summary>
+    IProvinceRepository Provinces { get; }
+
+    /// <summary>Repository de la configuration globale de l'application.</summary>
+    IConfigurationAppRepository Configuration { get; }
+
+    /// <summary>
+    /// Détache toutes les entités suivies. Utilisé lors d'un changement de province
+    /// pour repartir d'un suivi vierge et éviter toute fuite de données entre provinces.
+    /// </summary>
+    void DetacherTout();
+
     /// <summary>Persiste les changements en attente.</summary>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 

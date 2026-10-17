@@ -21,6 +21,6 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
             .UseSqlite(connectionString)
             .Options;
 
-        return new AppDbContext(options);
+        return new AppDbContext(options, new ProvinceAccessor());
     }
 }

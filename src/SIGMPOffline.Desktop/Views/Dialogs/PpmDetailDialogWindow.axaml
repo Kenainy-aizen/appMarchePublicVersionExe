@@ -39,7 +39,7 @@
                       ItemsSource="{Binding Modes}"
                       SelectedItem="{Binding ModeSelectionne}" />
 
-            <TextBlock Classes="field-label" Grid.Row="4" Grid.Column="0">Montant estimatif (FCFA)</TextBlock>
+            <TextBlock Classes="field-label" Grid.Row="4" Grid.Column="0">Montant estimatif (Ar)</TextBlock>
             <NumericUpDown Grid.Row="4" Grid.Column="1"
                            Value="{Binding MontantEstimatif}"
                            Minimum="0" FormatString="N0" ShowButtonSpinner="False" />

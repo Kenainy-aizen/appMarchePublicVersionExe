@@ -27,7 +27,7 @@
                      Text="{Binding Libelle}"
                      AcceptsReturn="True" TextWrapping="Wrap" MinHeight="56" />
 
-            <TextBlock Classes="field-label" Grid.Row="2" Grid.Column="0">Prix unitaire (FCFA)</TextBlock>
+            <TextBlock Classes="field-label" Grid.Row="2" Grid.Column="0">Prix unitaire (Ar)</TextBlock>
             <NumericUpDown Grid.Row="2" Grid.Column="1"
                            Value="{Binding PrixUnitaire}"
                            Minimum="0" FormatString="N0" ShowButtonSpinner="False" />

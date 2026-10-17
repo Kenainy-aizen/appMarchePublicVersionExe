@@ -33,12 +33,12 @@
                      Text="{Binding ObjetDossier}"
                      AcceptsReturn="True" TextWrapping="Wrap" MinHeight="56" />
 
-            <TextBlock Classes="field-label" Grid.Row="3" Grid.Column="0">Coût du cahier des charges (FCFA)</TextBlock>
+            <TextBlock Classes="field-label" Grid.Row="3" Grid.Column="0">Coût du cahier des charges (Ar)</TextBlock>
             <NumericUpDown Grid.Row="3" Grid.Column="1"
                            Value="{Binding CoutCahierCharges}"
                            Minimum="0" FormatString="N0" ShowButtonSpinner="False" />
 
-            <TextBlock Classes="field-label" Grid.Row="4" Grid.Column="0">Montant de la caution (FCFA)</TextBlock>
+            <TextBlock Classes="field-label" Grid.Row="4" Grid.Column="0">Montant de la caution (Ar)</TextBlock>
             <NumericUpDown Grid.Row="4" Grid.Column="1"
                            Value="{Binding MontantCaution}"
                            Minimum="0" FormatString="N0" ShowButtonSpinner="False" />

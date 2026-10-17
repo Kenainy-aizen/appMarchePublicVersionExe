@@ -91,7 +91,7 @@
                                                 <TextBlock Grid.Column="0" Text="{Binding NomEntreprise}" FontWeight="SemiBold"
                                                            VerticalAlignment="Center" TextWrapping="Wrap" />
                                                 <TextBlock Grid.Column="1"
-                                                           Text="{Binding MontantOffre, StringFormat='{}{0:N0} FCFA'}"
+                                                           Text="{Binding MontantOffre, StringFormat='{}{0:N0} Ar'}"
                                                            HorizontalAlignment="Right" VerticalAlignment="Center" />
                                                 <Border Grid.Column="2" Classes="badge success" HorizontalAlignment="Right"
                                                         IsVisible="{Binding EstRetenu}">

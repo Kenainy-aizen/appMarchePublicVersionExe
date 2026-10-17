@@ -28,7 +28,10 @@ public static class AppServiceRegistration
         services.AddSingleton<IFilePickerService, FilePickerService>();
 
         // ViewModels
-        services.AddSingleton<MainWindowViewModel>();
+        services.AddSingleton<RootViewModel>();
+        services.AddSingleton<SetupViewModel>();
+        services.AddSingleton<LoginViewModel>();
+        services.AddSingleton<ShellViewModel>();
         services.AddSingleton<DashboardViewModel>();
         services.AddSingleton<PpmViewModel>();
         services.AddSingleton<DossierDaoViewModel>();

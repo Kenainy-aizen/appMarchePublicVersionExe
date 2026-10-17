@@ -31,7 +31,7 @@ public partial class DashboardViewModel : ViewModelBase, IPageViewModel
 
     /// <summary>Montant total formaté.</summary>
     public string MontantTotalFormate =>
-        MontantTotalHt.ToString("N0", CultureInfo.GetCultureInfo("fr-FR")) + " FCFA";
+        MontantTotalHt.ToString("N0", CultureInfo.GetCultureInfo("fr-FR")) + " Ar";
 
     /// <inheritdoc />
     [RelayCommand]

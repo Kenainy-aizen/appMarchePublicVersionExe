@@ -7,9 +7,9 @@ public sealed record OptionDossier(string RefDossier, string Libelle)
     public override string ToString() => Libelle;
 }
 
-/// <summary>Option de liste déroulante représentant un candidat titulaire possible.</summary>
-public sealed record OptionCandidat(int IdCandidat, string Libelle, bool EstRetenu = false)
+/// <summary>Option de liste déroulante représentant un acheteur titulaire possible.</summary>
+public sealed record OptionTitulaire(string NumStat, string Libelle)
 {
     /// <inheritdoc />
-    public override string ToString() => EstRetenu ? $"{Libelle} (retenu)" : Libelle;
+    public override string ToString() => Libelle;
 }

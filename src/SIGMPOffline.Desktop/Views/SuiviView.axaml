@@ -140,7 +140,7 @@
                                                        Text="{Binding DateAvenant, StringFormat='{}{0:dd/MM/yyyy}'}" />
                                             <TextBlock Grid.Column="2" Text="{Binding Motif}" Classes="muted" TextWrapping="Wrap" />
                                             <TextBlock Grid.Column="3"
-                                                       Text="{Binding VariationMontant, StringFormat='{}{0:N0} FCFA'}"
+                                                       Text="{Binding VariationMontant, StringFormat='{}{0:N0} Ar'}"
                                                        HorizontalAlignment="Right" />
                                             <TextBlock Grid.Column="4"
                                                        Text="{Binding ProlongationDelaiJours, StringFormat='{}{0:+0;-0;0} j'}"

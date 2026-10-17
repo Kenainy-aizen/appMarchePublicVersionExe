@@ -92,7 +92,7 @@
                                                Text="{Binding NatureMarche, Converter={StaticResource EnumLibelle}}"
                                                Classes="muted" />
                                     <TextBlock Grid.Column="3"
-                                               Text="{Binding MontantEstimatif, StringFormat='{}{0:N0} FCFA'}"
+                                               Text="{Binding MontantEstimatif, StringFormat='{}{0:N0} Ar'}"
                                                HorizontalAlignment="Right" />
                                 </Grid>
                             </DataTemplate>

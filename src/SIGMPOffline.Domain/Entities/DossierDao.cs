@@ -1,13 +1,21 @@
+using SIGMPOffline.Domain.Common;
+
 namespace SIGMPOffline.Domain.Entities;
 
 /// <summary>
 /// Dossier d'Appel d'Offres (DAO) rattaché à une ligne du PPM.
 /// Table : <c>DossierDAO</c>.
 /// </summary>
-public class DossierDao
+public class DossierDao : IProvinceScoped
 {
     /// <summary>Référence du dossier (clé primaire).</summary>
     public string RefDossier { get; set; } = string.Empty;
+
+    /// <summary>Clé étrangère vers la province propriétaire des données.</summary>
+    public int? IdProvince { get; set; }
+
+    /// <summary>Province propriétaire des données.</summary>
+    public Province? Province { get; set; }
 
     /// <summary>Clé étrangère vers la ligne PPM <see cref="PpmDetail"/>.</summary>
     public string NumPPMDetail { get; set; } = string.Empty;

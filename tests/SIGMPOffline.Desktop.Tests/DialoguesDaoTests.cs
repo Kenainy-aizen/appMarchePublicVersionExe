@@ -129,4 +129,11 @@ public class DialoguesDaoTests
 
         Assert.NotNull(vm.DateAchat);
     }
+
+    [Fact]
+    public void Acheteur_le_num_stat_n_est_modifiable_qu_a_la_creation()
+    {
+        Assert.True(new AcheteurDaoDialogViewModel().NumStatModifiable);
+        Assert.False(new AcheteurDaoDialogViewModel(new AcheteurDao { IdAcheteur = 1 }).NumStatModifiable);
+    }
 }

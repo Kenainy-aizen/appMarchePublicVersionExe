@@ -28,6 +28,12 @@ public partial class AcheteurDaoDialogViewModel : DialogViewModelBase
     /// <summary>Identifiant (0 pour une création).</summary>
     public int IdAcheteur { get; }
 
+    /// <summary>
+    /// Le numéro statistique identifie l'acheteur (cible de la clé étrangère
+    /// <c>Marche.NumStatTitulaire</c>) : il n'est modifiable qu'à la création.
+    /// </summary>
+    public bool NumStatModifiable => _creation;
+
     [ObservableProperty] private string _raisonSociale;
     [ObservableProperty] private string _numStat;
     [ObservableProperty] private string _numNIF;

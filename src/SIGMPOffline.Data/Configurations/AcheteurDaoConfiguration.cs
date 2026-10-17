@@ -22,7 +22,9 @@ public class AcheteurDaoConfiguration : IEntityTypeConfiguration<AcheteurDao>
         builder.Property(x => x.DateAchat).IsRequired();
 
         builder.HasIndex(x => x.RefDossier);
-        builder.HasIndex(x => x.NumStat);
+        // NumStat sert de clé alternée : le titulaire du marché (Marche.NumStatTitulaire)
+        // y fait référence. Elle doit donc être unique.
+        builder.HasAlternateKey(x => x.NumStat);
 
         builder.HasOne(x => x.Dossier)
             .WithMany(x => x.Acheteurs)

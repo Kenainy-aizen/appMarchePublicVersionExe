@@ -24,6 +24,9 @@ public sealed class DialogService : IDialogService
         Enregistrer<TefDialogViewModel>(_ => new TefDialogWindow());
         Enregistrer<AvenantDialogViewModel>(_ => new AvenantDialogWindow());
         Enregistrer<MessageDialogViewModel>(_ => new MessageDialogWindow());
+        Enregistrer<ProvinceDialogViewModel>(_ => new ProvinceDialogWindow());
+        Enregistrer<MotDePasseDialogViewModel>(_ => new MotDePasseDialogWindow());
+        Enregistrer<ChangerProvinceDialogViewModel>(_ => new ChangerProvinceDialogWindow());
     }
 
     /// <inheritdoc />

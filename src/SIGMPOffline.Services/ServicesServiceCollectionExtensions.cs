@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using SIGMPOffline.Services.Abstractions;
+using SIGMPOffline.Services.Auth;
 using SIGMPOffline.Services.Backup;
 using SIGMPOffline.Services.Dashboard;
 using SIGMPOffline.Services.Dao;
@@ -21,6 +22,9 @@ public static class ServicesServiceCollectionExtensions
         services.AddScoped<ISuiviExecutionService, SuiviExecutionService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IBackupService, BackupService>();
+
+        // Authentification / multi-provinces : état de session partagé (singleton).
+        services.AddSingleton<IAuthService, AuthService>();
 
         return services;
     }

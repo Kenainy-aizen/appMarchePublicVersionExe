@@ -21,6 +21,13 @@ public class DossierDaoConfiguration : IEntityTypeConfiguration<DossierDao>
         builder.Property(x => x.MontantCaution).HasConversion(DecimalConverters.Money);
 
         builder.HasIndex(x => x.NumPPMDetail);
+        builder.HasIndex(x => x.IdProvince);
+
+        // Rattachement (optionnel) à une province : isolation multi-provinces.
+        builder.HasOne(x => x.Province)
+            .WithMany()
+            .HasForeignKey(x => x.IdProvince)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(x => x.PpmDetail)
             .WithMany(x => x.Dossiers)

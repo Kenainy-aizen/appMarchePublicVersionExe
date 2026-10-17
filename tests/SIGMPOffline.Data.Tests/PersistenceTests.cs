@@ -1,6 +1,7 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using SIGMPOffline.Data;
+using SIGMPOffline.Data.Database;
 using SIGMPOffline.Domain.Entities;
 using SIGMPOffline.Domain.Enums;
 
@@ -21,7 +22,7 @@ public class PersistenceTests
             .UseSqlite(connection)
             .Options;
 
-        var context = new AppDbContext(options);
+        var context = new AppDbContext(options, new ProvinceAccessor());
         await context.Database.EnsureCreatedAsync();
         return (context, connection);
     }

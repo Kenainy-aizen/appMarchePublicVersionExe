@@ -96,7 +96,7 @@
                 <StackPanel Spacing="4">
                     <TextBlock Classes="kpi-label" Text="Montant total des marchés (HT)" />
                     <TextBlock Classes="kpi-value"
-                               Text="{Binding MontantTotalHt, StringFormat='{}{0:N0} FCFA'}" />
+                               Text="{Binding MontantTotalHt, StringFormat='{}{0:N0} Ar'}" />
                 </StackPanel>
             </Border>
 

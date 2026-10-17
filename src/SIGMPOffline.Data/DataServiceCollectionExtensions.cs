@@ -4,6 +4,7 @@ using SIGMPOffline.Data.Database;
 using SIGMPOffline.Data.Repositories;
 using SIGMPOffline.Data.Repositories.Impl;
 using SIGMPOffline.Data.Repositories.Interfaces;
+using SIGMPOffline.Domain.Common;
 
 namespace SIGMPOffline.Data;
 
@@ -30,12 +31,17 @@ public static class DataServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>Enregistre les repositories et l'unité de travail.</summary>
+    /// <summary>Enregistre les repositories, l'unité de travail et le contexte de province.</summary>
     public static IServiceCollection AddSigmpRepositories(this IServiceCollection services)
     {
+        // La province active est un état partagé par toute l'application (singleton).
+        services.AddSingleton<IProvinceAccessor, ProvinceAccessor>();
+
         services.AddScoped<IPpmRepository, PpmRepository>();
         services.AddScoped<IDossierDaoRepository, DossierDaoRepository>();
         services.AddScoped<IMarcheRepository, MarcheRepository>();
+        services.AddScoped<IProvinceRepository, ProvinceRepository>();
+        services.AddScoped<IConfigurationAppRepository, ConfigurationAppRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;

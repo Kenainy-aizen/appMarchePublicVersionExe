@@ -233,8 +233,14 @@ public class DossierDaoService : IDossierDaoService
             throw new DomainException("La raison sociale de l'acheteur est obligatoire.");
         }
 
+        if (!string.Equals(existant.NumStat, acheteur.NumStat, StringComparison.Ordinal))
+        {
+            throw new DomainException(
+                "Le numéro statistique (NumStat) d'un acheteur ne peut pas être modifié : "
+                + "il identifie l'acheteur, référencé par le titulaire du marché (Marche.NumStatTitulaire).");
+        }
+
         existant.RaisonSociale = acheteur.RaisonSociale;
-        existant.NumStat = acheteur.NumStat;
         existant.NumNIF = acheteur.NumNIF;
         existant.Adresse = acheteur.Adresse;
         existant.DateAchat = acheteur.DateAchat;

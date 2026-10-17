@@ -7,22 +7,22 @@ namespace SIGMPOffline.Desktop.ViewModels.Dialogs;
 /// <summary>Formulaire de création / modification d'un marché (en-tête du contrat).</summary>
 public partial class MarcheDialogViewModel : DialogViewModelBase
 {
-    private static readonly OptionCandidat Aucun = new(0, "(aucun titulaire)");
+    private static readonly OptionTitulaire Aucun = new(string.Empty, "(aucun titulaire)");
 
     private readonly bool _creation;
-    private readonly IReadOnlyDictionary<string, IReadOnlyList<OptionCandidat>> _candidatsParDossier;
+    private readonly IReadOnlyDictionary<string, IReadOnlyList<OptionTitulaire>> _titulairesParDossier;
 
     /// <summary>
     /// Crée le formulaire. <paramref name="existant"/> vaut <c>null</c> pour une création.
-    /// <paramref name="candidatsParDossier"/> fournit les titulaires possibles par dossier.
+    /// <paramref name="titulairesParDossier"/> fournit les acheteurs titulaires possibles par dossier.
     /// </summary>
     public MarcheDialogViewModel(
         IReadOnlyList<OptionDossier> dossiers,
-        IReadOnlyDictionary<string, IReadOnlyList<OptionCandidat>> candidatsParDossier,
+        IReadOnlyDictionary<string, IReadOnlyList<OptionTitulaire>> titulairesParDossier,
         Marche? existant = null)
     {
         Dossiers = dossiers ?? throw new ArgumentNullException(nameof(dossiers));
-        _candidatsParDossier = candidatsParDossier ?? throw new ArgumentNullException(nameof(candidatsParDossier));
+        _titulairesParDossier = titulairesParDossier ?? throw new ArgumentNullException(nameof(titulairesParDossier));
         _creation = existant is null;
 
         _refMarche = existant?.RefMarche ?? string.Empty;
@@ -34,7 +34,7 @@ public partial class MarcheDialogViewModel : DialogViewModelBase
         _dossierSelectionne = Dossiers.FirstOrDefault(d => d.RefDossier == existant?.RefDossier)
             ?? Dossiers.FirstOrDefault();
 
-        RafraichirCandidats(existant?.IdCandidatTitulaire, autoRetenu: existant is null);
+        RafraichirTitulaires(existant?.NumStatTitulaire);
     }
 
     /// <inheritdoc />
@@ -49,8 +49,8 @@ public partial class MarcheDialogViewModel : DialogViewModelBase
     /// <summary>Dossiers disponibles proposés à la création.</summary>
     public IReadOnlyList<OptionDossier> Dossiers { get; }
 
-    /// <summary>Titulaires possibles pour le dossier sélectionné.</summary>
-    public ObservableCollection<OptionCandidat> Candidats { get; } = new();
+    /// <summary>Acheteurs titulaires possibles pour le dossier sélectionné.</summary>
+    public ObservableCollection<OptionTitulaire> Titulaires { get; } = new();
 
     [ObservableProperty] private string _refMarche;
     [ObservableProperty] private string _objetMarche;
@@ -58,11 +58,11 @@ public partial class MarcheDialogViewModel : DialogViewModelBase
     [ObservableProperty] private decimal _montantTTC;
     [ObservableProperty] private int _delaiExecutionJours;
     [ObservableProperty] private OptionDossier? _dossierSelectionne;
-    [ObservableProperty] private OptionCandidat? _titulaireSelectionne;
+    [ObservableProperty] private OptionTitulaire? _titulaireSelectionne;
     [ObservableProperty] private string? _erreur;
 
     partial void OnDossierSelectionneChanged(OptionDossier? value)
-        => RafraichirCandidats(null, autoRetenu: true);
+        => RafraichirTitulaires(null);
 
     /// <summary>Construit l'entité à partir de la saisie.</summary>
     public Marche VersEntite() => new()
@@ -73,28 +73,31 @@ public partial class MarcheDialogViewModel : DialogViewModelBase
         MontantHT = MontantHT,
         MontantTTC = MontantTTC,
         DelaiExecutionJours = DelaiExecutionJours,
-        IdCandidatTitulaire = TitulaireSelectionne?.IdCandidat is int id and > 0 ? id : null
+        NumStatTitulaire = string.IsNullOrWhiteSpace(TitulaireSelectionne?.NumStat)
+            ? null
+            : TitulaireSelectionne.NumStat
     };
 
-    private void RafraichirCandidats(int? idTitulaire, bool autoRetenu)
+    private void RafraichirTitulaires(string? numStatTitulaire)
     {
-        Candidats.Clear();
-        Candidats.Add(Aucun);
+        Titulaires.Clear();
+        Titulaires.Add(Aucun);
 
         if (DossierSelectionne is not null
-            && _candidatsParDossier.TryGetValue(DossierSelectionne.RefDossier, out var liste))
+            && _titulairesParDossier.TryGetValue(DossierSelectionne.RefDossier, out var liste))
         {
-            foreach (var candidat in liste)
+            foreach (var titulaire in liste)
             {
-                Candidats.Add(candidat);
+                Titulaires.Add(titulaire);
             }
         }
 
-        var cible = idTitulaire is int id
-            ? Candidats.FirstOrDefault(c => c.IdCandidat == id)
-            : autoRetenu ? Candidats.FirstOrDefault(c => c.EstRetenu) : null;
+        var cible = !string.IsNullOrWhiteSpace(numStatTitulaire)
+            ? Titulaires.FirstOrDefault(t =>
+                string.Equals(t.NumStat, numStatTitulaire, StringComparison.OrdinalIgnoreCase))
+            : null;
 
-        TitulaireSelectionne = cible ?? Candidats[0];
+        TitulaireSelectionne = cible ?? Titulaires[0];
     }
 
     /// <inheritdoc />

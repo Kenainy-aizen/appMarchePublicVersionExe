@@ -31,7 +31,7 @@
                      Text="{Binding Motif}"
                      AcceptsReturn="True" TextWrapping="Wrap" MinHeight="56" />
 
-            <TextBlock Classes="field-label" Grid.Row="3" Grid.Column="0">Variation du montant (FCFA)</TextBlock>
+            <TextBlock Classes="field-label" Grid.Row="3" Grid.Column="0">Variation du montant (Ar)</TextBlock>
             <NumericUpDown Grid.Row="3" Grid.Column="1"
                            Value="{Binding VariationMontant}"
                            FormatString="N0" ShowButtonSpinner="False" />

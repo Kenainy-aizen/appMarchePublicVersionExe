@@ -93,8 +93,8 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
             return;
         }
 
-        var candidats = await ChargerCandidatsAsync(dossiers);
-        var dialogue = new MarcheDialogViewModel(dossiers, candidats);
+        var titulaires = await ChargerTitulairesAsync(dossiers);
+        var dialogue = new MarcheDialogViewModel(dossiers, titulaires);
         if (!await _dialogues.AfficherAsync(dialogue))
         {
             return;
@@ -121,9 +121,9 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
         {
             new(MarcheSelectionne.RefDossier, LibelleDossier(MarcheSelectionne))
         };
-        var candidats = await ChargerCandidatsAsync(dossiers);
+        var titulaires = await ChargerTitulairesAsync(dossiers);
 
-        var dialogue = new MarcheDialogViewModel(dossiers, candidats, MarcheSelectionne);
+        var dialogue = new MarcheDialogViewModel(dossiers, titulaires, MarcheSelectionne);
         if (!await _dialogues.AfficherAsync(dialogue))
         {
             return;
@@ -307,16 +307,16 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
         return dossiers;
     }
 
-    private async Task<IReadOnlyDictionary<string, IReadOnlyList<OptionCandidat>>> ChargerCandidatsAsync(
+    private async Task<IReadOnlyDictionary<string, IReadOnlyList<OptionTitulaire>>> ChargerTitulairesAsync(
         IReadOnlyList<OptionDossier> dossiers)
     {
-        var resultat = new Dictionary<string, IReadOnlyList<OptionCandidat>>(StringComparer.OrdinalIgnoreCase);
+        var resultat = new Dictionary<string, IReadOnlyList<OptionTitulaire>>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var dossier in dossiers)
         {
             var complet = await _dao.ObtenirAsync(dossier.RefDossier);
-            resultat[dossier.RefDossier] = complet.Candidats
-                .Select(c => new OptionCandidat(c.IdCandidat, c.NomEntreprise, c.EstRetenu))
+            resultat[dossier.RefDossier] = complet.Acheteurs
+                .Select(a => new OptionTitulaire(a.NumStat, $"{a.RaisonSociale} ({a.NumStat})"))
                 .ToList();
         }
 
@@ -350,5 +350,5 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
 
     /// <summary>Formate un montant pour l'affichage.</summary>
     public static string FormaterMontant(decimal montant)
-        => montant.ToString("N0", CultureInfo.GetCultureInfo("fr-FR")) + " FCFA";
+        => montant.ToString("N0", CultureInfo.GetCultureInfo("fr-FR")) + " Ar";
 }

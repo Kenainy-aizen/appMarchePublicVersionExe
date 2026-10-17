@@ -13,21 +13,21 @@ public class DialoguesMarcheTests
         new OptionDossier("DOS-2", "DOS-2 — Deuxième dossier")
     ];
 
-    private static IReadOnlyDictionary<string, IReadOnlyList<OptionCandidat>> Candidats() =>
-        new Dictionary<string, IReadOnlyList<OptionCandidat>>
+    private static IReadOnlyDictionary<string, IReadOnlyList<OptionTitulaire>> Titulaires() =>
+        new Dictionary<string, IReadOnlyList<OptionTitulaire>>
         {
             ["DOS-1"] =
             [
-                new OptionCandidat(1, "ACME", EstRetenu: true),
-                new OptionCandidat(2, "Beta")
+                new OptionTitulaire("STAT-1", "ACME"),
+                new OptionTitulaire("STAT-2", "Beta")
             ],
-            ["DOS-2"] = [new OptionCandidat(3, "Gamma")]
+            ["DOS-2"] = [new OptionTitulaire("STAT-3", "Gamma")]
         };
 
     [Fact]
     public void Marche_refuse_une_reference_vide()
     {
-        var vm = new MarcheDialogViewModel(Dossiers(), Candidats())
+        var vm = new MarcheDialogViewModel(Dossiers(), Titulaires())
         {
             RefMarche = "  ",
             ObjetMarche = "Objet"
@@ -44,7 +44,7 @@ public class DialoguesMarcheTests
     [Fact]
     public void Marche_refuse_un_objet_vide()
     {
-        var vm = new MarcheDialogViewModel(Dossiers(), Candidats())
+        var vm = new MarcheDialogViewModel(Dossiers(), Titulaires())
         {
             RefMarche = "M-1",
             ObjetMarche = ""
@@ -61,7 +61,7 @@ public class DialoguesMarcheTests
     [Fact]
     public void Marche_VersEntite_mappe_le_dossier_et_le_titulaire()
     {
-        var vm = new MarcheDialogViewModel(Dossiers(), Candidats())
+        var vm = new MarcheDialogViewModel(Dossiers(), Titulaires())
         {
             RefMarche = "M-9",
             ObjetMarche = "Objet",
@@ -69,61 +69,61 @@ public class DialoguesMarcheTests
             MontantTTC = 1180m,
             DelaiExecutionJours = 30,
             DossierSelectionne = Dossiers()[1],
-            TitulaireSelectionne = new OptionCandidat(3, "Gamma")
+            TitulaireSelectionne = new OptionTitulaire("STAT-3", "Gamma")
         };
 
         var entite = vm.VersEntite();
 
         Assert.Equal("M-9", entite.RefMarche);
         Assert.Equal("DOS-2", entite.RefDossier);
-        Assert.Equal(3, entite.IdCandidatTitulaire);
+        Assert.Equal("STAT-3", entite.NumStatTitulaire);
         Assert.Equal(30, entite.DelaiExecutionJours);
     }
 
     [Fact]
     public void Marche_le_titulaire_aucun_donne_une_cle_nulle()
     {
-        var vm = new MarcheDialogViewModel(Dossiers(), Candidats())
+        var vm = new MarcheDialogViewModel(Dossiers(), Titulaires())
         {
             RefMarche = "M-1",
             ObjetMarche = "Objet",
-            TitulaireSelectionne = new OptionCandidat(0, "(aucun)")
+            TitulaireSelectionne = new OptionTitulaire(string.Empty, "(aucun)")
         };
 
-        Assert.Null(vm.VersEntite().IdCandidatTitulaire);
+        Assert.Null(vm.VersEntite().NumStatTitulaire);
     }
 
     [Fact]
-    public void Marche_preselectionne_le_candidat_retenu_du_premier_dossier()
+    public void Marche_ne_preselectionne_aucun_titulaire_par_defaut()
     {
-        var vm = new MarcheDialogViewModel(Dossiers(), Candidats());
+        var vm = new MarcheDialogViewModel(Dossiers(), Titulaires());
 
         Assert.NotNull(vm.TitulaireSelectionne);
-        Assert.Equal(1, vm.TitulaireSelectionne!.IdCandidat);
+        Assert.Equal(string.Empty, vm.TitulaireSelectionne!.NumStat);
     }
 
     [Fact]
-    public void Marche_rafraichit_les_candidats_au_changement_de_dossier()
+    public void Marche_rafraichit_les_titulaires_au_changement_de_dossier()
     {
-        var vm = new MarcheDialogViewModel(Dossiers(), Candidats())
+        var vm = new MarcheDialogViewModel(Dossiers(), Titulaires())
         {
             DossierSelectionne = Dossiers()[1]
         };
 
-        // 1 entrée "(aucun)" + 1 candidat du dossier DOS-2 (Gamma).
-        Assert.Equal(2, vm.Candidats.Count);
-        Assert.Contains(vm.Candidats, c => c.IdCandidat == 3);
-        // Gamma n'est pas retenu : le titulaire par défaut reste "(aucun)".
-        Assert.Equal(0, vm.TitulaireSelectionne!.IdCandidat);
+        // 1 entrée "(aucun)" + 1 titulaire du dossier DOS-2 (Gamma).
+        Assert.Equal(2, vm.Titulaires.Count);
+        Assert.Contains(vm.Titulaires, t => t.NumStat == "STAT-3");
+        // Aucun titulaire n'est présélectionné.
+        Assert.Equal(string.Empty, vm.TitulaireSelectionne!.NumStat);
     }
 
     [Fact]
     public void Marche_la_reference_n_est_modifiable_qu_a_la_creation()
     {
-        Assert.True(new MarcheDialogViewModel(Dossiers(), Candidats()).RefMarcheModifiable);
+        Assert.True(new MarcheDialogViewModel(Dossiers(), Titulaires()).RefMarcheModifiable);
 
         var existant = new Marche { RefMarche = "M-1", RefDossier = "DOS-1" };
-        Assert.False(new MarcheDialogViewModel(Dossiers(), Candidats(), existant).RefMarcheModifiable);
+        Assert.False(new MarcheDialogViewModel(Dossiers(), Titulaires(), existant).RefMarcheModifiable);
     }
 
     [Fact]

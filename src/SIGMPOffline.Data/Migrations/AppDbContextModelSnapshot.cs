@@ -52,8 +52,6 @@ namespace SIGMPOffline.Data.Migrations
 
                     b.HasKey("IdAcheteur");
 
-                    b.HasIndex("NumStat");
-
                     b.HasIndex("RefDossier");
 
                     b.ToTable("AcheteurDAO", (string)null);
@@ -136,6 +134,25 @@ namespace SIGMPOffline.Data.Migrations
                     b.ToTable("Candidat", (string)null);
                 });
 
+            modelBuilder.Entity("SIGMPOffline.Domain.Entities.ConfigurationApp", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DateInstallation")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NomProprietairePRMP")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ConfigurationApp", (string)null);
+                });
+
             modelBuilder.Entity("SIGMPOffline.Domain.Entities.DossierDao", b =>
                 {
                     b.Property<string>("RefDossier")
@@ -147,6 +164,9 @@ namespace SIGMPOffline.Data.Migrations
 
                     b.Property<DateTime>("DateCreation")
                         .HasColumnType("TEXT");
+
+                    b.Property<int?>("IdProvince")
+                        .HasColumnType("INTEGER");
 
                     b.Property<long>("MontantCaution")
                         .HasColumnType("INTEGER");
@@ -162,6 +182,8 @@ namespace SIGMPOffline.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("RefDossier");
+
+                    b.HasIndex("IdProvince");
 
                     b.HasIndex("NumPPMDetail");
 
@@ -211,7 +233,7 @@ namespace SIGMPOffline.Data.Migrations
                     b.Property<int>("DelaiExecutionJours")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("IdCandidatTitulaire")
+                    b.Property<int?>("IdProvince")
                         .HasColumnType("INTEGER");
 
                     b.Property<long>("MontantHT")
@@ -219,6 +241,10 @@ namespace SIGMPOffline.Data.Migrations
 
                     b.Property<long>("MontantTTC")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("NumStatTitulaire")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("ObjetMarche")
                         .IsRequired()
@@ -237,7 +263,9 @@ namespace SIGMPOffline.Data.Migrations
 
                     b.HasKey("RefMarche");
 
-                    b.HasIndex("IdCandidatTitulaire");
+                    b.HasIndex("IdProvince");
+
+                    b.HasIndex("NumStatTitulaire");
 
                     b.HasIndex("RefDossier")
                         .IsUnique();
@@ -307,6 +335,9 @@ namespace SIGMPOffline.Data.Migrations
                     b.Property<DateOnly>("DateElaboration")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("IdProvince")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("NumDerniereMAJ")
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
@@ -315,7 +346,41 @@ namespace SIGMPOffline.Data.Migrations
 
                     b.HasIndex("AnneeExercice");
 
+                    b.HasIndex("IdProvince");
+
                     b.ToTable("PPMEntete", (string)null);
+                });
+
+            modelBuilder.Entity("SIGMPOffline.Domain.Entities.Province", b =>
+                {
+                    b.Property<int>("IdProvince")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DateCreation")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NomProvince")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Salt")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("IdProvince");
+
+                    b.HasIndex("NomProvince")
+                        .IsUnique();
+
+                    b.ToTable("Province", (string)null);
                 });
 
             modelBuilder.Entity("SIGMPOffline.Domain.Entities.SuiviExecution", b =>
@@ -391,6 +456,11 @@ namespace SIGMPOffline.Data.Migrations
 
             modelBuilder.Entity("SIGMPOffline.Domain.Entities.DossierDao", b =>
                 {
+                    b.HasOne("SIGMPOffline.Domain.Entities.Province", "Province")
+                        .WithMany()
+                        .HasForeignKey("IdProvince")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("SIGMPOffline.Domain.Entities.PpmDetail", "PpmDetail")
                         .WithMany("Dossiers")
                         .HasForeignKey("NumPPMDetail")
@@ -398,6 +468,8 @@ namespace SIGMPOffline.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("PpmDetail");
+
+                    b.Navigation("Province");
                 });
 
             modelBuilder.Entity("SIGMPOffline.Domain.Entities.ElementMarche", b =>
@@ -413,9 +485,15 @@ namespace SIGMPOffline.Data.Migrations
 
             modelBuilder.Entity("SIGMPOffline.Domain.Entities.Marche", b =>
                 {
-                    b.HasOne("SIGMPOffline.Domain.Entities.Candidat", "Titulaire")
+                    b.HasOne("SIGMPOffline.Domain.Entities.Province", "Province")
                         .WithMany()
-                        .HasForeignKey("IdCandidatTitulaire")
+                        .HasForeignKey("IdProvince")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SIGMPOffline.Domain.Entities.AcheteurDao", "Titulaire")
+                        .WithMany()
+                        .HasForeignKey("NumStatTitulaire")
+                        .HasPrincipalKey("NumStat")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SIGMPOffline.Domain.Entities.DossierDao", "Dossier")
@@ -425,6 +503,8 @@ namespace SIGMPOffline.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Dossier");
+
+                    b.Navigation("Province");
 
                     b.Navigation("Titulaire");
                 });
@@ -438,6 +518,16 @@ namespace SIGMPOffline.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Entete");
+                });
+
+            modelBuilder.Entity("SIGMPOffline.Domain.Entities.PpmEntete", b =>
+                {
+                    b.HasOne("SIGMPOffline.Domain.Entities.Province", "Province")
+                        .WithMany()
+                        .HasForeignKey("IdProvince")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Province");
                 });
 
             modelBuilder.Entity("SIGMPOffline.Domain.Entities.SuiviExecution", b =>

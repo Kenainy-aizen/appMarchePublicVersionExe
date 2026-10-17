@@ -43,16 +43,6 @@ public class MarcheService : IMarcheService
             throw new DomainException($"Le dossier « {dossier.RefDossier} » est déjà associé à un marché.");
         }
 
-        // Titulaire : par défaut, le candidat retenu du dossier.
-        if (marche.IdCandidatTitulaire is null)
-        {
-            var retenu = dossier.Candidats.FirstOrDefault(c => c.EstRetenu);
-            if (retenu is not null)
-            {
-                marche.IdCandidatTitulaire = retenu.IdCandidat;
-            }
-        }
-
         if (marche.StatutExecution == default)
         {
             marche.StatutExecution = StatutExecution.NonDemarre;
@@ -158,7 +148,7 @@ public class MarcheService : IMarcheService
         existant.MontantHT = marche.MontantHT;
         existant.MontantTTC = marche.MontantTTC;
         existant.DelaiExecutionJours = marche.DelaiExecutionJours;
-        existant.IdCandidatTitulaire = marche.IdCandidatTitulaire;
+        existant.NumStatTitulaire = marche.NumStatTitulaire;
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }

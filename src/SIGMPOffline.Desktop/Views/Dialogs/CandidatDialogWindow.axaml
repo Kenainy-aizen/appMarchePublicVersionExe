@@ -27,7 +27,7 @@
             <TextBlock Classes="field-label" Grid.Row="2" Grid.Column="0">N° NIF</TextBlock>
             <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding NumNIF}" />
 
-            <TextBlock Classes="field-label" Grid.Row="3" Grid.Column="0">Montant de l'offre (FCFA)</TextBlock>
+            <TextBlock Classes="field-label" Grid.Row="3" Grid.Column="0">Montant de l'offre (Ar)</TextBlock>
             <NumericUpDown Grid.Row="3" Grid.Column="1"
                            Value="{Binding MontantOffre}"
                            Minimum="0" FormatString="N0" ShowButtonSpinner="False" />

@@ -22,7 +22,8 @@
                      PlaceholderText="ex. Établissement BTP" />
 
             <TextBlock Classes="field-label" Grid.Row="1" Grid.Column="0">N° statistique</TextBlock>
-            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding NumStat}" />
+            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding NumStat}"
+                     IsEnabled="{Binding NumStatModifiable}" />
 
             <TextBlock Classes="field-label" Grid.Row="2" Grid.Column="0">N° NIF</TextBlock>
             <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding NumNIF}" />

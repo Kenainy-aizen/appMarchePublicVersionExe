@@ -1,0 +1,96 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SIGMPOffline.Desktop.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="640"
+             x:Class="SIGMPOffline.Desktop.Views.SetupView"
+             x:DataType="vm:SetupViewModel">
+
+    <Border Background="{DynamicResource AppBackgroundBrush}">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+            <Border Classes="card" Width="560" Margin="24"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Padding="32">
+                <StackPanel Spacing="18">
+
+                    <!-- Marque -->
+                    <StackPanel Orientation="Horizontal" Spacing="14">
+                        <Border Width="46" Height="46" CornerRadius="11"
+                                Background="{DynamicResource AccentBrush}">
+                            <TextBlock Text="S" FontSize="23" FontWeight="Bold"
+                                       Foreground="{DynamicResource TextOnAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="SIGMP Offline" FontSize="20" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Classes="muted" Text="Suivi des Marchés Publics" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Classes="divider" />
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="page-title" Text="Première configuration" />
+                        <TextBlock Classes="muted" TextWrapping="Wrap"
+                                   Text="Bienvenue ! Renseignez le responsable PRMP propriétaire de l'application, puis créez la première province et son mot de passe." />
+                    </StackPanel>
+
+                    <!-- Messages -->
+                    <Border Classes="error"
+                            IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                        <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
+                    </Border>
+
+                    <!-- Formulaire -->
+                    <StackPanel Spacing="14">
+                        <StackPanel Spacing="6">
+                            <TextBlock Classes="field-label">
+                                Responsable PRMP / Propriétaire
+                                <Run Foreground="{DynamicResource DangerBrush}">*</Run>
+                            </TextBlock>
+                            <TextBox Text="{Binding NomProprietaire}"
+                                     PlaceholderText="ex. PRMP Jean Dupont" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Classes="field-label">
+                                Nom de la province
+                                <Run Foreground="{DynamicResource DangerBrush}">*</Run>
+                            </TextBlock>
+                            <TextBox Text="{Binding NomProvince}"
+                                     PlaceholderText="ex. Province d'Antananarivo" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Classes="field-label">
+                                Mot de passe de la province
+                                <Run Foreground="{DynamicResource DangerBrush}">*</Run>
+                            </TextBlock>
+                            <TextBox Text="{Binding MotDePasse}" PasswordChar="●"
+                                     PlaceholderText="Au moins 4 caractères" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Classes="field-label" Text="Confirmation du mot de passe" />
+                            <TextBox Text="{Binding Confirmation}" PasswordChar="●"
+                                     PlaceholderText="Ressaisir le mot de passe" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Classes="divider" />
+
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                        <Button Grid.Column="0" Content="Quitter" Classes="ghost"
+                                Command="{Binding QuitterCommand}" />
+                        <Button Grid.Column="3" Content="Terminer la configuration" Classes="accent"
+                                Command="{Binding TerminerCommand}"
+                                IsEnabled="{Binding !EstOccupe}" />
+                    </Grid>
+
+                </StackPanel>
+            </Border>
+        </ScrollViewer>
+    </Border>
+</UserControl>

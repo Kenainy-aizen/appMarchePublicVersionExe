@@ -1,0 +1,84 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SIGMPOffline.Desktop.ViewModels"
+             xmlns:dom="using:SIGMPOffline.Domain.Entities"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="640"
+             x:Class="SIGMPOffline.Desktop.Views.LoginView"
+             x:DataType="vm:LoginViewModel">
+
+    <Border Background="{DynamicResource AppBackgroundBrush}">
+        <Border Classes="card" Width="460" Margin="24"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                Padding="32">
+            <StackPanel Spacing="18">
+
+                <!-- Marque -->
+                <StackPanel Orientation="Horizontal" Spacing="14">
+                    <Border Width="46" Height="46" CornerRadius="11"
+                            Background="{DynamicResource AccentBrush}">
+                        <TextBlock Text="S" FontSize="23" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextOnAccentBrush}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="SIGMP Offline" FontSize="20" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Classes="muted" Text="Suivi des Marchés Publics" />
+                    </StackPanel>
+                </StackPanel>
+
+                <Border Classes="divider" />
+
+                <StackPanel Spacing="4">
+                    <TextBlock Classes="page-title" Text="Connexion" />
+                    <TextBlock Classes="muted"
+                               Text="Sélectionnez la province à gérer et saisissez son mot de passe." />
+                </StackPanel>
+
+                <!-- Messages -->
+                <Border Classes="error"
+                        IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
+                </Border>
+
+                <!-- Formulaire -->
+                <StackPanel Spacing="14">
+                    <StackPanel Spacing="6">
+                        <TextBlock Classes="field-label" Text="Province" />
+                        <ComboBox ItemsSource="{Binding Provinces}"
+                                  SelectedItem="{Binding ProvinceSelectionnee}"
+                                  HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="dom:Province">
+                                    <TextBlock Text="{Binding NomProvince}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Classes="field-label" Text="Mot de passe" />
+                        <TextBox Text="{Binding MotDePasse}" PasswordChar="●"
+                                 PlaceholderText="Mot de passe de la province" />
+                    </StackPanel>
+                </StackPanel>
+
+                <Border Classes="divider" />
+
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                    <Button Grid.Column="0" Content="Quitter" Classes="ghost"
+                            Command="{Binding QuitterCommand}" />
+                    <Button Grid.Column="3" Content="Se connecter" Classes="accent"
+                            Command="{Binding SeConnecterCommand}"
+                            IsEnabled="{Binding !EstOccupe}" />
+                </Grid>
+
+                <TextBlock Classes="muted" FontSize="11" HorizontalAlignment="Center"
+                           Text="{Binding NomProprietaire, StringFormat='Propriétaire : {0}'}" />
+
+            </StackPanel>
+        </Border>
+    </Border>
+</UserControl>
