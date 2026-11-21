@@ -103,7 +103,7 @@ public static class DbSeeder
             NatureMarche = NatureMarche.PrestationsIntellectuelles,
             ObjetProjet = "Audit technique du parc informatique",
             MontantEstimatif = 45_000_000m,
-            ModePassation = ModePassation.DemandeCotation,
+            ModePassation = ModePassation.ConsultationPrix,
             SourceFinancement = "Bailleur"
         });
 

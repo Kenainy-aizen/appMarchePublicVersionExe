@@ -13,6 +13,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <conv:EnumLibelleConverter x:Key="EnumLibelle" />
+            <conv:PpmMontantTotalConverter x:Key="PpmMontantTotal" />
         </ResourceDictionary>
     </Application.Resources>
 

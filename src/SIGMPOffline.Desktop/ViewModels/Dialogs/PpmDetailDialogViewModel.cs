@@ -25,8 +25,22 @@ public partial class PpmDetailDialogViewModel : DialogViewModelBase
     /// <inheritdoc />
     public override string Titre => _creation ? "Nouvelle ligne de PPM" : "Modifier la ligne de PPM";
 
-    /// <summary>Le numéro de ligne n'est modifiable qu'à la création (il sert de clé).</summary>
+    /// <summary>Le numéro de ligne reste saisi manuellement et immuable après création.</summary>
     public bool NumDetailModifiable => _creation;
+
+    /// <summary>Convertit une saisie avec espaces en montant entier Ariary.</summary>
+    public static decimal? ParserMontantEntier(string? saisie)
+    {
+        if (string.IsNullOrWhiteSpace(saisie))
+        {
+            return 0m;
+        }
+
+        var normalise = saisie.Replace(" ", string.Empty).Replace("\u00A0", string.Empty);
+        return decimal.TryParse(normalise, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.GetCultureInfo("fr-FR"), out var montant)
+            ? montant
+            : null;
+    }
 
     /// <summary>Natures de marché proposées.</summary>
     public IReadOnlyList<OptionEnum<NatureMarche>> Natures { get; } = OptionsEnums.Natures;
@@ -68,9 +82,21 @@ public partial class PpmDetailDialogViewModel : DialogViewModelBase
             return false;
         }
 
+        if (NatureSelectionnee is null)
+        {
+            Erreur = "La nature du marché est obligatoire.";
+            return false;
+        }
+
         if (MontantEstimatif < 0)
         {
             Erreur = "Le montant estimatif ne peut pas être négatif.";
+            return false;
+        }
+
+        if (MontantEstimatif != decimal.Truncate(MontantEstimatif))
+        {
+            Erreur = "Le montant estimatif doit être un nombre entier en Ariary.";
             return false;
         }
 

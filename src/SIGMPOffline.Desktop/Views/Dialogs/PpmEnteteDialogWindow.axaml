@@ -25,6 +25,7 @@
             <TextBlock Classes="field-label" Grid.Row="1" Grid.Column="0">Exercice budgétaire <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
             <NumericUpDown Grid.Row="1" Grid.Column="1"
                            Value="{Binding AnneeExercice}"
+                           IsEnabled="{Binding AnneeModifiable}"
                            Minimum="2000" Maximum="2100"
                            FormatString="N0" ShowButtonSpinner="False" />
 
@@ -35,6 +36,7 @@
 
             <TextBlock Classes="field-label" Grid.Row="3" Grid.Column="0">Date d'élaboration</TextBlock>
             <DatePicker Grid.Row="3" Grid.Column="1" SelectedDate="{Binding DateElaboration}"
+                        IsEnabled="{Binding DateElaborationModifiable}"
                         HorizontalAlignment="Stretch" />
         </Grid>
 

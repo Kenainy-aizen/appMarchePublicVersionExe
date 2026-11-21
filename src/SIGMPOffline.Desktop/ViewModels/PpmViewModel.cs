@@ -18,6 +18,13 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     {
         _ppm = ppm ?? throw new ArgumentNullException(nameof(ppm));
         _dialogues = dialogues ?? throw new ArgumentNullException(nameof(dialogues));
+
+        Details.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(NombreLignesAffiche));
+            OnPropertyChanged(nameof(MontantTotalPlan));
+            OnPropertyChanged(nameof(MontantTotalAffiche));
+        };
     }
 
     /// <inheritdoc />
@@ -31,6 +38,8 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AUnEntete))]
+    [NotifyPropertyChangedFor(nameof(TitreDetailPpm))]
+    [NotifyPropertyChangedFor(nameof(DerniereMiseAJourAffichee))]
     private PpmEntete? _enteteSelectionne;
 
     [ObservableProperty]
@@ -40,6 +49,29 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     [ObservableProperty] private bool _estOccupe;
     [ObservableProperty] private string? _erreur;
     [ObservableProperty] private string? _message;
+
+    /// <summary>Nombre de lignes du plan sélectionné.</summary>
+    public int NombreLignesAffiche => Details.Count;
+
+    /// <summary>Somme des montants estimatifs du plan sélectionné.</summary>
+    public decimal MontantTotalPlan => Details.Sum(detail => detail.MontantEstimatif);
+
+    /// <summary>Montant total formaté en Ariary.</summary>
+    public string MontantTotalAffiche => $"{MontantTotalPlan:N0} Ar";
+
+    /// <summary>Titre complet du plan sélectionné.</summary>
+    public string TitreDetailPpm
+        => EnteteSelectionne is { } entete
+            ? $"Plan de passation n° {entete.NumPPM} — exercice {entete.AnneeExercice}"
+            : "Plan de passation";
+
+    /// <summary>Dernière mise à jour avec numéro lisible.</summary>
+    public string DerniereMiseAJourAffichee
+        => EnteteSelectionne?.DateDerniereMAJ is DateTime date
+            ? string.IsNullOrWhiteSpace(EnteteSelectionne.NumDerniereMAJ)
+                ? date.ToString("dd/MM/yyyy")
+                : $"{date:dd/MM/yyyy} — MAJ n° {EnteteSelectionne.NumDerniereMAJ}"
+            : "—";
 
     /// <summary>Vrai si un en-tête est sélectionné.</summary>
     public bool AUnEntete => EnteteSelectionne is not null;
@@ -75,6 +107,16 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     }
 
     // ---------- En-tête ----------
+
+    [RelayCommand]
+    private void OuvrirPpm(PpmEntete? enteteSelectionnee)
+    {
+        var entete = enteteSelectionnee ?? EnteteSelectionne;
+        if (entete is not null)
+        {
+            EnteteSelectionne = entete;
+        }
+    }
 
     [RelayCommand]
     private async Task NouveauPpm()
@@ -139,7 +181,29 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
         await ChargerAsync();
     }
 
-    // ---------- Lignes de détail ----------
+    // ---------- Mise à jour et lignes de détail ----------
+
+    [RelayCommand]
+    private async Task EnregistrerMiseAJour()
+    {
+        if (EnteteSelectionne is null)
+        {
+            return;
+        }
+
+        var confirme = await _dialogues.ConfirmerAsync(
+            "Enregistrer une mise à jour",
+            "Confirmer l'enregistrement d'une mise à jour à la date du jour ?");
+        if (!confirme)
+        {
+            return;
+        }
+
+        await ExecuterAsync(
+            () => _ppm.EnregistrerMiseAJourAsync(EnteteSelectionne.NumPPM),
+            "Mise à jour enregistrée.");
+        await ChargerDetailsAsync(EnteteSelectionne.NumPPM);
+    }
 
     [RelayCommand]
     private async Task AjouterDetail()

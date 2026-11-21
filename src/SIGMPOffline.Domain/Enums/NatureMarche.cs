@@ -13,8 +13,5 @@ public enum NatureMarche
     Services = 2,
 
     /// <summary>Prestations intellectuelles.</summary>
-    PrestationsIntellectuelles = 3,
-
-    /// <summary>Autre nature.</summary>
-    Autre = 99
+    PrestationsIntellectuelles = 3
 }

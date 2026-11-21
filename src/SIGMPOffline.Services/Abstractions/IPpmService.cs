@@ -8,6 +8,9 @@ public interface IPpmService
     /// <summary>Liste les PPM (filtrés par exercice si précisé).</summary>
     Task<IReadOnlyList<PpmEntete>> ListerAsync(int? anneeExercice = null, CancellationToken cancellationToken = default);
 
+    /// <summary>Liste les PPM avec leurs lignes pour les totaux de l'écran.</summary>
+    Task<IReadOnlyList<PpmEntete>> ListerAvecDetailsAsync(CancellationToken cancellationToken = default);
+
     /// <summary>Récupère un PPM avec ses lignes (lève <c>EntityNotFoundException</c> si absent).</summary>
     Task<PpmEntete> ObtenirAsync(string numPpm, CancellationToken cancellationToken = default);
 
@@ -29,6 +32,6 @@ public interface IPpmService
     /// <summary>Supprime une ligne de détail.</summary>
     Task SupprimerDetailAsync(string numPpm, string numDetail, CancellationToken cancellationToken = default);
 
-    /// <summary>Marque le PPM comme révisé (numéro et date de mise à jour).</summary>
-    Task ReviserAsync(string numPpm, string? numMiseAJour, CancellationToken cancellationToken = default);
+    /// <summary>Enregistre une mise à jour volontaire : date du jour et numéro incrémenté.</summary>
+    Task EnregistrerMiseAJourAsync(string numPpm, CancellationToken cancellationToken = default);
 }

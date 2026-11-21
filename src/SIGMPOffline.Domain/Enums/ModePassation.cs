@@ -9,18 +9,12 @@ public enum ModePassation
     /// <summary>Appel d'offres restreint.</summary>
     AppelOffresRestreint = 1,
 
-    /// <summary>Demande de cotation.</summary>
-    DemandeCotation = 2,
+    /// <summary>Consultation de prix.</summary>
+    ConsultationPrix = 2,
 
-    /// <summary>Consultation restreinte.</summary>
-    ConsultationRestreinte = 3,
+    /// <summary>Appel à manifestation d'intérêt.</summary>
+    AppelManifestationInteret = 3,
 
-    /// <summary>Concours.</summary>
-    Concours = 4,
-
-    /// <summary>Entente directe / gré à gré.</summary>
-    EntenteDirecte = 5,
-
-    /// <summary>Autre mode non listé.</summary>
-    Autre = 99
+    /// <summary>Appel à préqualification.</summary>
+    AppelPrequalification = 4
 }

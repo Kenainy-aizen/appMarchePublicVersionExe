@@ -63,7 +63,7 @@ public class PpmServiceTests
             NatureMarche = NatureMarche.Fournitures,
             ObjetProjet = "Achat véhicules",
             MontantEstimatif = 250_000m,
-            ModePassation = ModePassation.DemandeCotation
+            ModePassation = ModePassation.ConsultationPrix
         });
 
         var entete = await service.ObtenirAsync("PPM-2026");
@@ -72,16 +72,17 @@ public class PpmServiceTests
     }
 
     [Fact]
-    public async Task ReviserAsync_met_a_jour_le_numero_de_revision()
+    public async Task EnregistrerMiseAJourAsync_incremente_le_compteur()
     {
         await using var db = await TestDatabase.CreateAsync();
         var service = new PpmService(db.UnitOfWork);
         await service.CreerAsync(NouvelEntete());
 
-        await service.ReviserAsync("PPM-2026", "MAJ-02");
+        await service.EnregistrerMiseAJourAsync("PPM-2026");
 
         var entete = await service.ObtenirAsync("PPM-2026");
-        Assert.Equal("MAJ-02", entete.NumDerniereMAJ);
+        Assert.Equal("1", entete.NumDerniereMAJ);
+        Assert.NotNull(entete.DateDerniereMAJ);
     }
 
     [Fact]
@@ -145,7 +146,7 @@ public class PpmServiceTests
             ObjetProjet = "Ancien objet",
             MontantEstimatif = 100m,
             NatureMarche = NatureMarche.Services,
-            ModePassation = ModePassation.ConsultationRestreinte
+            ModePassation = ModePassation.ConsultationPrix
         });
 
         await service.ModifierDetailAsync("PPM-2026", new PpmDetail

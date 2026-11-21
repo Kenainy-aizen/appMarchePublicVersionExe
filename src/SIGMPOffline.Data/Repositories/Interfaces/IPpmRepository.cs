@@ -10,4 +10,7 @@ public interface IPpmRepository : IRepository<PpmEntete>
 
     /// <summary>Liste les PPM d'un exercice budgétaire.</summary>
     Task<IReadOnlyList<PpmEntete>> ListByAnneeAsync(int annee, CancellationToken cancellationToken = default);
+
+    /// <summary>Liste les PPM avec leurs lignes pour les tableaux agrégés.</summary>
+    Task<IReadOnlyList<PpmEntete>> ListerAvecDetailsAsync(CancellationToken cancellationToken = default);
 }

@@ -23,7 +23,11 @@ public class PpmService : IPpmService
         CancellationToken cancellationToken = default)
         => anneeExercice is int annee
             ? await _ppm.ListByAnneeAsync(annee, cancellationToken)
-            : await _ppm.GetAllAsync(cancellationToken);
+            : await _ppm.ListerAvecDetailsAsync(cancellationToken);
+
+    /// <inheritdoc />
+    public Task<IReadOnlyList<PpmEntete>> ListerAvecDetailsAsync(CancellationToken cancellationToken = default)
+        => _ppm.ListerAvecDetailsAsync(cancellationToken);
 
     /// <inheritdoc />
     public async Task<PpmEntete> ObtenirAsync(string numPpm, CancellationToken cancellationToken = default)
@@ -85,8 +89,13 @@ public class PpmService : IPpmService
     /// <inheritdoc />
     public async Task SupprimerAsync(string numPpm, CancellationToken cancellationToken = default)
     {
-        var entete = await _ppm.GetByIdAsync(numPpm, cancellationToken)
+        var entete = await _ppm.GetWithDetailsAsync(numPpm, cancellationToken)
             ?? throw new EntityNotFoundException(nameof(PpmEntete), numPpm);
+
+        if (entete.Details.Any(detail => detail.Dossiers.Any()))
+        {
+            throw new DomainException("Ce plan ne peut pas être supprimé : au moins une ligne est utilisée par un dossier DAO.");
+        }
 
         _ppm.Remove(entete);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -152,21 +161,32 @@ public class PpmService : IPpmService
         var existant = entete.Details.FirstOrDefault(d => d.NumPPMDetail == numDetail)
             ?? throw new EntityNotFoundException(nameof(PpmDetail), numDetail);
 
+        if (existant.Dossiers.Any())
+        {
+            throw new DomainException("Cette ligne ne peut pas être supprimée : elle est utilisée par un dossier DAO.");
+        }
+
         entete.Details.Remove(existant);
         entete.DateDerniereMAJ = DateTime.Now;
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task ReviserAsync(
+    public async Task EnregistrerMiseAJourAsync(
         string numPpm,
-        string? numMiseAJour,
         CancellationToken cancellationToken = default)
     {
         var entete = await _ppm.GetByIdAsync(numPpm, cancellationToken)
             ?? throw new EntityNotFoundException(nameof(PpmEntete), numPpm);
 
-        entete.NumDerniereMAJ = numMiseAJour;
+        var numeroActuel = 0;
+        if (!string.IsNullOrWhiteSpace(entete.NumDerniereMAJ))
+        {
+            var chiffres = new string(entete.NumDerniereMAJ.Where(char.IsAsciiDigit).ToArray());
+            int.TryParse(chiffres, out numeroActuel);
+        }
+
+        entete.NumDerniereMAJ = (numeroActuel + 1).ToString();
         entete.DateDerniereMAJ = DateTime.Now;
         _ppm.Update(entete);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

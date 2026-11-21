@@ -19,20 +19,17 @@ public static class OptionsEnums
         new(NatureMarche.Travaux, "Travaux"),
         new(NatureMarche.Fournitures, "Fournitures"),
         new(NatureMarche.Services, "Services"),
-        new(NatureMarche.PrestationsIntellectuelles, "Prestations intellectuelles"),
-        new(NatureMarche.Autre, "Autre")
+        new(NatureMarche.PrestationsIntellectuelles, "Prestations intellectuelles")
     ];
 
     /// <summary>Modes de passation.</summary>
     public static IReadOnlyList<OptionEnum<ModePassation>> ModesPassation { get; } =
     [
-        new(ModePassation.AppelOffresOuvert, "Appel d'offres ouvert"),
-        new(ModePassation.AppelOffresRestreint, "Appel d'offres restreint"),
-        new(ModePassation.DemandeCotation, "Demande de cotation"),
-        new(ModePassation.ConsultationRestreinte, "Consultation restreinte"),
-        new(ModePassation.Concours, "Concours"),
-        new(ModePassation.EntenteDirecte, "Entente directe"),
-        new(ModePassation.Autre, "Autre")
+        new(ModePassation.AppelOffresOuvert, "Appel d'offres ouvert (DAO)"),
+        new(ModePassation.AppelOffresRestreint, "Appel d'offres restreint (AOR)"),
+        new(ModePassation.ConsultationPrix, "Consultation de prix (DCP)"),
+        new(ModePassation.AppelManifestationInteret, "Appel à manifestation d'intérêt (AMI)"),
+        new(ModePassation.AppelPrequalification, "Appel à préqualification (APQ)")
     ];
 
     /// <summary>Statuts d'exécution d'un marché.</summary>

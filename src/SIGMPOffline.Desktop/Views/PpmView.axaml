@@ -4,26 +4,26 @@
              xmlns:ent="using:SIGMPOffline.Domain.Entities"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+             mc:Ignorable="d" d:DesignWidth="1366" d:DesignHeight="760"
              x:Class="SIGMPOffline.Desktop.Views.PpmView"
              x:DataType="vm:PpmViewModel">
 
     <Grid RowDefinitions="Auto,Auto,*" RowSpacing="14">
-
-        <!-- En-tête + barre d'actions -->
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
             <StackPanel Spacing="2">
-                <TextBlock Classes="page-title" Text="Plan de Passation des Marchés" />
-                <TextBlock Classes="page-subtitle" Text="Plans annuels et lignes de passation." />
+                <TextBlock Classes="page-title" Text="Plans de passation" />
+                <TextBlock Classes="page-subtitle" Text="Plans annuels et lignes de passation des marchés publics." />
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
-                <Button Content="Nouveau PPM" Command="{Binding NouveauPpmCommand}" Classes="accent" />
-
-                <Button Content="Actualiser" Command="{Binding ChargerCommand}" Classes="ghost" />
+                <Button Content="Nouveau plan de passation"
+                        Command="{Binding NouveauPpmCommand}" Classes="accent"
+                        IsEnabled="{Binding !EstOccupe}" />
+                <Button Content="Actualiser"
+                        Command="{Binding ChargerCommand}" Classes="ghost"
+                        IsEnabled="{Binding !EstOccupe}" />
             </StackPanel>
         </Grid>
 
-        <!-- Messages -->
         <StackPanel Grid.Row="1" Spacing="8">
             <Border Classes="error"
                     IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
@@ -35,103 +35,171 @@
             </Border>
         </StackPanel>
 
-        <Grid Grid.Row="2" ColumnDefinitions="320,*" ColumnSpacing="14">
+        <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Spacing="14">
+                <Border Classes="card">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Classes="section-title"
+                                   Text="Plans de passation" Margin="0,0,0,10" />
 
-            <!-- Liste des PPM -->
-            <Border Classes="card">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Classes="section-title" Text="Plans (PPM)" Margin="0,0,0,10" />
-                    <ListBox ItemsSource="{Binding Entetes}" SelectedItem="{Binding EnteteSelectionne}">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate x:DataType="ent:PpmEntete">
-                                <Grid ColumnDefinitions="*,72" MinHeight="44" VerticalAlignment="Center">
-                                    <StackPanel Grid.Column="0" Margin="0,2" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding NumPPM}" FontWeight="SemiBold" />
-                                        <TextBlock Text="{Binding AnneeExercice, StringFormat='Exercice {0}'}"
-                                                   Classes="legende" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal"
-                                                HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="4">
-                                        <Button Classes="icon row-action modify"
-                                                ToolTip.Tip="Modifier"
-                                                Command="{Binding $parent[UserControl].DataContext.ModifierPpmCommand}"
+                        <TextBlock DockPanel.Dock="Top" Classes="muted"
+                                   Text="Aucun plan de passation pour cette province."
+                                   IsVisible="{Binding !Entetes.Count}"
+                                   Margin="0,8" />
+
+                        <Border DockPanel.Dock="Top" Classes="list-header">
+                            <Grid ColumnDefinitions="110,90,210,120,190,110,170,72">
+                                <TextBlock Grid.Column="0" Text="N°" />
+                                <TextBlock Grid.Column="1" Text="Exercice" />
+                                <TextBlock Grid.Column="2" Text="Autorité contractante" />
+                                <TextBlock Grid.Column="3" Text="Élaboré le" />
+                                <TextBlock Grid.Column="4" Text="Dernière mise à jour" />
+                                <TextBlock Grid.Column="5" Text="Nb lignes" HorizontalAlignment="Right" />
+                                <TextBlock Grid.Column="6" Text="Montant estimatif total" HorizontalAlignment="Right" />
+                                <TextBlock Grid.Column="7" Text="Ouvrir" HorizontalAlignment="Center" />
+                            </Grid>
+                        </Border>
+
+                        <ListBox ItemsSource="{Binding Entetes}" SelectedItem="{Binding EnteteSelectionne}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="ent:PpmEntete">
+                                    <Grid ColumnDefinitions="110,90,210,120,190,110,170,72" MinHeight="48"
+                                          VerticalAlignment="Center">
+                                        <TextBlock Grid.Column="0" Text="{Binding NumPPM}" FontWeight="SemiBold"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="{Binding AnneeExercice}"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="{Binding AutoriteContractante}"
+                                                   TextWrapping="Wrap" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="3"
+                                                   Text="{Binding DateElaboration, StringFormat='{}{0:dd/MM/yyyy}'}"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="4" VerticalAlignment="Center">
+                                            <TextBlock.Text>
+                                                <Binding Path="DateDerniereMAJ" StringFormat="dd/MM/yyyy" />
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                        <TextBlock Grid.Column="5"
+                                                   Text="{Binding Details.Count, StringFormat='{}{0}'}"
+                                                   HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="6"
+                                                   Text="{Binding Details, Converter={StaticResource PpmMontantTotal}}"
+                                                   HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                        <Button Grid.Column="7" Classes="icon row-action modify"
+                                                ToolTip.Tip="Ouvrir"
+                                                Command="{Binding $parent[UserControl].DataContext.OuvrirPpmCommand}"
                                                 CommandParameter="{Binding}">
-                                            <PathIcon Data="{x:Static vm:Icones.Modifier}" Width="18" Height="18" />
+                                            <PathIcon Data="{x:Static vm:Icones.Ppm}" Width="18" Height="18" />
                                         </Button>
-                                        <Button Classes="icon row-action delete"
-                                                ToolTip.Tip="Supprimer"
-                                                Command="{Binding $parent[UserControl].DataContext.SupprimerPpmCommand}"
-                                                CommandParameter="{Binding}">
-                                            <PathIcon Data="{x:Static vm:Icones.Supprimer}" Width="18" Height="18" />
-                                        </Button>
-                                    </StackPanel>
-                                </Grid>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </DockPanel>
-            </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                </Border>
 
-            <!-- Détails du PPM sélectionné -->
-            <Border Grid.Column="1" Classes="card">
-                <DockPanel>
-                    <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,12">
-                        <TextBlock Classes="section-title" Text="Lignes de détail" />
-                        <TextBlock Classes="muted" Text="{Binding EnteteSelectionne.AutoriteContractante}" />
-                    </StackPanel>
+                <Border Classes="card" IsVisible="{Binding AUnEntete}">
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0,0,0,12">
+                            <TextBlock Classes="section-title" Text="{Binding TitreDetailPpm}" />
+                            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+                                <StackPanel Grid.Column="0" Spacing="2">
+                                    <TextBlock Classes="field-label" Text="Autorité contractante" />
+                                    <TextBlock Text="{Binding EnteteSelectionne.AutoriteContractante}" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="2">
+                                    <TextBlock Classes="field-label" Text="Élaboré le" />
+                                    <TextBlock Text="{Binding EnteteSelectionne.DateElaboration, StringFormat='{}{0:dd/MM/yyyy}'}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Spacing="2">
+                                    <TextBlock Classes="field-label" Text="Dernière mise à jour" />
+                                    <TextBlock Text="{Binding DerniereMiseAJourAffichee}" />
+                                </StackPanel>
+                            </Grid>
 
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,10">
-                        <Button Content="Ajouter une ligne" Command="{Binding AjouterDetailCommand}"
-                                IsEnabled="{Binding AUnEntete}" Classes="accent" />
+                            <WrapPanel Orientation="Horizontal">
+                                <Button Content="Ajouter une ligne"
+                                        Command="{Binding AjouterDetailCommand}" Classes="accent"
+                                        IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,8" />
+                                <Button Content="Enregistrer une mise à jour"
+                                        Command="{Binding EnregistrerMiseAJourCommand}"
+                                        IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,8" />
+                                <Button Content="Modifier l'en-tête"
+                                        Command="{Binding ModifierPpmCommand}"
+                                        IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,8" />
+                                <Button Content="Supprimer ce plan"
+                                        Command="{Binding SupprimerPpmCommand}" Classes="danger"
+                                        IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,8" />
+                            </WrapPanel>
+                        </StackPanel>
 
-                    </StackPanel>
+                        <TextBlock DockPanel.Dock="Top" Classes="muted"
+                                   Text="Ce plan ne contient encore aucune ligne."
+                                   IsVisible="{Binding !NombreLignesAffiche}"
+                                   Margin="0,8" />
 
-                    <Border DockPanel.Dock="Top" Classes="list-header">
-                        <Grid ColumnDefinitions="110,*,150,170,72">
-                            <TextBlock Grid.Column="0" Text="N°" />
-                            <TextBlock Grid.Column="1" Text="Objet" />
-                            <TextBlock Grid.Column="2" Text="Nature" />
-                            <TextBlock Grid.Column="3" Text="Montant estimatif" HorizontalAlignment="Right" />
-                            <TextBlock Grid.Column="4" Text="Actions" HorizontalAlignment="Center" />
-                        </Grid>
-                    </Border>
+                        <Border DockPanel.Dock="Top" Classes="list-header">
+                            <Grid ColumnDefinitions="170,*,170,170,72">
+                                <TextBlock Grid.Column="0" Text="Nature du marché" />
+                                <TextBlock Grid.Column="1" Text="Objet / Financement" />
+                                <TextBlock Grid.Column="2" Text="Mode de passation" />
+                                <TextBlock Grid.Column="3" Text="Montant estimatif" HorizontalAlignment="Right" />
+                                <TextBlock Grid.Column="4" Text="Actions" HorizontalAlignment="Center" />
+                            </Grid>
+                        </Border>
 
-                    <ListBox ItemsSource="{Binding Details}" SelectedItem="{Binding DetailSelectionne}">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate x:DataType="ent:PpmDetail">
-                                <Grid ColumnDefinitions="110,*,150,170,72" MinHeight="44"
-                                      VerticalAlignment="Center">
-                                    <TextBlock Grid.Column="0" Text="{Binding NumPPMDetail}" FontWeight="SemiBold"
-                                               VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="1" Text="{Binding ObjetProjet}" TextWrapping="Wrap"
-                                               VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="2"
-                                               Text="{Binding NatureMarche, Converter={StaticResource EnumLibelle}}"
-                                               Classes="muted" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="3"
-                                               Text="{Binding MontantEstimatif, StringFormat='{}{0:N0} Ar'}"
-                                               HorizontalAlignment="Right" VerticalAlignment="Center" />
-                                    <StackPanel Grid.Column="4" Orientation="Horizontal"
-                                                HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="4">
-                                        <Button Classes="icon row-action modify"
-                                                ToolTip.Tip="Modifier"
-                                                Command="{Binding $parent[UserControl].DataContext.ModifierDetailCommand}"
-                                                CommandParameter="{Binding}">
-                                            <PathIcon Data="{x:Static vm:Icones.Modifier}" Width="18" Height="18" />
-                                        </Button>
-                                        <Button Classes="icon row-action delete"
-                                                ToolTip.Tip="Supprimer"
-                                                Command="{Binding $parent[UserControl].DataContext.SupprimerDetailCommand}"
-                                                CommandParameter="{Binding}">
-                                            <PathIcon Data="{x:Static vm:Icones.Supprimer}" Width="18" Height="18" />
-                                        </Button>
-                                    </StackPanel>
-                                </Grid>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </DockPanel>
-            </Border>
-        </Grid>
+                        <ListBox ItemsSource="{Binding Details}" SelectedItem="{Binding DetailSelectionne}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="ent:PpmDetail">
+                                    <Grid ColumnDefinitions="170,*,170,170,72" MinHeight="56"
+                                          VerticalAlignment="Center">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding NatureMarche, Converter={StaticResource EnumLibelle}}"
+                                                   FontWeight="SemiBold" VerticalAlignment="Center" />
+                                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding ObjetProjet}" TextWrapping="Wrap" />
+                                            <TextBlock Classes="legende">
+                                                <TextBlock.Text>
+                                                    <Binding Path="SourceFinancement" StringFormat="Financement : {0}" TargetNullValue="Financement : —" />
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding ModePassation, Converter={StaticResource EnumLibelle}}"
+                                                   Classes="muted" VerticalAlignment="Center" TextWrapping="Wrap" />
+                                        <TextBlock Grid.Column="3"
+                                                   Text="{Binding MontantEstimatif, StringFormat='{}{0:N0} Ar'}"
+                                                   HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                        <StackPanel Grid.Column="4" Orientation="Horizontal"
+                                                    HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="4">
+                                            <Button Classes="icon row-action modify"
+                                                    ToolTip.Tip="Modifier"
+                                                    Command="{Binding $parent[UserControl].DataContext.ModifierDetailCommand}"
+                                                    CommandParameter="{Binding}">
+                                                <PathIcon Data="{x:Static vm:Icones.Modifier}" Width="18" Height="18" />
+                                            </Button>
+                                            <Button Classes="icon row-action delete"
+                                                    ToolTip.Tip="Supprimer"
+                                                    Command="{Binding $parent[UserControl].DataContext.SupprimerDetailCommand}"
+                                                    CommandParameter="{Binding}">
+                                                <PathIcon Data="{x:Static vm:Icones.Supprimer}" Width="18" Height="18" />
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <Border DockPanel.Dock="Bottom" Classes="list-header" Margin="0,6,0,0">
+                            <Grid ColumnDefinitions="*,170">
+                                <TextBlock Grid.Column="0" Text="Total du plan" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="1" Text="{Binding MontantTotalAffiche}"
+                                           FontWeight="SemiBold" HorizontalAlignment="Right" />
+                            </Grid>
+                        </Border>
+                    </DockPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

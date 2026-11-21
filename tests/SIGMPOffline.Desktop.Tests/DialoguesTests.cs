@@ -103,13 +103,13 @@ public class DialoguesTests
             MontantEstimatif = 1234m,
             SourceFinancement = "Bailleur",
             NatureSelectionnee = OptionsEnums.Nature(NatureMarche.Fournitures),
-            ModeSelectionne = OptionsEnums.Mode(ModePassation.DemandeCotation)
+            ModeSelectionne = OptionsEnums.Mode(ModePassation.ConsultationPrix)
         };
 
         var entite = vm.VersEntite();
 
         Assert.Equal(NatureMarche.Fournitures, entite.NatureMarche);
-        Assert.Equal(ModePassation.DemandeCotation, entite.ModePassation);
+        Assert.Equal(ModePassation.ConsultationPrix, entite.ModePassation);
         Assert.Equal(1234m, entite.MontantEstimatif);
         Assert.Equal("Bailleur", entite.SourceFinancement);
     }
@@ -121,12 +121,12 @@ public class DialoguesTests
         {
             NumPPMDetail = "D-1",
             NatureMarche = NatureMarche.PrestationsIntellectuelles,
-            ModePassation = ModePassation.EntenteDirecte
+            ModePassation = ModePassation.AppelPrequalification
         };
 
         var vm = new PpmDetailDialogViewModel(existant);
 
         Assert.Equal(NatureMarche.PrestationsIntellectuelles, vm.NatureSelectionnee.Valeur);
-        Assert.Equal(ModePassation.EntenteDirecte, vm.ModeSelectionne.Valeur);
+        Assert.Equal(ModePassation.AppelPrequalification, vm.ModeSelectionne.Valeur);
     }
 }

@@ -29,8 +29,14 @@ public partial class PpmEnteteDialogViewModel : DialogViewModelBase
     /// <inheritdoc />
     public override string Titre => _creation ? "Nouveau PPM" : "Modifier le PPM";
 
-    /// <summary>Le numéro n'est modifiable qu'à la création (il sert de clé).</summary>
+    /// <summary>Le numéro PPM reste saisi manuellement et est immuable après création.</summary>
     public bool NumPpmModifiable => _creation;
+
+    /// <summary>L'exercice reste modifiable après création.</summary>
+    public bool AnneeModifiable => true;
+
+    /// <summary>La date d'élaboration reste modifiable après création.</summary>
+    public bool DateElaborationModifiable => true;
 
     [ObservableProperty] private string _numPPM;
     [ObservableProperty] private decimal _anneeExercice;
@@ -65,6 +71,12 @@ public partial class PpmEnteteDialogViewModel : DialogViewModelBase
         if (AnneeExercice < 2000 || AnneeExercice > 2100)
         {
             Erreur = "L'exercice budgétaire doit être compris entre 2000 et 2100.";
+            return false;
+        }
+
+        if (DateElaboration is null)
+        {
+            Erreur = "La date d'élaboration est obligatoire.";
             return false;
         }
 

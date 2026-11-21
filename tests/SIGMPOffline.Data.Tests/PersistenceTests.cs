@@ -86,7 +86,7 @@ public class PersistenceTests
                     NatureMarche = NatureMarche.Travaux,
                     ObjetProjet = "Route",
                     MontantEstimatif = 1m,
-                    ModePassation = ModePassation.EntenteDirecte
+                    ModePassation = ModePassation.AppelPrequalification
                 }
             }
         });
@@ -97,6 +97,6 @@ public class PersistenceTests
             .SqlQuery<string>($"SELECT \"ModePassation\" AS \"Value\" FROM \"PPMDetail\"")
             .SingleAsync();
 
-        Assert.Equal("EntenteDirecte", stored);
+        Assert.Equal("AppelPrequalification", stored);
     }
 }
