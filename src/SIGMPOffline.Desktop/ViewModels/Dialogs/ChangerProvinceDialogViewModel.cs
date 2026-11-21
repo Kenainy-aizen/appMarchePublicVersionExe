@@ -26,6 +26,34 @@ public partial class ChangerProvinceDialogViewModel : DialogViewModelBase
     [ObservableProperty] private string _motDePasse = string.Empty;
     [ObservableProperty] private string? _erreur;
 
+    /// <summary>La province doit-elle être signalée comme invalide ?</summary>
+    public bool ProvinceInvalide => Erreur is not null && ProvinceSelectionnee is null;
+
+    /// <summary>Le mot de passe doit-il être signalé comme invalide ?</summary>
+    public bool MotDePasseInvalide => Erreur is not null && string.IsNullOrEmpty(MotDePasse);
+
+    partial void OnErreurChanged(string? value) => NotifierEtatsChamps();
+
+    partial void OnProvinceSelectionneeChanged(Province? value) => EffacerErreurPuisNotifier();
+
+    partial void OnMotDePasseChanged(string value) => EffacerErreurPuisNotifier();
+
+    private void EffacerErreurPuisNotifier()
+    {
+        if (Erreur is not null)
+        {
+            Erreur = null;
+        }
+
+        NotifierEtatsChamps();
+    }
+
+    private void NotifierEtatsChamps()
+    {
+        OnPropertyChanged(nameof(ProvinceInvalide));
+        OnPropertyChanged(nameof(MotDePasseInvalide));
+    }
+
     /// <summary>Province choisie (0 si aucune).</summary>
     public int IdProvinceChoisi => ProvinceSelectionnee?.IdProvince ?? 0;
 

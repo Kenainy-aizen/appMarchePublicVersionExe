@@ -117,15 +117,16 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     }
 
     [RelayCommand]
-    private async Task ModifierDossier()
+    private async Task ModifierDossier(DossierDao? dossierSelectionne)
     {
-        if (DossierSelectionne is null)
+        var dossierActuel = dossierSelectionne ?? DossierSelectionne;
+        if (dossierActuel is null)
         {
             return;
         }
 
         var lignes = await ChargerLignesPpmAsync();
-        var dialogue = new DossierDaoDialogViewModel(lignes, DossierSelectionne);
+        var dialogue = new DossierDaoDialogViewModel(lignes, dossierActuel);
         if (!await _dialogues.AfficherAsync(dialogue))
         {
             return;
@@ -141,14 +142,15 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     }
 
     [RelayCommand]
-    private async Task SupprimerDossier()
+    private async Task SupprimerDossier(DossierDao? dossierSelectionne)
     {
-        if (DossierSelectionne is null)
+        var dossierActuel = dossierSelectionne ?? DossierSelectionne;
+        if (dossierActuel is null)
         {
             return;
         }
 
-        var refDossier = DossierSelectionne.RefDossier;
+        var refDossier = dossierActuel.RefDossier;
         var confirme = await _dialogues.ConfirmerAsync(
             "Supprimer le dossier",
             $"Confirmer la suppression du dossier « {refDossier} » (candidats et acheteurs inclus) ?");
@@ -187,14 +189,20 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     }
 
     [RelayCommand]
-    private async Task ModifierCandidat()
+    private async Task ModifierCandidat(Candidat? candidatSelectionne)
     {
-        if (DossierSelectionne is null || CandidatSelectionne is null)
+        if (DossierSelectionne is null)
         {
             return;
         }
 
-        var dialogue = new CandidatDialogViewModel(CandidatSelectionne);
+        var candidatActuel = candidatSelectionne ?? CandidatSelectionne;
+        if (candidatActuel is null)
+        {
+            return;
+        }
+
+        var dialogue = new CandidatDialogViewModel(candidatActuel);
         if (!await _dialogues.AfficherAsync(dialogue))
         {
             return;
@@ -209,15 +217,21 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     }
 
     [RelayCommand]
-    private async Task SupprimerCandidat()
+    private async Task SupprimerCandidat(Candidat? candidatSelectionne)
     {
-        if (DossierSelectionne is null || CandidatSelectionne is null)
+        if (DossierSelectionne is null)
         {
             return;
         }
 
-        var nom = CandidatSelectionne.NomEntreprise;
-        var id = CandidatSelectionne.IdCandidat;
+        var candidatActuel = candidatSelectionne ?? CandidatSelectionne;
+        if (candidatActuel is null)
+        {
+            return;
+        }
+
+        var nom = candidatActuel.NomEntreprise;
+        var id = candidatActuel.IdCandidat;
         var confirme = await _dialogues.ConfirmerAsync(
             "Supprimer le candidat",
             $"Confirmer la suppression du candidat « {nom} » ?");
@@ -276,14 +290,20 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     }
 
     [RelayCommand]
-    private async Task ModifierAcheteur()
+    private async Task ModifierAcheteur(AcheteurDao? acheteurSelectionne)
     {
-        if (DossierSelectionne is null || AcheteurSelectionne is null)
+        if (DossierSelectionne is null)
         {
             return;
         }
 
-        var dialogue = new AcheteurDaoDialogViewModel(AcheteurSelectionne);
+        var acheteurActuel = acheteurSelectionne ?? AcheteurSelectionne;
+        if (acheteurActuel is null)
+        {
+            return;
+        }
+
+        var dialogue = new AcheteurDaoDialogViewModel(acheteurActuel);
         if (!await _dialogues.AfficherAsync(dialogue))
         {
             return;
@@ -298,15 +318,21 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     }
 
     [RelayCommand]
-    private async Task SupprimerAcheteur()
+    private async Task SupprimerAcheteur(AcheteurDao? acheteurSelectionne)
     {
-        if (DossierSelectionne is null || AcheteurSelectionne is null)
+        if (DossierSelectionne is null)
         {
             return;
         }
 
-        var nom = AcheteurSelectionne.RaisonSociale;
-        var id = AcheteurSelectionne.IdAcheteur;
+        var acheteurActuel = acheteurSelectionne ?? AcheteurSelectionne;
+        if (acheteurActuel is null)
+        {
+            return;
+        }
+
+        var nom = acheteurActuel.RaisonSociale;
+        var id = acheteurActuel.IdAcheteur;
         var confirme = await _dialogues.ConfirmerAsync(
             "Supprimer l'acheteur",
             $"Confirmer la suppression de l'acheteur « {nom} » ?");

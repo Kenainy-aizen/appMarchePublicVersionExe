@@ -12,6 +12,15 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 
+  <!-- Les symboles natifs (.pdb de SkiaSharp/HarfBuzzSharp) sont inutiles à l'exécution
+       et pèsent ~100 Mo dans le dossier de publication. -->
+  <Target Name="SupprimerPdbNatifs" AfterTargets="Publish">
+    <ItemGroup>
+      <PdbNatifs Include="$(PublishDir)**\*.pdb" />
+    </ItemGroup>
+    <Delete Files="@(PdbNatifs)" />
+  </Target>
+
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.1.4" />
     <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />

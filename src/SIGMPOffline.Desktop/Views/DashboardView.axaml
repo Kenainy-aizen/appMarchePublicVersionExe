@@ -126,8 +126,7 @@
                                         <StackPanel Grid.Column="0" Spacing="2">
                                             <TextBlock Text="{Binding RefMarche}" FontWeight="SemiBold"
                                                        Foreground="{DynamicResource TextPrimaryBrush}" />
-                                            <TextBlock Text="{Binding ObjetMarche}" Classes="muted"
-                                                       FontSize="12" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding ObjetMarche}" Classes="secondaire" />
                                         </StackPanel>
                                         <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="14,0"
                                                    Foreground="{DynamicResource TextSecondaryBrush}"

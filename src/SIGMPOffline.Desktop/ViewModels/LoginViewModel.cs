@@ -29,6 +29,20 @@ public partial class LoginViewModel : ViewModelBase
     [ObservableProperty] private string? _erreur;
     [ObservableProperty] private bool _estOccupe;
 
+    /// <summary>Le champ mot de passe doit-il être signalé comme invalide ?</summary>
+    public bool MotDePasseInvalide => Erreur is not null;
+
+    partial void OnErreurChanged(string? value) => OnPropertyChanged(nameof(MotDePasseInvalide));
+
+    partial void OnMotDePasseChanged(string value)
+    {
+        // Dès que l'utilisateur corrige sa saisie, l'ancien message n'est plus pertinent.
+        if (Erreur is not null)
+        {
+            Erreur = null;
+        }
+    }
+
     /// <summary>Nom du propriétaire de l'application (affiché en pied d'écran).</summary>
     public string NomProprietaire => _auth.Configuration?.NomProprietairePRMP ?? string.Empty;
 

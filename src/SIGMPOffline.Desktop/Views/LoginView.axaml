@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:SIGMPOffline.Desktop.ViewModels"
+             xmlns:ctrl="using:SIGMPOffline.Desktop.Controls"
              xmlns:dom="using:SIGMPOffline.Domain.Entities"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -8,77 +9,136 @@
              x:Class="SIGMPOffline.Desktop.Views.LoginView"
              x:DataType="vm:LoginViewModel">
 
-    <Border Background="{DynamicResource AppBackgroundBrush}">
-        <Border Classes="card" Width="460" Margin="24"
-                HorizontalAlignment="Center" VerticalAlignment="Center"
-                Padding="32">
-            <StackPanel Spacing="18">
+    <!--
+        Écran de connexion.
+        La carte est centrée et limitée en largeur (MaxWidth) : elle s'adapte
+        donc naturellement du grand écran au format étroit sans débordement.
+    -->
+    <Border Classes="auth-backdrop">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto"
+                      Padding="16,24">
+            <Border Classes="auth-card"
+                    MaxWidth="448"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Center">
+                <Grid RowDefinitions="Auto,*">
 
-                <!-- Marque -->
-                <StackPanel Orientation="Horizontal" Spacing="14">
-                    <Border Width="46" Height="46" CornerRadius="11"
-                            Background="{DynamicResource AccentBrush}">
-                        <TextBlock Text="S" FontSize="23" FontWeight="Bold"
-                                   Foreground="{DynamicResource TextOnAccentBrush}"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="SIGMP Offline" FontSize="20" FontWeight="SemiBold"
-                                   Foreground="{DynamicResource TextPrimaryBrush}" />
-                        <TextBlock Classes="muted" Text="Suivi des Marchés Publics" />
+                    <Border Grid.Row="0" Classes="auth-stripe" Height="5" />
+
+                    <StackPanel Grid.Row="1" Margin="30,26,30,26" Spacing="20">
+
+                        <!-- Marque -->
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Border Classes="auth-logo" Width="46" Height="46">
+                                <PathIcon Data="{x:Static vm:Icones.Marche}"
+                                          Width="21" Height="21"
+                                          Foreground="{DynamicResource TextOnAccentBrush}" />
+                            </Border>
+                            <StackPanel VerticalAlignment="Center" Spacing="1">
+                                <TextBlock Classes="auth-brand" Text="SIGMP Offline" />
+                                <TextBlock Classes="auth-caption" Text="Suivi des Marchés Publics" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Titre -->
+                        <StackPanel Spacing="7">
+                            <TextBlock Classes="auth-title" Text="Connexion" />
+                            <TextBlock Classes="auth-subtitle"
+                                       Text="Sélectionnez votre province puis saisissez son mot de passe pour ouvrir votre espace de travail." />
+                        </StackPanel>
+
+                        <!-- Message d'erreur -->
+                        <Border Classes="error"
+                                IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                <PathIcon Grid.Column="0" Classes="auth-alert-icon"
+                                          Data="{x:Static vm:Icones.Alerte}"
+                                          Width="15" Height="15"
+                                          VerticalAlignment="Top" Margin="0,1,0,0"
+                                          Foreground="{DynamicResource DangerBrush}" />
+                                <TextBlock Grid.Column="1" Text="{Binding Erreur}" TextWrapping="Wrap" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Formulaire -->
+                        <StackPanel Spacing="15">
+
+                            <StackPanel Spacing="7">
+                                <TextBlock Classes="field-label" Text="Province" />
+                                <ComboBox Classes="auth-input"
+                                          ItemsSource="{Binding Provinces}"
+                                          SelectedItem="{Binding ProvinceSelectionnee}"
+                                          HorizontalAlignment="Stretch"
+                                          AutomationProperties.Name="Province à gérer">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate x:DataType="dom:Province">
+                                            <TextBlock Text="{Binding NomProvince}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Spacing="7">
+                                <TextBlock Classes="field-label" Text="Mot de passe" />
+                                <ctrl:PasswordField Text="{Binding MotDePasse, Mode=TwoWay}"
+                                                    PlaceholderText="Saisissez le mot de passe de la province"
+                                                    NomAccessible="Mot de passe de la province"
+                                                    EstInvalide="{Binding MotDePasseInvalide}" />
+                                <TextBlock Classes="auth-help">
+                                    <Run FontWeight="SemiBold" Text="Mot de passe oublié ?" />
+                                    <Run Text=" Contactez le responsable PRMP pour le réinitialiser." />
+                                </TextBlock>
+                            </StackPanel>
+
+                        </StackPanel>
+
+                        <!-- Action principale -->
+                        <Button Classes="accent auth-primary"
+                                Classes.chargement="{Binding EstOccupe}"
+                                Command="{Binding SeConnecterCommand}"
+                                IsEnabled="{Binding !EstOccupe}"
+                                IsDefault="True"
+                                AutomationProperties.Name="Se connecter">
+                            <StackPanel Orientation="Horizontal" Spacing="9" HorizontalAlignment="Center">
+                                <PathIcon Classes="spinner"
+                                          Data="{x:Static vm:Icones.Actualiser}"
+                                          Width="15" Height="15"
+                                          IsVisible="{Binding EstOccupe}"
+                                          Foreground="{DynamicResource TextOnAccentBrush}" />
+                                <TextBlock Text="Se connecter"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextOnAccentBrush}" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Pied de carte -->
+                        <Border Classes="divider" />
+
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                            <StackPanel VerticalAlignment="Center" Spacing="1">
+                                <TextBlock Classes="auth-caption" Text="Responsable PRMP" />
+                                <TextBlock Classes="auth-meta"
+                                           Text="{Binding NomProprietaire}" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Classes="ghost" Content="Quitter"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding QuitterCommand}"
+                                    AutomationProperties.Name="Quitter l'application" />
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                            <PathIcon Data="{x:Static vm:Icones.Bouclier}"
+                                      Width="12" Height="12"
+                                      VerticalAlignment="Center"
+                                      Foreground="{DynamicResource TextSecondaryBrush}" />
+                            <TextBlock Classes="auth-hint"
+                                       Text="100 % hors ligne — données stockées sur cet appareil" />
+                        </StackPanel>
+
                     </StackPanel>
-                </StackPanel>
-
-                <Border Classes="divider" />
-
-                <StackPanel Spacing="4">
-                    <TextBlock Classes="page-title" Text="Connexion" />
-                    <TextBlock Classes="muted"
-                               Text="Sélectionnez la province à gérer et saisissez son mot de passe." />
-                </StackPanel>
-
-                <!-- Messages -->
-                <Border Classes="error"
-                        IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                    <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
-                </Border>
-
-                <!-- Formulaire -->
-                <StackPanel Spacing="14">
-                    <StackPanel Spacing="6">
-                        <TextBlock Classes="field-label" Text="Province" />
-                        <ComboBox ItemsSource="{Binding Provinces}"
-                                  SelectedItem="{Binding ProvinceSelectionnee}"
-                                  HorizontalAlignment="Stretch">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate x:DataType="dom:Province">
-                                    <TextBlock Text="{Binding NomProvince}" />
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
-                    </StackPanel>
-
-                    <StackPanel Spacing="6">
-                        <TextBlock Classes="field-label" Text="Mot de passe" />
-                        <TextBox Text="{Binding MotDePasse}" PasswordChar="●"
-                                 PlaceholderText="Mot de passe de la province" />
-                    </StackPanel>
-                </StackPanel>
-
-                <Border Classes="divider" />
-
-                <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
-                    <Button Grid.Column="0" Content="Quitter" Classes="ghost"
-                            Command="{Binding QuitterCommand}" />
-                    <Button Grid.Column="3" Content="Se connecter" Classes="accent"
-                            Command="{Binding SeConnecterCommand}"
-                            IsEnabled="{Binding !EstOccupe}" />
                 </Grid>
-
-                <TextBlock Classes="muted" FontSize="11" HorizontalAlignment="Center"
-                           Text="{Binding NomProprietaire, StringFormat='Propriétaire : {0}'}" />
-
-            </StackPanel>
-        </Border>
+            </Border>
+        </ScrollViewer>
     </Border>
 </UserControl>

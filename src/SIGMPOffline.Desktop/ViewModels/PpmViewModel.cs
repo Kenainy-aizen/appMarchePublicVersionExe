@@ -95,14 +95,15 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     }
 
     [RelayCommand]
-    private async Task ModifierPpm()
+    private async Task ModifierPpm(PpmEntete? enteteSelectionnee)
     {
-        if (EnteteSelectionne is null)
+        var enteteActuelle = enteteSelectionnee ?? EnteteSelectionne;
+        if (enteteActuelle is null)
         {
             return;
         }
 
-        var dialogue = new PpmEnteteDialogViewModel(EnteteSelectionne);
+        var dialogue = new PpmEnteteDialogViewModel(enteteActuelle);
         if (!await _dialogues.AfficherAsync(dialogue))
         {
             return;
@@ -116,14 +117,15 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     }
 
     [RelayCommand]
-    private async Task SupprimerPpm()
+    private async Task SupprimerPpm(PpmEntete? enteteSelectionnee)
     {
-        if (EnteteSelectionne is null)
+        var enteteActuelle = enteteSelectionnee ?? EnteteSelectionne;
+        if (enteteActuelle is null)
         {
             return;
         }
 
-        var numPpm = EnteteSelectionne.NumPPM;
+        var numPpm = enteteActuelle.NumPPM;
         var confirme = await _dialogues.ConfirmerAsync(
             "Supprimer le PPM",
             $"Confirmer la suppression du PPM « {numPpm} » et de toutes ses lignes ?");
@@ -162,14 +164,20 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     }
 
     [RelayCommand]
-    private async Task ModifierDetail()
+    private async Task ModifierDetail(PpmDetail? ligneSelectionnee)
     {
-        if (EnteteSelectionne is null || DetailSelectionne is null)
+        if (EnteteSelectionne is null)
         {
             return;
         }
 
-        var dialogue = new PpmDetailDialogViewModel(DetailSelectionne);
+        var ligneActuelle = ligneSelectionnee ?? DetailSelectionne;
+        if (ligneActuelle is null)
+        {
+            return;
+        }
+
+        var dialogue = new PpmDetailDialogViewModel(ligneActuelle);
         if (!await _dialogues.AfficherAsync(dialogue))
         {
             return;
@@ -184,14 +192,20 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     }
 
     [RelayCommand]
-    private async Task SupprimerDetail()
+    private async Task SupprimerDetail(PpmDetail? ligneSelectionnee)
     {
-        if (EnteteSelectionne is null || DetailSelectionne is null)
+        if (EnteteSelectionne is null)
         {
             return;
         }
 
-        var numDetail = DetailSelectionne.NumPPMDetail;
+        var ligneActuelle = ligneSelectionnee ?? DetailSelectionne;
+        if (ligneActuelle is null)
+        {
+            return;
+        }
+
+        var numDetail = ligneActuelle.NumPPMDetail;
         var confirme = await _dialogues.ConfirmerAsync(
             "Supprimer la ligne",
             $"Confirmer la suppression de la ligne « {numDetail} » ?");

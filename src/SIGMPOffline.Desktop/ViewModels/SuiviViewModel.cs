@@ -204,14 +204,20 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
     }
 
     [RelayCommand]
-    private async Task ModifierAvenant()
+    private async Task ModifierAvenant(Avenant? avenantSelectionne)
     {
-        if (MarcheSelectionne is null || AvenantSelectionne is null)
+        if (MarcheSelectionne is null)
         {
             return;
         }
 
-        var dialogue = new AvenantDialogViewModel(AvenantSelectionne);
+        var avenantActuel = avenantSelectionne ?? AvenantSelectionne;
+        if (avenantActuel is null)
+        {
+            return;
+        }
+
+        var dialogue = new AvenantDialogViewModel(avenantActuel);
         if (!await _dialogues.AfficherAsync(dialogue))
         {
             return;
@@ -224,15 +230,21 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
     }
 
     [RelayCommand]
-    private async Task SupprimerAvenant()
+    private async Task SupprimerAvenant(Avenant? avenantSelectionne)
     {
-        if (MarcheSelectionne is null || AvenantSelectionne is null)
+        if (MarcheSelectionne is null)
         {
             return;
         }
 
-        var numero = AvenantSelectionne.NumAvenant;
-        var id = AvenantSelectionne.IdAvenant;
+        var avenantActuel = avenantSelectionne ?? AvenantSelectionne;
+        if (avenantActuel is null)
+        {
+            return;
+        }
+
+        var numero = avenantActuel.NumAvenant;
+        var id = avenantActuel.IdAvenant;
         var confirme = await _dialogues.ConfirmerAsync(
             "Supprimer l'avenant",
             $"Confirmer la suppression de l'avenant « {numero} » ?");

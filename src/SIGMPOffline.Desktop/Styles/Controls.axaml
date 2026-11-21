@@ -3,39 +3,64 @@
 
     <!--
         Bibliothèque de styles réutilisables — SIGMP Offline.
-        Toutes les couleurs proviennent des jetons de Palette.axaml (DynamicResource)
-        afin de supporter le thème clair/sombre. Aucune couleur en dur ici.
+
+        Règles :
+          • aucune couleur ni taille en dur ici : tout vient de Palette.axaml ;
+          • les couleurs passent par {DynamicResource} pour que la bascule clair/sombre
+            soit instantanée ;
+          • les vues utilisent les classes (.titre, .secondaire, .accent, .card, …).
     -->
 
     <!-- =========================================================
-         TYPOGRAPHIE
+         POLICE GLOBALE
+         La police est posée sur la fenêtre et se propage par héritage
+         (TextElement.FontFamily/FontSize sont des propriétés héritées).
          ========================================================= -->
-    <Style Selector="TextBlock.page-title">
-        <Setter Property="FontSize" Value="24" />
+    <Style Selector="Window">
+        <Setter Property="TextElement.FontFamily" Value="{DynamicResource PolicePrincipale}" />
+        <Setter Property="TextElement.FontSize" Value="{DynamicResource TailleTexteBase}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource PolicePrincipale}" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleTexteBase}" />
+    </Style>
+
+    <!-- =========================================================
+         TYPOGRAPHIE — classes réutilisables
+         ========================================================= -->
+    <Style Selector="TextBlock.titre, TextBlock.page-title">
+        <Setter Property="FontSize" Value="{DynamicResource TailleTitrePage}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
-    <Style Selector="TextBlock.page-subtitle">
-        <Setter Property="FontSize" Value="13" />
-        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
-        <Setter Property="TextWrapping" Value="Wrap" />
-    </Style>
-
-    <Style Selector="TextBlock.section-title">
-        <Setter Property="FontSize" Value="15" />
+    <Style Selector="TextBlock.section, TextBlock.section-title">
+        <Setter Property="FontSize" Value="{DynamicResource TailleTitreSection}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
 
+    <Style Selector="TextBlock.page-subtitle, TextBlock.secondaire">
+        <Setter Property="FontSize" Value="{DynamicResource TailleTexteSecondaire}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="TextBlock.legende">
+        <Setter Property="FontSize" Value="{DynamicResource TailleLegende}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+
     <Style Selector="TextBlock.kpi-label">
-        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleTexteSecondaire}" />
         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
     </Style>
 
     <Style Selector="TextBlock.kpi-value">
-        <Setter Property="FontSize" Value="28" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleKpi}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
@@ -45,15 +70,21 @@
     </Style>
 
     <Style Selector="TextBlock.field-label">
-        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleTexteSecondaire}" />
         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
     <Style Selector="TextBlock.dialog-title">
-        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleTitreDialogue}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+
+    <!-- Texte d'accent (lien, valeur mise en avant). -->
+    <Style Selector="TextBlock.accent">
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="FontWeight" Value="Medium" />
     </Style>
 
     <Style Selector="Border.divider">
@@ -68,33 +99,64 @@
         <Setter Property="MinHeight" Value="36" />
         <Setter Property="Padding" Value="14,0" />
         <Setter Property="CornerRadius" Value="{DynamicResource RadiusControl}" />
-        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleBouton}" />
         <Setter Property="FontWeight" Value="Medium" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
     </Style>
 
-    <!-- Bouton principal (accent) -->
+    <!-- Bouton neutre (secondaire) : surface + contour, lisible dans les deux thèmes. -->
+    <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{DynamicResource RadiusControl}" />
+    </Style>
+    <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBorderBrush}" />
+    </Style>
+    <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfacePressedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBorderBrush}" />
+    </Style>
+    <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
+    <!-- Anneau de focus clavier (AA : le contour accent reste visible sur les deux fonds). -->
+    <Style Selector="Button:focus-visible /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+
+    <!-- Bouton principal (accent plein). -->
     <Style Selector="Button.accent /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="Background" Value="{DynamicResource AccentSurfaceBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="CornerRadius" Value="{DynamicResource RadiusControl}" />
     </Style>
     <Style Selector="Button.accent:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+        <Setter Property="Background" Value="{DynamicResource AccentSurfaceHoverBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}" />
     </Style>
     <Style Selector="Button.accent:pressed /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource AccentPressedBrush}" />
+        <Setter Property="Background" Value="{DynamicResource AccentSurfacePressedBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}" />
     </Style>
     <Style Selector="Button.accent:disabled /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}" />
     </Style>
+    <Style Selector="Button.accent:focus-visible /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="BorderBrush" Value="{DynamicResource TextOnAccentBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+    </Style>
 
-    <!-- Bouton de suppression (danger, contour) -->
+    <!-- Bouton de suppression (danger, contour). -->
     <Style Selector="Button.danger /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
@@ -117,7 +179,7 @@
         <Setter Property="Background" Value="Transparent" />
     </Style>
 
-    <!-- Bouton discret (ghost / secondaire) -->
+    <!-- Bouton discret (ghost / secondaire sans contour). -->
     <Style Selector="Button.ghost /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
@@ -132,14 +194,44 @@
         <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
     </Style>
 
-    <!-- Bouton icône (carré) -->
+    <!-- Bouton icône (carré), réutilisable dans les listes. -->
     <Style Selector="Button.icon">
         <Setter Property="Width" Value="36" />
         <Setter Property="Height" Value="36" />
         <Setter Property="Padding" Value="0" />
     </Style>
 
-    <!-- Bouton discret sur fond sombre (barre latérale) -->
+    <!-- Actions discrètes sur une ligne (modification / suppression). -->
+    <Style Selector="Button.row-action">
+        <Setter Property="Width" Value="32" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.row-action /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="6" />
+    </Style>
+    <Style Selector="Button.row-action.modify /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="Button.row-action.modify:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource AccentHoverBrush}" />
+    </Style>
+    <Style Selector="Button.row-action.delete /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+    </Style>
+    <Style Selector="Button.row-action.delete:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource DangerSurfaceBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DangerHoverBrush}" />
+    </Style>
+
+    <!-- Bouton discret sur fond sombre (barre latérale). -->
     <Style Selector="Button.sidebar /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource SidebarTextBrush}" />
@@ -160,23 +252,101 @@
          ========================================================= -->
     <Style Selector="TextBox">
         <Setter Property="MinHeight" Value="36" />
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleTexteBase}" />
         <Setter Property="CornerRadius" Value="{DynamicResource RadiusControl}" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="SelectionBrush" Value="{DynamicResource AccentSubtleBrush}" />
+        <Setter Property="PlaceholderForeground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+    <Style Selector="TextBox:pointerover">
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBorderBrush}" />
+    </Style>
+    <Style Selector="TextBox:focus">
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="TextBox:disabled">
+        <Setter Property="Background" Value="{DynamicResource AppBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}" />
     </Style>
 
     <Style Selector="ComboBox">
         <Setter Property="MinHeight" Value="36" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleTexteBase}" />
         <Setter Property="CornerRadius" Value="{DynamicResource RadiusControl}" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="PlaceholderForeground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+    <Style Selector="ComboBox:pointerover /template/ Border#Background">
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBorderBrush}" />
+    </Style>
+    <Style Selector="ComboBox:focus /template/ Border#Background">
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="ComboBox:disabled">
+        <Setter Property="Background" Value="{DynamicResource AppBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}" />
+    </Style>
+
+    <!-- Liste déroulante : items lisibles, survol thémé. -->
+    <Style Selector="ComboBoxItem">
+        <Setter Property="Padding" Value="10,7" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleTexteBase}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
 
     <Style Selector="NumericUpDown">
         <Setter Property="MinHeight" Value="36" />
         <Setter Property="CornerRadius" Value="{DynamicResource RadiusControl}" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleTexteBase}" />
     </Style>
 
     <Style Selector="DatePicker">
         <Setter Property="MinHeight" Value="36" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleTexteBase}" />
+    </Style>
+
+    <!-- =========================================================
+         MENUS (Menu / MenuItem / menu contextuel)
+         ========================================================= -->
+    <Style Selector="Menu">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleTexteBase}" />
+    </Style>
+    <Style Selector="MenuItem">
+        <Setter Property="FontSize" Value="{DynamicResource TailleTexteBase}" />
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="MenuItem:pointerover">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="MenuItem:pressed">
+        <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
+    </Style>
+    <Style Selector="MenuItem:disabled">
+        <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}" />
+    </Style>
+    <Style Selector="ContextMenu">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleTexteBase}" />
     </Style>
 
     <!-- =========================================================
@@ -256,6 +426,7 @@
         <Setter Property="Padding" Value="10,8" />
         <Setter Property="Margin" Value="0,1" />
         <Setter Property="CornerRadius" Value="{DynamicResource RadiusControl}" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleTexteBase}" />
     </Style>
     <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
@@ -267,7 +438,11 @@
     <Style Selector="ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
     </Style>
+    <Style Selector="ListBoxItem:disabled /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}" />
+    </Style>
 
+    <!-- En-tête de tableau (équivalent DataGrid des vues liste). -->
     <Style Selector="Border.list-header">
         <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
         <Setter Property="CornerRadius" Value="{DynamicResource RadiusControl}" />
@@ -275,7 +450,7 @@
         <Setter Property="Margin" Value="0,0,0,4" />
     </Style>
     <Style Selector="Border.list-header TextBlock">
-        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleEnteteGrille}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
     </Style>
@@ -290,7 +465,7 @@
         <Setter Property="BorderThickness" Value="1" />
     </Style>
     <Style Selector="Border.badge TextBlock">
-        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleEnteteGrille}" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
@@ -324,6 +499,33 @@
     </Style>
     <Style Selector="Border.badge.warning TextBlock">
         <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+    </Style>
+
+    <!-- =========================================================
+         BARRE LATÉRALE (typographie sur fond sombre)
+         ========================================================= -->
+    <Style Selector="TextBlock.sidebar-logo">
+        <Setter Property="FontSize" Value="{DynamicResource TailleLogo}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}" />
+    </Style>
+    <Style Selector="TextBlock.sidebar-brand">
+        <Setter Property="FontSize" Value="{DynamicResource TailleTitreSection}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource SidebarTextActiveBrush}" />
+    </Style>
+    <Style Selector="TextBlock.sidebar-brand-sub">
+        <Setter Property="FontSize" Value="{DynamicResource TailleLegende}" />
+        <Setter Property="Foreground" Value="{DynamicResource SidebarMutedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.sidebar-meta">
+        <Setter Property="FontSize" Value="{DynamicResource TailleLegende}" />
+        <Setter Property="Foreground" Value="{DynamicResource SidebarMutedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.sidebar-province">
+        <Setter Property="FontSize" Value="{DynamicResource TailleTitreSection}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
 
     <!-- =========================================================

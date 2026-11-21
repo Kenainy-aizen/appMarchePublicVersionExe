@@ -31,8 +31,8 @@
                             <DataTemplate x:DataType="ent:Marche">
                                 <StackPanel Margin="0,2">
                                     <TextBlock Text="{Binding RefMarche}" FontWeight="SemiBold" />
-                                    <TextBlock Text="{Binding ObjetMarche}" Classes="muted"
-                                               FontSize="12" TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding ObjetMarche}" Classes="secondaire"
+                                               TextWrapping="Wrap" />
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -113,38 +113,58 @@
                             <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0,0,0,10">
                                 <TextBlock Classes="section-title" Text="Avenants" />
                                 <WrapPanel Orientation="Horizontal" IsEnabled="{Binding PeutModifier}">
-                                    <Button Content="Ajouter" Command="{Binding AjouterAvenantCommand}" Classes="accent" Margin="0,0,8,0" />
-                                    <Button Content="Modifier" Command="{Binding ModifierAvenantCommand}"
-                                            IsEnabled="{Binding AUnAvenant}" Margin="0,0,8,0" />
-                                    <Button Content="Supprimer" Command="{Binding SupprimerAvenantCommand}"
-                                            IsEnabled="{Binding AUnAvenant}" Classes="danger" />
+                                    <Button Content="Ajouter" Command="{Binding AjouterAvenantCommand}" Classes="accent" />
                                 </WrapPanel>
                             </StackPanel>
 
                             <Border DockPanel.Dock="Top" Classes="list-header">
-                                <Grid ColumnDefinitions="110,120,*,160,130">
+                                <Grid ColumnDefinitions="110,120,*,160,130,72">
                                     <TextBlock Grid.Column="0" Text="N°" />
                                     <TextBlock Grid.Column="1" Text="Date" />
                                     <TextBlock Grid.Column="2" Text="Motif" />
                                     <TextBlock Grid.Column="3" Text="Variation" HorizontalAlignment="Right" />
                                     <TextBlock Grid.Column="4" Text="Délai" HorizontalAlignment="Right" />
+                                    <TextBlock Grid.Column="5" Text="Actions" HorizontalAlignment="Center" />
                                 </Grid>
                             </Border>
 
                             <ListBox ItemsSource="{Binding Avenants}" SelectedItem="{Binding AvenantSelectionne}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="ent:Avenant">
-                                        <Grid ColumnDefinitions="110,120,*,160,130">
-                                            <TextBlock Grid.Column="0" Text="{Binding NumAvenant}" FontWeight="SemiBold" />
+                                        <Grid ColumnDefinitions="110,120,*,160,130,72" MinHeight="44"
+                                              VerticalAlignment="Center">
+                                            <TextBlock Grid.Column="0" Text="{Binding NumAvenant}" FontWeight="SemiBold"
+                                                       VerticalAlignment="Center" />
                                             <TextBlock Grid.Column="1"
-                                                       Text="{Binding DateAvenant, StringFormat='{}{0:dd/MM/yyyy}'}" />
-                                            <TextBlock Grid.Column="2" Text="{Binding Motif}" Classes="muted" TextWrapping="Wrap" />
+                                                       Text="{Binding DateAvenant, StringFormat='{}{0:dd/MM/yyyy}'}"
+                                                       VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding Motif}" Classes="muted"
+                                                       TextWrapping="Wrap" VerticalAlignment="Center" />
                                             <TextBlock Grid.Column="3"
                                                        Text="{Binding VariationMontant, StringFormat='{}{0:N0} Ar'}"
-                                                       HorizontalAlignment="Right" />
+                                                       HorizontalAlignment="Right" VerticalAlignment="Center" />
                                             <TextBlock Grid.Column="4"
                                                        Text="{Binding ProlongationDelaiJours, StringFormat='{}{0:+0;-0;0} j'}"
-                                                       HorizontalAlignment="Right" />
+                                                       HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                            <StackPanel Grid.Column="5" Orientation="Horizontal"
+                                                        HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="4">
+                                                <Button Classes="icon row-action modify"
+                                                        ToolTip.Tip="Modifier"
+                                                        IsEnabled="{Binding $parent[UserControl].DataContext.PeutModifier}"
+                                                        Command="{Binding $parent[UserControl].DataContext.ModifierAvenantCommand}"
+                                                        CommandParameter="{Binding}">
+                                                    <PathIcon Data="{x:Static vm:Icones.Modifier}"
+                                                              Width="18" Height="18" />
+                                                </Button>
+                                                <Button Classes="icon row-action delete"
+                                                        ToolTip.Tip="Supprimer"
+                                                        IsEnabled="{Binding $parent[UserControl].DataContext.PeutModifier}"
+                                                        Command="{Binding $parent[UserControl].DataContext.SupprimerAvenantCommand}"
+                                                        CommandParameter="{Binding}">
+                                                    <PathIcon Data="{x:Static vm:Icones.Supprimer}"
+                                                              Width="18" Height="18" />
+                                                </Button>
+                                            </StackPanel>
                                         </Grid>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>

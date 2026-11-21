@@ -3,17 +3,47 @@
 
     <!--
         Palette de design (design tokens) — SIGMP Offline.
-        Les couleurs sont déclarées par variante de thème (Light / Dark) via ThemeDictionaries.
-        Les vues ne doivent plus référencer de code hexadécimal en dur : elles consomment
-        ces jetons avec {DynamicResource ...} pour que le changement de thème soit immédiat.
+
+        1. TYPOGRAPHIE  : police principale + échelle de tailles (indépendantes du thème).
+        2. COULEURS     : une entrée par variante de thème (Light / Dark) via ThemeDictionaries.
+
+        Les vues ne doivent jamais coder une couleur ou une taille en dur : elles consomment
+        ces jetons avec {DynamicResource ...}, ce qui rend le changement de thème immédiat.
+        Tous les couples texte/fond de la palette atteignent au moins le niveau AA (4,5:1),
+        sauf le texte désactivé, volontairement en retrait (exempté par WCAG).
     -->
+
+    <!-- =====================================================================
+         1. TYPOGRAPHIE (commune aux deux thèmes)
+         ===================================================================== -->
+
+    <!-- Inter est fourni par le paquet Avalonia.Fonts.Inter (déjà référencé).
+         Les familles suivantes servent de repli si la ressource n'est pas chargée. -->
+    <FontFamily x:Key="PolicePrincipale">avares://Avalonia.Fonts.Inter/Assets#Inter, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif</FontFamily>
+
+    <!-- Échelle typographique : modifier une seule valeur ici suffit. -->
+    <x:Double x:Key="TailleTitrePage">24</x:Double>
+    <x:Double x:Key="TailleTitreSection">16</x:Double>
+    <x:Double x:Key="TailleTitreDialogue">18</x:Double>
+    <x:Double x:Key="TailleKpi">28</x:Double>
+    <x:Double x:Key="TailleLogo">19</x:Double>
+    <x:Double x:Key="TailleTexteBase">14</x:Double>
+    <x:Double x:Key="TailleTexteSecondaire">13</x:Double>
+    <x:Double x:Key="TailleLegende">11.5</x:Double>
+    <x:Double x:Key="TailleBouton">13</x:Double>
+    <x:Double x:Key="TailleEnteteGrille">11</x:Double>
+
+    <!-- Confort de lecture des paragraphes. -->
+    <x:Double x:Key="InterligneTexte">19</x:Double>
 
     <ResourceDictionary.ThemeDictionaries>
 
-        <!-- ===================== THÈME CLAIR ===================== -->
+        <!-- =================================================================
+             THÈME CLAIR
+             ================================================================= -->
         <ResourceDictionary x:Key="Light">
 
-            <!-- Accent Fluent (bleu institutionnel) -->
+            <!-- Accent Fluent (bleu institutionnel). Sert aussi aux sélections natives. -->
             <Color x:Key="SystemAccentColor">#2563EB</Color>
             <Color x:Key="SystemAccentColorLight1">#3B82F6</Color>
             <Color x:Key="SystemAccentColorLight2">#60A5FA</Color>
@@ -27,6 +57,9 @@
             <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF" />
             <SolidColorBrush x:Key="SurfaceAltBrush" Color="#EEF2F7" />
             <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#E7EDF5" />
+            <SolidColorBrush x:Key="SurfacePressedBrush" Color="#DCE4EF" />
+            <!-- Fond des contrôles interactifs (bouton neutre, champ de saisie). -->
+            <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#FFFFFF" />
 
             <!-- Barre latérale -->
             <SolidColorBrush x:Key="SidebarBrush" Color="#12233B" />
@@ -37,9 +70,10 @@
             <SolidColorBrush x:Key="SidebarMutedBrush" Color="#8296AB" />
             <SolidColorBrush x:Key="SidebarDividerBrush" Color="#1E3350" />
 
-            <!-- Texte -->
+            <!-- Texte — 15,65:1 et 5,47:1 sur blanc -->
             <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1B2430" />
             <SolidColorBrush x:Key="TextSecondaryBrush" Color="#5B6B7C" />
+            <!-- Désactivé : hors champ WCAG (composant inactif), gardé volontairement discret. -->
             <SolidColorBrush x:Key="TextDisabledBrush" Color="#9AA7B4" />
             <SolidColorBrush x:Key="TextOnAccentBrush" Color="#FFFFFF" />
 
@@ -47,11 +81,29 @@
             <SolidColorBrush x:Key="BorderBrush" Color="#DCE3EA" />
             <SolidColorBrush x:Key="DividerBrush" Color="#E8EDF2" />
 
-            <!-- Accent -->
+            <!-- Accent texte/lien (sur fond clair) : 5,17:1 sur blanc -->
             <SolidColorBrush x:Key="AccentBrush" Color="#2563EB" />
             <SolidColorBrush x:Key="AccentHoverBrush" Color="#1D4ED8" />
             <SolidColorBrush x:Key="AccentPressedBrush" Color="#1E40AF" />
             <SolidColorBrush x:Key="AccentSubtleBrush" Color="#E3EDFD" />
+            <SolidColorBrush x:Key="AccentBorderBrush" Color="#A9C4F5" />
+
+            <!-- Accent plein (boutons) : texte blanc sur #2563EB = 5,17:1 -->
+            <SolidColorBrush x:Key="AccentSurfaceBrush" Color="#2563EB" />
+            <SolidColorBrush x:Key="AccentSurfaceHoverBrush" Color="#1D4ED8" />
+            <SolidColorBrush x:Key="AccentSurfacePressedBrush" Color="#1E40AF" />
+
+            <LinearGradientBrush x:Key="AccentGradientBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Offset="0" Color="#3B82F6" />
+                <GradientStop Offset="1" Color="#1D4ED8" />
+            </LinearGradientBrush>
+
+            <!-- Écrans d'authentification (fond dégradé doux) -->
+            <LinearGradientBrush x:Key="AuthBackdropBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Offset="0" Color="#F8FAFE" />
+                <GradientStop Offset="0.55" Color="#EAF1FC" />
+                <GradientStop Offset="1" Color="#DCE8FA" />
+            </LinearGradientBrush>
 
             <!-- Sémantique -->
             <SolidColorBrush x:Key="SuccessBrush" Color="#15803D" />
@@ -63,29 +115,36 @@
             <SolidColorBrush x:Key="WarningBrush" Color="#B45309" />
             <SolidColorBrush x:Key="WarningSurfaceBrush" Color="#FFF7ED" />
             <SolidColorBrush x:Key="WarningBorderBrush" Color="#FED7AA" />
-            <SolidColorBrush x:Key="DangerBrush" Color="#DC2626" />
+            <!-- 5,24:1 sur DangerSurfaceBrush (l'ancien #DC2626 plafonnait à 4,41:1). -->
+            <SolidColorBrush x:Key="DangerBrush" Color="#C81E1E" />
             <SolidColorBrush x:Key="DangerHoverBrush" Color="#B91C1C" />
             <SolidColorBrush x:Key="DangerPressedBrush" Color="#991B1B" />
             <SolidColorBrush x:Key="DangerSurfaceBrush" Color="#FEF2F2" />
             <SolidColorBrush x:Key="DangerBorderBrush" Color="#FCA5A5" />
         </ResourceDictionary>
 
-        <!-- ===================== THÈME SOMBRE ===================== -->
+        <!-- =================================================================
+             THÈME SOMBRE
+             ================================================================= -->
         <ResourceDictionary x:Key="Dark">
 
-            <Color x:Key="SystemAccentColor">#3B82F6</Color>
-            <Color x:Key="SystemAccentColorLight1">#60A5FA</Color>
-            <Color x:Key="SystemAccentColorLight2">#93C5FD</Color>
-            <Color x:Key="SystemAccentColorLight3">#BFDBFE</Color>
-            <Color x:Key="SystemAccentColorDark1">#2563EB</Color>
-            <Color x:Key="SystemAccentColorDark2">#1D4ED8</Color>
-            <Color x:Key="SystemAccentColorDark3">#1E40AF</Color>
+            <!-- Accent « plein » : texte blanc sur #2563EB = 5,17:1 -->
+            <Color x:Key="SystemAccentColor">#2563EB</Color>
+            <Color x:Key="SystemAccentColorLight1">#2F6FE8</Color>
+            <Color x:Key="SystemAccentColorLight2">#60A5FA</Color>
+            <Color x:Key="SystemAccentColorLight3">#93C5FD</Color>
+            <Color x:Key="SystemAccentColorDark1">#1D4ED8</Color>
+            <Color x:Key="SystemAccentColorDark2">#1E40AF</Color>
+            <Color x:Key="SystemAccentColorDark3">#1E3A8A</Color>
 
             <!-- Surfaces -->
             <SolidColorBrush x:Key="AppBackgroundBrush" Color="#0E1621" />
             <SolidColorBrush x:Key="SurfaceBrush" Color="#16202B" />
             <SolidColorBrush x:Key="SurfaceAltBrush" Color="#1E2A38" />
             <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#24313F" />
+            <SolidColorBrush x:Key="SurfacePressedBrush" Color="#2C3B4C" />
+            <!-- Fond des contrôles interactifs : un ton au-dessus des surfaces sombres. -->
+            <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#1E2A38" />
 
             <!-- Barre latérale -->
             <SolidColorBrush x:Key="SidebarBrush" Color="#0A121C" />
@@ -96,7 +155,7 @@
             <SolidColorBrush x:Key="SidebarMutedBrush" Color="#6E8095" />
             <SolidColorBrush x:Key="SidebarDividerBrush" Color="#16273A" />
 
-            <!-- Texte -->
+            <!-- Texte — 13,93:1 et 7,40:1 sur SurfaceBrush -->
             <SolidColorBrush x:Key="TextPrimaryBrush" Color="#E6EDF3" />
             <SolidColorBrush x:Key="TextSecondaryBrush" Color="#9FB0C0" />
             <SolidColorBrush x:Key="TextDisabledBrush" Color="#63738A" />
@@ -106,11 +165,29 @@
             <SolidColorBrush x:Key="BorderBrush" Color="#26333F" />
             <SolidColorBrush x:Key="DividerBrush" Color="#1E2A38" />
 
-            <!-- Accent -->
-            <SolidColorBrush x:Key="AccentBrush" Color="#3B82F6" />
-            <SolidColorBrush x:Key="AccentHoverBrush" Color="#60A5FA" />
-            <SolidColorBrush x:Key="AccentPressedBrush" Color="#2563EB" />
+            <!-- Accent texte/lien : #60A5FA = 6,48:1 sur SurfaceBrush, 5,72:1 sur SurfaceAltBrush -->
+            <SolidColorBrush x:Key="AccentBrush" Color="#60A5FA" />
+            <SolidColorBrush x:Key="AccentHoverBrush" Color="#93C5FD" />
+            <SolidColorBrush x:Key="AccentPressedBrush" Color="#BFDBFE" />
             <SolidColorBrush x:Key="AccentSubtleBrush" Color="#172A45" />
+            <SolidColorBrush x:Key="AccentBorderBrush" Color="#31527F" />
+
+            <!-- Accent plein (boutons) : jamais #3B82F6 ici (blanc = 3,68:1, échec AA). -->
+            <SolidColorBrush x:Key="AccentSurfaceBrush" Color="#2563EB" />
+            <SolidColorBrush x:Key="AccentSurfaceHoverBrush" Color="#2F6FE8" />
+            <SolidColorBrush x:Key="AccentSurfacePressedBrush" Color="#1D4ED8" />
+
+            <LinearGradientBrush x:Key="AccentGradientBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Offset="0" Color="#60A5FA" />
+                <GradientStop Offset="1" Color="#2563EB" />
+            </LinearGradientBrush>
+
+            <!-- Écrans d'authentification (fond dégradé sombre) -->
+            <LinearGradientBrush x:Key="AuthBackdropBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Offset="0" Color="#0B1420" />
+                <GradientStop Offset="0.55" Color="#101C2B" />
+                <GradientStop Offset="1" Color="#14283F" />
+            </LinearGradientBrush>
 
             <!-- Sémantique -->
             <SolidColorBrush x:Key="SuccessBrush" Color="#4ADE80" />
@@ -131,7 +208,9 @@
 
     </ResourceDictionary.ThemeDictionaries>
 
-    <!-- ===================== JETONS GÉOMÉTRIQUES (indépendants du thème) ===================== -->
+    <!-- =====================================================================
+         2. JETONS GÉOMÉTRIQUES (indépendants du thème)
+         ===================================================================== -->
     <CornerRadius x:Key="RadiusControl">6</CornerRadius>
     <CornerRadius x:Key="RadiusPanel">8</CornerRadius>
     <CornerRadius x:Key="RadiusCard">10</CornerRadius>

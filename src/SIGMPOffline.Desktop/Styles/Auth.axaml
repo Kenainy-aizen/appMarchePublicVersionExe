@@ -1,0 +1,247 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Styles dédiés aux écrans d'authentification (connexion, première
+        configuration et fenêtres modales associées).
+        Toutes les couleurs proviennent des jetons de Palette.axaml afin de
+        supporter le thème clair comme le thème sombre.
+    -->
+
+    <!-- =========================================================
+         MISE EN PAGE
+         ========================================================= -->
+    <Style Selector="Border.auth-backdrop">
+        <Setter Property="Background" Value="{DynamicResource AuthBackdropBrush}" />
+    </Style>
+
+    <Style Selector="Border.auth-card">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="ClipToBounds" Value="True" />
+        <!-- Ombre douce : volontairement neutre pour rester lisible dans les deux thèmes. -->
+        <Setter Property="BoxShadow" Value="0 18 45 0 #1A1B2A3F" />
+    </Style>
+
+    <Style Selector="Border.auth-stripe">
+        <Setter Property="Background" Value="{DynamicResource AccentGradientBrush}" />
+    </Style>
+
+    <Style Selector="Border.auth-logo">
+        <Setter Property="Background" Value="{DynamicResource AccentGradientBrush}" />
+        <Setter Property="CornerRadius" Value="12" />
+    </Style>
+
+    <Style Selector="Border.auth-dialog-icon">
+        <Setter Property="Width" Value="38" />
+        <Setter Property="Height" Value="38" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
+    </Style>
+
+    <!-- =========================================================
+         TYPOGRAPHIE
+         ========================================================= -->
+    <Style Selector="TextBlock.auth-title">
+        <Setter Property="FontSize" Value="{DynamicResource TailleTitrePage}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="LetterSpacing" Value="-0.4" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.auth-brand">
+        <Setter Property="FontSize" Value="{DynamicResource TailleTitreSection}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.auth-caption">
+        <Setter Property="FontSize" Value="{DynamicResource TailleLegende}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.auth-subtitle">
+        <Setter Property="FontSize" Value="{DynamicResource TailleTexteSecondaire}" />
+        <Setter Property="LineHeight" Value="{DynamicResource InterligneTexte}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.auth-meta">
+        <Setter Property="FontSize" Value="{DynamicResource TailleTexteSecondaire}" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+
+    <Style Selector="TextBlock.auth-hint">
+        <Setter Property="FontSize" Value="{DynamicResource TailleLegende}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="TextBlock.auth-help">
+        <Setter Property="FontSize" Value="{DynamicResource TailleLegende}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.auth-section">
+        <Setter Property="FontSize" Value="{DynamicResource TailleEnteteGrille}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="LetterSpacing" Value="0.8" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Pastille numérotée des sections du formulaire de configuration. -->
+    <Style Selector="Border.auth-step">
+        <Setter Property="Width" Value="22" />
+        <Setter Property="Height" Value="22" />
+        <Setter Property="CornerRadius" Value="999" />
+        <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
+    </Style>
+    <Style Selector="Border.auth-step TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource TailleEnteteGrille}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- =========================================================
+         CHAMPS DE SAISIE
+         ========================================================= -->
+    <Style Selector="Border.auth-field">
+        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="MinHeight" Value="44" />
+        <Setter Property="Padding" Value="13,0" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Border.auth-field:pointerover">
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBorderBrush}" />
+    </Style>
+    <Style Selector="Border.auth-field:focus-within">
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="BoxShadow" Value="0 0 0 3 #2E2563EB" />
+    </Style>
+    <Style Selector="Border.auth-field.invalide">
+        <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
+        <Setter Property="Background" Value="{DynamicResource DangerSurfaceBrush}" />
+    </Style>
+    <Style Selector="Border.auth-field.invalide:focus-within">
+        <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
+        <Setter Property="BoxShadow" Value="0 0 0 3 #2EDC2626" />
+    </Style>
+
+    <Style Selector="TextBox.auth-input">
+        <Setter Property="MinHeight" Value="42" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleTexteBase}" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="PlaceholderForeground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+
+    <!-- Le contour (repos, survol, focus) est porté par Border.auth-field :
+         on neutralise le contour interne du TextBox pour éviter un double liseré. -->
+    <Style Selector="TextBox.auth-input /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BoxShadow" Value="none" />
+    </Style>
+    <Style Selector="TextBox.auth-input:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BoxShadow" Value="none" />
+    </Style>
+
+    <Style Selector="ComboBox.auth-input">
+        <Setter Property="MinHeight" Value="44" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleTexteBase}" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="PlaceholderForeground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+    <Style Selector="ComboBox.auth-input:pointerover /template/ Border#Background">
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBorderBrush}" />
+    </Style>
+    <Style Selector="ComboBox.auth-input:focus /template/ Border#Background">
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+
+    <!-- Bouton « œil » du champ mot de passe. -->
+    <Style Selector="Button.password-toggle">
+        <Setter Property="Width" Value="34" />
+        <Setter Property="Height" Value="34" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.password-toggle /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.password-toggle:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+    </Style>
+    <Style Selector="Button.password-toggle:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
+    </Style>
+
+    <!-- =========================================================
+         BOUTONS
+         ========================================================= -->
+    <Style Selector="Button.auth-primary">
+        <Setter Property="MinHeight" Value="46" />
+        <Setter Property="Padding" Value="20,0" />
+        <Setter Property="FontSize" Value="{DynamicResource TailleTexteBase}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+
+    <!-- Pendant un traitement, le bouton reste accentué (et non grisé) : seul
+         l'indicateur de chargement signale l'attente. -->
+    <Style Selector="Button.accent.chargement:disabled /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AccentSurfaceBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextOnAccentBrush}" />
+    </Style>
+
+    <!-- Indicateur de chargement circulaire (arc en rotation continue). -->
+    <Style Selector="PathIcon.spinner">
+        <Setter Property="RenderTransform">
+            <RotateTransform />
+        </Setter>
+        <Style.Animations>
+            <Animation Duration="0:0:0.9" IterationCount="INFINITE">
+                <KeyFrame Cue="0%">
+                    <Setter Property="RotateTransform.Angle" Value="0" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="RotateTransform.Angle" Value="360" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+</Styles>

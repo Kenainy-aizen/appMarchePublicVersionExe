@@ -16,15 +16,12 @@
                 <Border DockPanel.Dock="Top" Padding="20,22,20,18">
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <Border Width="38" Height="38" CornerRadius="9" Background="{DynamicResource AccentBrush}">
-                            <TextBlock Text="S" FontSize="19" FontWeight="Bold"
-                                       Foreground="{DynamicResource TextOnAccentBrush}"
+                            <TextBlock Text="S" Classes="sidebar-logo"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="SIGMP Offline" FontSize="17" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource SidebarTextActiveBrush}" />
-                            <TextBlock Text="Suivi des Marchés Publics" FontSize="11"
-                                       Foreground="{DynamicResource SidebarMutedBrush}" />
+                            <TextBlock Text="SIGMP Offline" Classes="sidebar-brand" />
+                            <TextBlock Text="Suivi des Marchés Publics" Classes="sidebar-brand-sub" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -34,10 +31,8 @@
                         BorderBrush="{DynamicResource SidebarDividerBrush}" BorderThickness="0,1,0,0">
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="Version 1.0" FontSize="11"
-                                       Foreground="{DynamicResource SidebarMutedBrush}" />
-                            <TextBlock Text="100 % hors-ligne" FontSize="11"
-                                       Foreground="{DynamicResource SidebarMutedBrush}" />
+                            <TextBlock Text="Version 1.0" Classes="sidebar-meta" />
+                            <TextBlock Text="100 % hors-ligne" Classes="sidebar-meta" />
                         </StackPanel>
                         <Button Grid.Column="1" Classes="icon sidebar"
                                 Command="{Binding BasculerThemeCommand}"
@@ -81,8 +76,8 @@
                 <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                     <PathIcon Data="{x:Static vm:Icones.Province}" Width="18" Height="18"
                               Foreground="{DynamicResource AccentBrush}" />
-                    <TextBlock Text="{Binding NomProvince}" FontSize="15" FontWeight="SemiBold"
-                               Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding NomProvince}" Classes="sidebar-province"
+                               VerticalAlignment="Center" />
                 </StackPanel>
 
                 <!-- Propriétaire + actions -->

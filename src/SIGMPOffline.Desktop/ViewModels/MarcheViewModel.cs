@@ -110,20 +110,21 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
     }
 
     [RelayCommand]
-    private async Task ModifierMarche()
+    private async Task ModifierMarche(Marche? marcheSelectionnee)
     {
-        if (MarcheSelectionne is null)
+        var marcheActuel = marcheSelectionnee ?? MarcheSelectionne;
+        if (marcheActuel is null)
         {
             return;
         }
 
         var dossiers = new List<OptionDossier>
         {
-            new(MarcheSelectionne.RefDossier, LibelleDossier(MarcheSelectionne))
+            new(marcheActuel.RefDossier, LibelleDossier(marcheActuel))
         };
         var titulaires = await ChargerTitulairesAsync(dossiers);
 
-        var dialogue = new MarcheDialogViewModel(dossiers, titulaires, MarcheSelectionne);
+        var dialogue = new MarcheDialogViewModel(dossiers, titulaires, marcheActuel);
         if (!await _dialogues.AfficherAsync(dialogue))
         {
             return;
@@ -139,14 +140,15 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
     }
 
     [RelayCommand]
-    private async Task SupprimerMarche()
+    private async Task SupprimerMarche(Marche? marcheSelectionnee)
     {
-        if (MarcheSelectionne is null)
+        var marcheActuel = marcheSelectionnee ?? MarcheSelectionne;
+        if (marcheActuel is null)
         {
             return;
         }
 
-        var reference = MarcheSelectionne.RefMarche;
+        var reference = marcheActuel.RefMarche;
         var confirme = await _dialogues.ConfirmerAsync(
             "Supprimer le marché",
             $"Confirmer la suppression du marché « {reference} » "
@@ -187,14 +189,20 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
     }
 
     [RelayCommand]
-    private async Task ModifierElement()
+    private async Task ModifierElement(ElementMarche? elementSelectionne)
     {
-        if (MarcheSelectionne is null || ElementSelectionne is null)
+        if (MarcheSelectionne is null)
         {
             return;
         }
 
-        var dialogue = new ElementMarcheDialogViewModel(ElementSelectionne);
+        var elementActuel = elementSelectionne ?? ElementSelectionne;
+        if (elementActuel is null)
+        {
+            return;
+        }
+
+        var dialogue = new ElementMarcheDialogViewModel(elementActuel);
         if (!await _dialogues.AfficherAsync(dialogue))
         {
             return;
@@ -210,14 +218,20 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
     }
 
     [RelayCommand]
-    private async Task SupprimerElement()
+    private async Task SupprimerElement(ElementMarche? elementSelectionne)
     {
-        if (MarcheSelectionne is null || ElementSelectionne is null)
+        if (MarcheSelectionne is null)
         {
             return;
         }
 
-        var code = ElementSelectionne.CodeElement;
+        var elementActuel = elementSelectionne ?? ElementSelectionne;
+        if (elementActuel is null)
+        {
+            return;
+        }
+
+        var code = elementActuel.CodeElement;
         var confirme = await _dialogues.ConfirmerAsync(
             "Supprimer l'élément",
             $"Confirmer la suppression de l'élément « {code} » ?");

@@ -1,53 +1,93 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:dlg="using:SIGMPOffline.Desktop.ViewModels.Dialogs"
+        xmlns:vm="using:SIGMPOffline.Desktop.ViewModels"
+        xmlns:ctrl="using:SIGMPOffline.Desktop.Controls"
         xmlns:dom="using:SIGMPOffline.Domain.Entities"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="300"
+        mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="320"
         x:Class="SIGMPOffline.Desktop.Views.Dialogs.ChangerProvinceDialogWindow"
         x:DataType="dlg:ChangerProvinceDialogViewModel"
         Title="{Binding Titre}"
         Width="520" SizeToContent="Height"
+        Background="{DynamicResource AppBackgroundBrush}"
         CanResize="False" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
 
-    <StackPanel Margin="22" Spacing="16">
-        <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
+    <StackPanel Margin="24" Spacing="18">
 
-        <TextBlock Classes="muted" TextWrapping="Wrap"
-                   Text="Choisissez la province à ouvrir puis saisissez son mot de passe." />
-
-        <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto"
-              RowSpacing="12" ColumnSpacing="12">
-            <TextBlock Classes="field-label" Grid.Row="0" Grid.Column="0" Text="Province" />
-            <ComboBox Grid.Row="0" Grid.Column="1"
-                      ItemsSource="{Binding Provinces}"
-                      SelectedItem="{Binding ProvinceSelectionnee}"
-                      HorizontalAlignment="Stretch">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate x:DataType="dom:Province">
-                        <TextBlock Text="{Binding NomProvince}" />
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
-
-            <TextBlock Classes="field-label" Grid.Row="1" Grid.Column="0">
-                Mot de passe <Run Foreground="{DynamicResource DangerBrush}">*</Run>
-            </TextBlock>
-            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding MotDePasse}" PasswordChar="●" />
+        <!-- En-tête -->
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+            <Border Classes="auth-dialog-icon">
+                <PathIcon Data="{x:Static vm:Icones.Echange}"
+                          Width="18" Height="18"
+                          Foreground="{DynamicResource AccentBrush}" />
+            </Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
+                <TextBlock Classes="auth-subtitle"
+                           Text="Choisissez la province à ouvrir puis saisissez son mot de passe." />
+            </StackPanel>
         </Grid>
 
+        <Border Classes="divider" />
+
+        <!-- Formulaire -->
+        <StackPanel Spacing="14">
+
+            <StackPanel Spacing="7">
+                <TextBlock Classes="field-label" Text="Province" />
+                <ComboBox Classes="auth-input"
+                          ItemsSource="{Binding Provinces}"
+                          SelectedItem="{Binding ProvinceSelectionnee}"
+                          HorizontalAlignment="Stretch"
+                          AutomationProperties.Name="Province à ouvrir">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="dom:Province">
+                            <TextBlock Text="{Binding NomProvince}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Spacing="7">
+                <TextBlock Classes="field-label">
+                    Mot de passe
+                    <Run Foreground="{DynamicResource DangerBrush}">*</Run>
+                </TextBlock>
+                <ctrl:PasswordField Text="{Binding MotDePasse, Mode=TwoWay}"
+                                    PlaceholderText="Saisissez le mot de passe de la province"
+                                    NomAccessible="Mot de passe de la province"
+                                    EstInvalide="{Binding MotDePasseInvalide}" />
+            </StackPanel>
+
+        </StackPanel>
+
+        <!-- Message d'erreur -->
         <Border Classes="error"
                 IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-            <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <PathIcon Grid.Column="0"
+                          Data="{x:Static vm:Icones.Alerte}"
+                          Width="15" Height="15"
+                          VerticalAlignment="Top" Margin="0,1,0,0"
+                          Foreground="{DynamicResource DangerBrush}" />
+                <TextBlock Grid.Column="1" Text="{Binding Erreur}" TextWrapping="Wrap" />
+            </Grid>
         </Border>
 
         <Border Classes="divider" />
 
+        <!-- Actions -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button Content="Annuler" Command="{Binding AnnulerCommand}" Classes="ghost" />
-            <Button Content="Ouvrir la province" Command="{Binding ValiderCommand}" Classes="accent" />
+            <Button Content="Annuler" Classes="ghost"
+                    Command="{Binding AnnulerCommand}"
+                    IsCancel="True" />
+            <Button Content="Ouvrir la province" Classes="accent"
+                    Command="{Binding ValiderCommand}"
+                    IsDefault="True" />
         </StackPanel>
+
     </StackPanel>
 </Window>

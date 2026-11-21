@@ -18,6 +18,20 @@ public partial class RootViewModel : ViewModelBase
     /// <summary>Écran actuellement affiché.</summary>
     [ObservableProperty] private ViewModelBase? _ecranCourant;
 
+    /// <summary>Largeur minimale de la fenêtre adaptée à l'écran affiché.</summary>
+    public double LargeurMinimale => EcranCourant is ShellViewModel ? 960d : 380d;
+
+    /// <summary>Hauteur minimale de la fenêtre adaptée à l'écran affiché.</summary>
+    public double HauteurMinimale => EcranCourant is ShellViewModel ? 620d : 520d;
+
+    partial void OnEcranCourantChanged(ViewModelBase? value)
+    {
+        // Les écrans d'authentification doivent pouvoir être réduits (tablette,
+        // petite fenêtre) alors que le shell a besoin d'une largeur confortable.
+        OnPropertyChanged(nameof(LargeurMinimale));
+        OnPropertyChanged(nameof(HauteurMinimale));
+    }
+
     public RootViewModel(
         IAuthService auth,
         SetupViewModel setup,

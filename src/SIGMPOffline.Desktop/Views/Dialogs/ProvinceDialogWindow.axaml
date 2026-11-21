@@ -1,49 +1,123 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:dlg="using:SIGMPOffline.Desktop.ViewModels.Dialogs"
+        xmlns:vm="using:SIGMPOffline.Desktop.ViewModels"
+        xmlns:ctrl="using:SIGMPOffline.Desktop.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="360"
+        mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="420"
         x:Class="SIGMPOffline.Desktop.Views.Dialogs.ProvinceDialogWindow"
         x:DataType="dlg:ProvinceDialogViewModel"
         Title="{Binding Titre}"
         Width="520" SizeToContent="Height"
+        Background="{DynamicResource AppBackgroundBrush}"
         CanResize="False" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
 
-    <StackPanel Margin="22" Spacing="16">
-        <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
+    <StackPanel Margin="24" Spacing="18">
 
-        <TextBlock Classes="muted" TextWrapping="Wrap"
-                   Text="La nouvelle province disposera de ses propres données, isolées des autres provinces." />
-
-        <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto"
-              RowSpacing="12" ColumnSpacing="12">
-            <TextBlock Classes="field-label" Grid.Row="0" Grid.Column="0">
-                Nom de la province <Run Foreground="{DynamicResource DangerBrush}">*</Run>
-            </TextBlock>
-            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding NomProvince}"
-                     PlaceholderText="ex. Province de Toamasina" />
-
-            <TextBlock Classes="field-label" Grid.Row="1" Grid.Column="0">
-                Mot de passe <Run Foreground="{DynamicResource DangerBrush}">*</Run>
-            </TextBlock>
-            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding MotDePasse}" PasswordChar="●" />
-
-            <TextBlock Classes="field-label" Grid.Row="2" Grid.Column="0" Text="Confirmation" />
-            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Confirmation}" PasswordChar="●" />
+        <!-- En-tête -->
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+            <Border Classes="auth-dialog-icon">
+                <PathIcon Data="{x:Static vm:Icones.Province}"
+                          Width="18" Height="18"
+                          Foreground="{DynamicResource AccentBrush}" />
+            </Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
+                <TextBlock Classes="auth-subtitle"
+                           Text="La nouvelle province disposera de ses propres données, isolées des autres provinces." />
+            </StackPanel>
         </Grid>
 
+        <Border Classes="divider" />
+
+        <!-- Formulaire -->
+        <StackPanel Spacing="14">
+
+            <StackPanel Spacing="7">
+                <TextBlock Classes="field-label">
+                    Nom de la province
+                    <Run Foreground="{DynamicResource DangerBrush}">*</Run>
+                </TextBlock>
+                <Border Classes="auth-field"
+                        Classes.invalide="{Binding NomProvinceInvalide}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <PathIcon Grid.Column="0"
+                                  Data="{x:Static vm:Icones.Province}"
+                                  Width="16" Height="16"
+                                  VerticalAlignment="Center"
+                                  Foreground="{DynamicResource TextSecondaryBrush}" />
+                        <TextBox Grid.Column="1" Classes="auth-input"
+                                 Text="{Binding NomProvince}"
+                                 PlaceholderText="ex. Province de Toamasina"
+                                 AutomationProperties.Name="Nom de la province" />
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <StackPanel Spacing="7">
+                <TextBlock Classes="field-label">
+                    Mot de passe
+                    <Run Foreground="{DynamicResource DangerBrush}">*</Run>
+                </TextBlock>
+                <ctrl:PasswordField Text="{Binding MotDePasse, Mode=TwoWay}"
+                                    PlaceholderText="Saisissez un mot de passe"
+                                    NomAccessible="Mot de passe de la nouvelle province"
+                                    EstInvalide="{Binding MotDePasseInvalide}" />
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Classes="auth-help"
+                               Text="{Binding LongueurMinMotDePasse, StringFormat='{}{0} caractères minimum'}" />
+                    <PathIcon Data="{x:Static vm:Icones.Validation}"
+                              Width="12" Height="12"
+                              VerticalAlignment="Center"
+                              Foreground="{DynamicResource SuccessBrush}"
+                              IsVisible="{Binding MotDePasseSuffisant}" />
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Spacing="7">
+                <TextBlock Classes="field-label" Text="Confirmation" />
+                <ctrl:PasswordField Text="{Binding Confirmation, Mode=TwoWay}"
+                                    PlaceholderText="Ressaisissez le mot de passe"
+                                    NomAccessible="Confirmation du mot de passe"
+                                    EstInvalide="{Binding ConfirmationInvalide}" />
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Classes="auth-help" Text="Les mots de passe doivent être identiques" />
+                    <PathIcon Data="{x:Static vm:Icones.Validation}"
+                              Width="12" Height="12"
+                              VerticalAlignment="Center"
+                              Foreground="{DynamicResource SuccessBrush}"
+                              IsVisible="{Binding MotsDePasseConcordent}" />
+                </StackPanel>
+            </StackPanel>
+
+        </StackPanel>
+
+        <!-- Message d'erreur -->
         <Border Classes="error"
                 IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-            <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <PathIcon Grid.Column="0"
+                          Data="{x:Static vm:Icones.Alerte}"
+                          Width="15" Height="15"
+                          VerticalAlignment="Top" Margin="0,1,0,0"
+                          Foreground="{DynamicResource DangerBrush}" />
+                <TextBlock Grid.Column="1" Text="{Binding Erreur}" TextWrapping="Wrap" />
+            </Grid>
         </Border>
 
         <Border Classes="divider" />
 
+        <!-- Actions -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button Content="Annuler" Command="{Binding AnnulerCommand}" Classes="ghost" />
-            <Button Content="Créer la province" Command="{Binding ValiderCommand}" Classes="accent" />
+            <Button Content="Annuler" Classes="ghost"
+                    Command="{Binding AnnulerCommand}"
+                    IsCancel="True" />
+            <Button Content="Créer la province" Classes="accent"
+                    Command="{Binding ValiderCommand}"
+                    IsDefault="True" />
         </StackPanel>
+
     </StackPanel>
 </Window>

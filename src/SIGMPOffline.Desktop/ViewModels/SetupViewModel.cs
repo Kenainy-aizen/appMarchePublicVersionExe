@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SIGMPOffline.Services.Abstractions;
+using SIGMPOffline.Services.Auth;
 
 namespace SIGMPOffline.Desktop.ViewModels;
 
@@ -24,6 +25,58 @@ public partial class SetupViewModel : ViewModelBase
     [ObservableProperty] private string _confirmation = string.Empty;
     [ObservableProperty] private string? _erreur;
     [ObservableProperty] private bool _estOccupe;
+
+    /// <summary>Nombre minimal de caractères exigé par le service d'authentification.</summary>
+    public int LongueurMinMotDePasse => AuthService.LongueurMinMotDePasse;
+
+    /// <summary>Le nom du responsable doit-il être signalé comme invalide ?</summary>
+    public bool NomProprietaireInvalide => Erreur is not null && string.IsNullOrWhiteSpace(NomProprietaire);
+
+    /// <summary>Le nom de la province doit-il être signalé comme invalide ?</summary>
+    public bool NomProvinceInvalide => Erreur is not null && string.IsNullOrWhiteSpace(NomProvince);
+
+    /// <summary>Le mot de passe doit-il être signalé comme invalide ?</summary>
+    public bool MotDePasseInvalide =>
+        Erreur is not null && MotDePasse.Length < AuthService.LongueurMinMotDePasse;
+
+    /// <summary>La confirmation doit-elle être signalée comme invalide ?</summary>
+    public bool ConfirmationInvalide => Erreur is not null && Confirmation != MotDePasse;
+
+    /// <summary>La longueur minimale du mot de passe est-elle atteinte ?</summary>
+    public bool MotDePasseSuffisant => MotDePasse.Length >= AuthService.LongueurMinMotDePasse;
+
+    /// <summary>Les deux mots de passe saisis concordent-ils ?</summary>
+    public bool MotsDePasseConcordent => Confirmation.Length > 0 && Confirmation == MotDePasse;
+
+    partial void OnErreurChanged(string? value) => NotifierEtatsChamps();
+
+    partial void OnNomProprietaireChanged(string value) => EffacerErreurPuisNotifier();
+
+    partial void OnNomProvinceChanged(string value) => EffacerErreurPuisNotifier();
+
+    partial void OnMotDePasseChanged(string value) => EffacerErreurPuisNotifier();
+
+    partial void OnConfirmationChanged(string value) => EffacerErreurPuisNotifier();
+
+    private void EffacerErreurPuisNotifier()
+    {
+        if (Erreur is not null)
+        {
+            Erreur = null;
+        }
+
+        NotifierEtatsChamps();
+    }
+
+    private void NotifierEtatsChamps()
+    {
+        OnPropertyChanged(nameof(NomProprietaireInvalide));
+        OnPropertyChanged(nameof(NomProvinceInvalide));
+        OnPropertyChanged(nameof(MotDePasseInvalide));
+        OnPropertyChanged(nameof(ConfirmationInvalide));
+        OnPropertyChanged(nameof(MotDePasseSuffisant));
+        OnPropertyChanged(nameof(MotsDePasseConcordent));
+    }
 
     /// <summary>Valide la saisie et crée la configuration + la première province.</summary>
     [RelayCommand]

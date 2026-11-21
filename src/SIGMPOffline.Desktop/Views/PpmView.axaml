@@ -18,8 +18,7 @@
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
                 <Button Content="Nouveau PPM" Command="{Binding NouveauPpmCommand}" Classes="accent" />
-                <Button Content="Modifier" Command="{Binding ModifierPpmCommand}" IsEnabled="{Binding AUnEntete}" />
-                <Button Content="Supprimer" Command="{Binding SupprimerPpmCommand}" IsEnabled="{Binding AUnEntete}" Classes="danger" />
+
                 <Button Content="Actualiser" Command="{Binding ChargerCommand}" Classes="ghost" />
             </StackPanel>
         </Grid>
@@ -45,11 +44,28 @@
                     <ListBox ItemsSource="{Binding Entetes}" SelectedItem="{Binding EnteteSelectionne}">
                         <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="ent:PpmEntete">
-                                <StackPanel Margin="0,2">
-                                    <TextBlock Text="{Binding NumPPM}" FontWeight="SemiBold" />
-                                    <TextBlock Text="{Binding AnneeExercice, StringFormat='Exercice {0}'}"
-                                               Classes="muted" FontSize="12" />
-                                </StackPanel>
+                                <Grid ColumnDefinitions="*,72" MinHeight="44" VerticalAlignment="Center">
+                                    <StackPanel Grid.Column="0" Margin="0,2" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding NumPPM}" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding AnneeExercice, StringFormat='Exercice {0}'}"
+                                                   Classes="legende" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                                HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="4">
+                                        <Button Classes="icon row-action modify"
+                                                ToolTip.Tip="Modifier"
+                                                Command="{Binding $parent[UserControl].DataContext.ModifierPpmCommand}"
+                                                CommandParameter="{Binding}">
+                                            <PathIcon Data="{x:Static vm:Icones.Modifier}" Width="18" Height="18" />
+                                        </Button>
+                                        <Button Classes="icon row-action delete"
+                                                ToolTip.Tip="Supprimer"
+                                                Command="{Binding $parent[UserControl].DataContext.SupprimerPpmCommand}"
+                                                CommandParameter="{Binding}">
+                                            <PathIcon Data="{x:Static vm:Icones.Supprimer}" Width="18" Height="18" />
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
@@ -67,33 +83,49 @@
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,10">
                         <Button Content="Ajouter une ligne" Command="{Binding AjouterDetailCommand}"
                                 IsEnabled="{Binding AUnEntete}" Classes="accent" />
-                        <Button Content="Modifier" Command="{Binding ModifierDetailCommand}"
-                                IsEnabled="{Binding AUnDetail}" />
-                        <Button Content="Supprimer" Command="{Binding SupprimerDetailCommand}"
-                                IsEnabled="{Binding AUnDetail}" Classes="danger" />
+
                     </StackPanel>
 
                     <Border DockPanel.Dock="Top" Classes="list-header">
-                        <Grid ColumnDefinitions="110,*,150,170">
+                        <Grid ColumnDefinitions="110,*,150,170,72">
                             <TextBlock Grid.Column="0" Text="N°" />
                             <TextBlock Grid.Column="1" Text="Objet" />
                             <TextBlock Grid.Column="2" Text="Nature" />
                             <TextBlock Grid.Column="3" Text="Montant estimatif" HorizontalAlignment="Right" />
+                            <TextBlock Grid.Column="4" Text="Actions" HorizontalAlignment="Center" />
                         </Grid>
                     </Border>
 
                     <ListBox ItemsSource="{Binding Details}" SelectedItem="{Binding DetailSelectionne}">
                         <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="ent:PpmDetail">
-                                <Grid ColumnDefinitions="110,*,150,170">
-                                    <TextBlock Grid.Column="0" Text="{Binding NumPPMDetail}" FontWeight="SemiBold" />
-                                    <TextBlock Grid.Column="1" Text="{Binding ObjetProjet}" TextWrapping="Wrap" />
+                                <Grid ColumnDefinitions="110,*,150,170,72" MinHeight="44"
+                                      VerticalAlignment="Center">
+                                    <TextBlock Grid.Column="0" Text="{Binding NumPPMDetail}" FontWeight="SemiBold"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{Binding ObjetProjet}" TextWrapping="Wrap"
+                                               VerticalAlignment="Center" />
                                     <TextBlock Grid.Column="2"
                                                Text="{Binding NatureMarche, Converter={StaticResource EnumLibelle}}"
-                                               Classes="muted" />
+                                               Classes="muted" VerticalAlignment="Center" />
                                     <TextBlock Grid.Column="3"
                                                Text="{Binding MontantEstimatif, StringFormat='{}{0:N0} Ar'}"
-                                               HorizontalAlignment="Right" />
+                                               HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                    <StackPanel Grid.Column="4" Orientation="Horizontal"
+                                                HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="4">
+                                        <Button Classes="icon row-action modify"
+                                                ToolTip.Tip="Modifier"
+                                                Command="{Binding $parent[UserControl].DataContext.ModifierDetailCommand}"
+                                                CommandParameter="{Binding}">
+                                            <PathIcon Data="{x:Static vm:Icones.Modifier}" Width="18" Height="18" />
+                                        </Button>
+                                        <Button Classes="icon row-action delete"
+                                                ToolTip.Tip="Supprimer"
+                                                Command="{Binding $parent[UserControl].DataContext.SupprimerDetailCommand}"
+                                                CommandParameter="{Binding}">
+                                            <PathIcon Data="{x:Static vm:Icones.Supprimer}" Width="18" Height="18" />
+                                        </Button>
+                                    </StackPanel>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>

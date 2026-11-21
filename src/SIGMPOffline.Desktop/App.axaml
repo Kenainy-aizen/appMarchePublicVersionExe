@@ -3,8 +3,8 @@
              x:Class="SIGMPOffline.Desktop.App"
              xmlns:local="using:SIGMPOffline.Desktop"
              xmlns:conv="using:SIGMPOffline.Desktop.Converters"
-             RequestedThemeVariant="Default">
-             <!-- "Default" suit le thème du système ; la bascule manuelle est proposée dans la barre latérale. -->
+             RequestedThemeVariant="Light">
+             <!-- Thème clair par défaut ; la bascule manuelle reste proposée dans la barre latérale. -->
 
     <Application.Resources>
         <ResourceDictionary>
@@ -23,5 +23,6 @@
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://SIGMPOffline.Desktop/Styles/Controls.axaml" />
+        <StyleInclude Source="avares://SIGMPOffline.Desktop/Styles/Auth.axaml" />
     </Application.Styles>
 </Application>
