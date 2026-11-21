@@ -104,6 +104,77 @@ public class PpmServiceTests
     }
 
     [Fact]
+    public async Task ModifierAsync_enregistre_la_date_de_mise_a_jour_saisie()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        var service = new PpmService(db.UnitOfWork);
+        await service.CreerAsync(NouvelEntete());
+
+        var entete = await service.ObtenirAsync("PPM-2026");
+        var dateSaisie = new DateTime(2026, 5, 12);
+        entete.DateDerniereMAJ = dateSaisie;
+
+        await service.ModifierAsync(entete);
+
+        var relu = await service.ObtenirAsync("PPM-2026");
+        Assert.Equal(dateSaisie, relu.DateDerniereMAJ);
+    }
+
+    [Fact]
+    public async Task ModifierAsync_incremente_le_numero_quand_la_date_de_mise_a_jour_change()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        var service = new PpmService(db.UnitOfWork);
+        await service.CreerAsync(NouvelEntete());
+        await service.EnregistrerMiseAJourAsync("PPM-2026");
+
+        // Instance non suivie, comme celle issue de la liste affichée.
+        var entete = (await service.ListerAsync(2026))[0];
+        entete.DateDerniereMAJ = DateTime.Today.AddDays(1);
+
+        await service.ModifierAsync(entete);
+
+        var relu = await service.ObtenirAsync("PPM-2026");
+        Assert.Equal("2", relu.NumDerniereMAJ);
+        Assert.Equal(DateTime.Today.AddDays(1).Date, relu.DateDerniereMAJ!.Value.Date);
+    }
+
+    [Fact]
+    public async Task ModifierAsync_n_incremente_pas_si_la_date_est_inchangee()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        var service = new PpmService(db.UnitOfWork);
+        await service.CreerAsync(NouvelEntete());
+        await service.EnregistrerMiseAJourAsync("PPM-2026");
+
+        var entete = (await service.ListerAsync(2026))[0];
+        entete.AutoriteContractante = "PRMP Modifiée";
+
+        await service.ModifierAsync(entete);
+
+        var relu = await service.ObtenirAsync("PPM-2026");
+        Assert.Equal("1", relu.NumDerniereMAJ);
+    }
+
+    [Fact]
+    public async Task ModifierAsync_conserve_le_numero_de_mise_a_jour_existant()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        var service = new PpmService(db.UnitOfWork);
+        await service.CreerAsync(NouvelEntete());
+        await service.EnregistrerMiseAJourAsync("PPM-2026");
+
+        // Instance non suivie, comme celle issue de la liste affichée.
+        var entete = (await service.ListerAsync(2026))[0];
+        entete.NumDerniereMAJ = null;
+
+        await service.ModifierAsync(entete);
+
+        var relu = await service.ObtenirAsync("PPM-2026");
+        Assert.Equal("1", relu.NumDerniereMAJ);
+    }
+
+    [Fact]
     public async Task ModifierAsync_leve_si_absent()
     {
         await using var db = await TestDatabase.CreateAsync();

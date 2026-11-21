@@ -3,7 +3,7 @@
         xmlns:dlg="using:SIGMPOffline.Desktop.ViewModels.Dialogs"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="560" d:DesignHeight="380"
+        mc:Ignorable="d" d:DesignWidth="560" d:DesignHeight="440"
         x:Class="SIGMPOffline.Desktop.Views.Dialogs.PpmEnteteDialogWindow"
         x:DataType="dlg:PpmEnteteDialogViewModel"
         Title="{Binding Titre}"
@@ -19,7 +19,7 @@
         </StackPanel>
 
         <Border Classes="panel">
-            <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto,Auto"
+            <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
                   RowSpacing="12" ColumnSpacing="12">
                 <TextBlock Classes="field-label" Grid.Row="0" Grid.Column="0"
                            VerticalAlignment="Center">Numéro du PPM <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
@@ -48,6 +48,24 @@
                 <DatePicker Grid.Row="3" Grid.Column="1" SelectedDate="{Binding DateElaboration}"
                             IsEnabled="{Binding DateElaborationModifiable}"
                             HorizontalAlignment="Stretch" />
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Classes="field-label"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding AfficherDateMiseAJour}">Date de mise à jour</TextBlock>
+                <DatePicker Grid.Row="4" Grid.Column="1" SelectedDate="{Binding DateDerniereMAJ}"
+                            IsVisible="{Binding AfficherDateMiseAJour}"
+                            HorizontalAlignment="Stretch" />
+
+                <TextBlock Grid.Row="5" Grid.Column="0" Classes="field-label"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding AfficherDateMiseAJour}">Numéro de mise à jour</TextBlock>
+                <StackPanel Grid.Row="5" Grid.Column="1" Spacing="2"
+                            IsVisible="{Binding AfficherDateMiseAJour}">
+                    <TextBlock Text="{Binding NumeroMiseAJourAffiche}" FontWeight="SemiBold" />
+                    <TextBlock Classes="legende"
+                               Text="S'incrémente automatiquement lorsque la date de mise à jour change."
+                               TextWrapping="Wrap" />
+                </StackPanel>
             </Grid>
         </Border>
 

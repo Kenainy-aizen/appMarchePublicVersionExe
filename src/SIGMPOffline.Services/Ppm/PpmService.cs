@@ -80,10 +80,34 @@ public class PpmService : IPpmService
         existant.AnneeExercice = entete.AnneeExercice;
         existant.AutoriteContractante = entete.AutoriteContractante;
         existant.DateElaboration = entete.DateElaboration;
-        existant.NumDerniereMAJ = entete.NumDerniereMAJ;
-        existant.DateDerniereMAJ = DateTime.Now;
+
+        // La date de mise à jour est saisie dans le dialogue ; à défaut on conserve l'existante.
+        var dateChangee = entete.DateDerniereMAJ is { } dateSaisie
+            && (existant.DateDerniereMAJ is null
+                || dateSaisie.Date != existant.DateDerniereMAJ.Value.Date);
+
+        if (dateChangee)
+        {
+            existant.DateDerniereMAJ = entete.DateDerniereMAJ;
+            existant.NumDerniereMAJ = IncrementerNumeroMAJ(existant.NumDerniereMAJ);
+        }
+        else
+        {
+            existant.DateDerniereMAJ = entete.DateDerniereMAJ is { } date
+                ? existant.DateDerniereMAJ ?? date
+                : existant.DateDerniereMAJ ?? DateTime.Now;
+            existant.NumDerniereMAJ = entete.NumDerniereMAJ ?? existant.NumDerniereMAJ;
+        }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>Incrémente un numéro de mise à jour (« MAJ-02 » → « 3 », « 1 » → « 2 »).</summary>
+    private static string IncrementerNumeroMAJ(string? numero)
+    {
+        var chiffres = new string((numero ?? string.Empty).Where(char.IsAsciiDigit).ToArray());
+        var valeur = int.TryParse(chiffres, out var nombre) ? nombre : 0;
+        return (valeur + 1).ToString();
     }
 
     /// <inheritdoc />
@@ -202,14 +226,7 @@ public class PpmService : IPpmService
         var entete = await _ppm.GetByIdAsync(numPpm, cancellationToken)
             ?? throw new EntityNotFoundException(nameof(PpmEntete), numPpm);
 
-        var numeroActuel = 0;
-        if (!string.IsNullOrWhiteSpace(entete.NumDerniereMAJ))
-        {
-            var chiffres = new string(entete.NumDerniereMAJ.Where(char.IsAsciiDigit).ToArray());
-            int.TryParse(chiffres, out numeroActuel);
-        }
-
-        entete.NumDerniereMAJ = (numeroActuel + 1).ToString();
+        entete.NumDerniereMAJ = IncrementerNumeroMAJ(entete.NumDerniereMAJ);
         entete.DateDerniereMAJ = DateTime.Now;
         _ppm.Update(entete);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

@@ -77,6 +77,36 @@ public class DialoguesTests
     }
 
     [Fact]
+    public void PpmEntete_la_date_de_mise_a_jour_est_saisissable_en_modification()
+    {
+        var existant = new Domain.Entities.PpmEntete
+        {
+            NumPPM = "PPM-2026",
+            DateDerniereMAJ = new DateTime(2026, 3, 15),
+            NumDerniereMAJ = "2"
+        };
+
+        var vm = new PpmEnteteDialogViewModel(existant)
+        {
+            DateDerniereMAJ = new DateTimeOffset(new DateTime(2026, 4, 20))
+        };
+
+        Assert.True(vm.AfficherDateMiseAJour);
+        Assert.False(new PpmEnteteDialogViewModel().AfficherDateMiseAJour);
+
+        // La date change : le numéro affiché passe de 2 à 3.
+        Assert.Equal("3", vm.NumeroMiseAJourAffiche);
+
+        var entite = vm.VersEntite();
+        Assert.Equal(new DateTime(2026, 4, 20), entite.DateDerniereMAJ);
+        Assert.Equal("3", entite.NumDerniereMAJ);
+
+        // Retour à la date d'origine : le numéro revient à sa valeur initiale.
+        vm.DateDerniereMAJ = new DateTimeOffset(new DateTime(2026, 3, 15));
+        Assert.Equal("2", vm.NumeroMiseAJourAffiche);
+    }
+
+    [Fact]
     public void PpmEntete_VersEntite_mappe_les_champs()
     {
         var vm = new PpmEnteteDialogViewModel
