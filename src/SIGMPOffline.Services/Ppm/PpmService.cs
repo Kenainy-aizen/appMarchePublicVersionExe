@@ -114,10 +114,13 @@ public class PpmService : IPpmService
             throw new DomainException("Le numéro de la ligne de détail (NumPPMDetail) est obligatoire.");
         }
 
+        ValiderLigne(detail);
+
         var entete = await _ppm.GetWithDetailsAsync(numPpm, cancellationToken)
             ?? throw new EntityNotFoundException(nameof(PpmEntete), numPpm);
 
         detail.NumPPMEntete = numPpm;
+        PreparerBeneficiaires(detail);
         entete.Details.Add(detail);
         entete.DateDerniereMAJ = DateTime.Now;
 
@@ -132,6 +135,7 @@ public class PpmService : IPpmService
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(detail);
+        ValiderLigne(detail);
 
         var entete = await _ppm.GetWithDetailsAsync(numPpm, cancellationToken)
             ?? throw new EntityNotFoundException(nameof(PpmEntete), numPpm);
@@ -139,11 +143,30 @@ public class PpmService : IPpmService
         var existant = entete.Details.FirstOrDefault(d => d.NumPPMDetail == detail.NumPPMDetail)
             ?? throw new EntityNotFoundException(nameof(PpmDetail), detail.NumPPMDetail);
 
+        PreparerBeneficiaires(detail);
+
         existant.NatureMarche = detail.NatureMarche;
         existant.ObjetProjet = detail.ObjetProjet;
         existant.MontantEstimatif = detail.MontantEstimatif;
         existant.ModePassation = detail.ModePassation;
         existant.SourceFinancement = detail.SourceFinancement;
+        existant.Comptes = detail.Comptes;
+        existant.DateLancementPrevue = detail.DateLancementPrevue;
+        existant.DateOuverturePlisPrevue = detail.DateOuverturePlisPrevue;
+        existant.DateAttributionPrevue = detail.DateAttributionPrevue;
+        existant.ResponsableProcedure = detail.ResponsableProcedure;
+
+        // Les services bénéficiaires sont remplacés en bloc (les anciens sont supprimés par EF).
+        existant.Beneficiaires.Clear();
+        foreach (var beneficiaire in detail.Beneficiaires)
+        {
+            existant.Beneficiaires.Add(new PpmBeneficiaire
+            {
+                NumPPMDetail = existant.NumPPMDetail,
+                Service = beneficiaire.Service,
+                Montant = beneficiaire.Montant
+            });
+        }
 
         entete.DateDerniereMAJ = DateTime.Now;
         await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -190,5 +213,54 @@ public class PpmService : IPpmService
         entete.DateDerniereMAJ = DateTime.Now;
         _ppm.Update(entete);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>Règles communes aux lignes du plan : dates dans l'ordre et services bénéficiaires cohérents.</summary>
+    private static void ValiderLigne(PpmDetail detail)
+    {
+        DateOnly? precedente = null;
+        foreach (var date in new[] { detail.DateLancementPrevue, detail.DateOuverturePlisPrevue, detail.DateAttributionPrevue })
+        {
+            if (date is null)
+            {
+                continue;
+            }
+
+            if (precedente is not null && date < precedente)
+            {
+                throw new DomainException(
+                    "Les dates prévisionnelles doivent suivre l'ordre : lancement, ouverture des plis, attribution.");
+            }
+
+            precedente = date;
+        }
+
+        foreach (var beneficiaire in detail.Beneficiaires)
+        {
+            if (string.IsNullOrWhiteSpace(beneficiaire.Service))
+            {
+                throw new DomainException("Chaque service bénéficiaire doit avoir un nom.");
+            }
+
+            if (beneficiaire.Montant < 0)
+            {
+                throw new DomainException("Le montant d'un service bénéficiaire ne peut pas être négatif.");
+            }
+        }
+    }
+
+    /// <summary>S'il y a des services bénéficiaires, le montant estimatif de la ligne en est la somme.</summary>
+    private static void PreparerBeneficiaires(PpmDetail detail)
+    {
+        foreach (var beneficiaire in detail.Beneficiaires)
+        {
+            beneficiaire.NumPPMDetail = detail.NumPPMDetail;
+            beneficiaire.Service = beneficiaire.Service.Trim();
+        }
+
+        if (detail.Beneficiaires.Count > 0)
+        {
+            detail.MontantEstimatif = detail.Beneficiaires.Sum(b => b.Montant);
+        }
     }
 }

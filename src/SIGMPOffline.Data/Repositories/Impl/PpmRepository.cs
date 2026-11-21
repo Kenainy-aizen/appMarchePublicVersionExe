@@ -14,6 +14,8 @@ public class PpmRepository : Repository<PpmEntete>, IPpmRepository
         => await Set
             .Include(x => x.Details)
                 .ThenInclude(x => x.Dossiers)
+            .Include(x => x.Details)
+                .ThenInclude(x => x.Beneficiaires)
             .Include(x => x.Province)
             .FirstOrDefaultAsync(x => x.NumPPM == numPpm, cancellationToken);
 

@@ -275,10 +275,49 @@ namespace SIGMPOffline.Data.Migrations
                     b.ToTable("Marche", (string)null);
                 });
 
+            modelBuilder.Entity("SIGMPOffline.Domain.Entities.PpmBeneficiaire", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("Montant")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NumPPMDetail")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Service")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NumPPMDetail");
+
+                    b.ToTable("PPMBeneficiaire", (string)null);
+                });
+
             modelBuilder.Entity("SIGMPOffline.Domain.Entities.PpmDetail", b =>
                 {
                     b.Property<string>("NumPPMDetail")
                         .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Comptes")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly?>("DateAttributionPrevue")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly?>("DateLancementPrevue")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly?>("DateOuverturePlisPrevue")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ModePassation")
@@ -302,6 +341,10 @@ namespace SIGMPOffline.Data.Migrations
                     b.Property<string>("ObjetProjet")
                         .IsRequired()
                         .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ResponsableProcedure")
+                        .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("SourceFinancement")
@@ -559,8 +602,21 @@ namespace SIGMPOffline.Data.Migrations
                     b.Navigation("Suivi");
                 });
 
+            modelBuilder.Entity("SIGMPOffline.Domain.Entities.PpmBeneficiaire", b =>
+                {
+                    b.HasOne("SIGMPOffline.Domain.Entities.PpmDetail", "Detail")
+                        .WithMany("Beneficiaires")
+                        .HasForeignKey("NumPPMDetail")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Detail");
+                });
+
             modelBuilder.Entity("SIGMPOffline.Domain.Entities.PpmDetail", b =>
                 {
+                    b.Navigation("Beneficiaires");
+
                     b.Navigation("Dossiers");
                 });
 

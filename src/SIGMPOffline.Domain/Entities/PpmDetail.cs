@@ -29,6 +29,28 @@ public class PpmDetail
     /// <summary>Source de financement (budget national, bailleur…).</summary>
     public string? SourceFinancement { get; set; }
 
+    /// <summary>Comptes budgétaires imputés (séparés par une virgule).</summary>
+    public string? Comptes { get; set; }
+
+    /// <summary>Date prévisionnelle de lancement de la procédure.</summary>
+    public DateOnly? DateLancementPrevue { get; set; }
+
+    /// <summary>Date prévisionnelle d'ouverture des plis.</summary>
+    public DateOnly? DateOuverturePlisPrevue { get; set; }
+
+    /// <summary>Date prévisionnelle d'attribution du marché.</summary>
+    public DateOnly? DateAttributionPrevue { get; set; }
+
+    /// <summary>Responsable de la conduite de la procédure.</summary>
+    public string? ResponsableProcedure { get; set; }
+
+    /// <summary>Services bénéficiaires et montants. S'il y en a, le montant estimatif en est la somme.</summary>
+    public ICollection<PpmBeneficiaire> Beneficiaires { get; set; } = new List<PpmBeneficiaire>();
+
+    /// <summary>Noms des services bénéficiaires, pour l'affichage (propriété calculée, non enregistrée).</summary>
+    public string? ServicesBeneficiairesResume
+        => Beneficiaires.Count == 0 ? null : string.Join(", ", Beneficiaires.Select(b => b.Service));
+
     /// <summary>En-tête parent.</summary>
     public PpmEntete? Entete { get; set; }
 

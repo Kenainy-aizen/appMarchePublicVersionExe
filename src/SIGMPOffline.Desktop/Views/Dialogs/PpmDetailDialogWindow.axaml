@@ -3,83 +3,176 @@
         xmlns:dlg="using:SIGMPOffline.Desktop.ViewModels.Dialogs"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="580" d:DesignHeight="520"
+        mc:Ignorable="d" d:DesignWidth="680" d:DesignHeight="720"
         x:Class="SIGMPOffline.Desktop.Views.Dialogs.PpmDetailDialogWindow"
         x:DataType="dlg:PpmDetailDialogViewModel"
         Title="{Binding Titre}"
-        Width="580" SizeToContent="Height"
+        Width="680" SizeToContent="Height" MaxHeight="740"
         CanResize="False" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
 
-    <StackPanel Margin="24" Spacing="16">
-        <StackPanel Spacing="2">
-            <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
-            <TextBlock Classes="legende"
-                       Text="Décrivez le marché prévu au plan. Les champs marqués d'une étoile sont obligatoires." />
+    <DockPanel Margin="24">
+        <!-- Boutons toujours visibles, même si le formulaire défile. -->
+        <StackPanel DockPanel.Dock="Bottom" Spacing="12" Margin="0,12,0,0">
+            <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
+            </Border>
+            <Border Classes="divider" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="Annuler" Command="{Binding AnnulerCommand}" Classes="ghost" />
+                <Button Content="Enregistrer" Command="{Binding ValiderCommand}" Classes="accent" />
+            </StackPanel>
         </StackPanel>
 
-        <!-- Identification -->
-        <Border Classes="panel">
-            <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto"
-                  RowSpacing="12" ColumnSpacing="12">
-                <TextBlock Classes="field-label" Grid.Row="0" Grid.Column="0"
-                           VerticalAlignment="Center">N° de la ligne <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
-                <TextBox Grid.Row="0" Grid.Column="1"
-                         Text="{Binding NumPPMDetail}"
-                         IsEnabled="{Binding NumDetailModifiable}"
-                         PlaceholderText="ex. 2026-004" />
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Spacing="16" Margin="0,0,12,0">
+                <StackPanel Spacing="2">
+                    <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
+                    <TextBlock Classes="legende"
+                               Text="Décrivez le marché prévu au plan. Les champs marqués d'une étoile sont obligatoires." />
+                </StackPanel>
 
-                <TextBlock Classes="field-label" Grid.Row="1" Grid.Column="0"
-                           VerticalAlignment="Top" Margin="0,8,0,0">Objet du projet <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
-                <TextBox Grid.Row="1" Grid.Column="1"
-                         Text="{Binding ObjetProjet}"
-                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="72"
-                         PlaceholderText="Ex. Construction d'un bâtiment administratif" />
-            </Grid>
-        </Border>
+                <!-- Identification -->
+                <Border Classes="panel">
+                    <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto"
+                          RowSpacing="12" ColumnSpacing="12">
+                        <TextBlock Classes="field-label" Grid.Row="0" Grid.Column="0"
+                                   VerticalAlignment="Center">N° de la ligne <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
+                        <TextBox Grid.Row="0" Grid.Column="1"
+                                 Text="{Binding NumPPMDetail}"
+                                 IsEnabled="{Binding NumDetailModifiable}"
+                                 PlaceholderText="ex. 2026-004" />
 
-        <!-- Classification et financement -->
-        <Border Classes="panel">
-            <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto,Auto"
-                  RowSpacing="12" ColumnSpacing="12">
-                <TextBlock Classes="field-label" Grid.Row="0" Grid.Column="0"
-                           VerticalAlignment="Center">Nature du marché</TextBlock>
-                <ComboBox Grid.Row="0" Grid.Column="1"
-                          HorizontalAlignment="Stretch"
-                          ItemsSource="{Binding Natures}"
-                          SelectedItem="{Binding NatureSelectionnee}" />
+                        <TextBlock Classes="field-label" Grid.Row="1" Grid.Column="0"
+                                   VerticalAlignment="Top" Margin="0,8,0,0">Objet du projet <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
+                        <TextBox Grid.Row="1" Grid.Column="1"
+                                 Text="{Binding ObjetProjet}"
+                                 AcceptsReturn="True" TextWrapping="Wrap" MinHeight="72"
+                                 PlaceholderText="Ex. Construction d'un bâtiment administratif" />
+                    </Grid>
+                </Border>
 
-                <TextBlock Classes="field-label" Grid.Row="1" Grid.Column="0"
-                           VerticalAlignment="Center">Mode de passation</TextBlock>
-                <ComboBox Grid.Row="1" Grid.Column="1"
-                          HorizontalAlignment="Stretch"
-                          ItemsSource="{Binding Modes}"
-                          SelectedItem="{Binding ModeSelectionne}" />
+                <!-- Classification et financement -->
+                <Border Classes="panel">
+                    <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                          RowSpacing="12" ColumnSpacing="12">
+                        <TextBlock Classes="field-label" Grid.Row="0" Grid.Column="0"
+                                   VerticalAlignment="Center">Nature du marché</TextBlock>
+                        <ComboBox Grid.Row="0" Grid.Column="1"
+                                  HorizontalAlignment="Stretch"
+                                  ItemsSource="{Binding Natures}"
+                                  SelectedItem="{Binding NatureSelectionnee}" />
 
-                <TextBlock Classes="field-label" Grid.Row="2" Grid.Column="0"
-                           VerticalAlignment="Center">Montant estimatif (Ar)</TextBlock>
-                <NumericUpDown Grid.Row="2" Grid.Column="1"
-                               Value="{Binding MontantEstimatif}"
-                               Minimum="0" FormatString="N0" ShowButtonSpinner="False"
-                               HorizontalAlignment="Stretch" />
+                        <TextBlock Classes="field-label" Grid.Row="1" Grid.Column="0"
+                                   VerticalAlignment="Center">Mode de passation</TextBlock>
+                        <ComboBox Grid.Row="1" Grid.Column="1"
+                                  HorizontalAlignment="Stretch"
+                                  ItemsSource="{Binding Modes}"
+                                  SelectedItem="{Binding ModeSelectionne}" />
 
-                <TextBlock Classes="field-label" Grid.Row="3" Grid.Column="0"
-                           VerticalAlignment="Center">Source de financement</TextBlock>
-                <TextBox Grid.Row="3" Grid.Column="1"
-                         Text="{Binding SourceFinancement}"
-                         PlaceholderText="Budget national, bailleur…" />
-            </Grid>
-        </Border>
+                        <TextBlock Classes="field-label" Grid.Row="2" Grid.Column="0"
+                                   VerticalAlignment="Center">Source de financement</TextBlock>
+                        <TextBox Grid.Row="2" Grid.Column="1"
+                                 Text="{Binding SourceFinancement}"
+                                 PlaceholderText="Budget national, bailleur…" />
 
-        <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-            <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
-        </Border>
+                        <TextBlock Classes="field-label" Grid.Row="3" Grid.Column="0"
+                                   VerticalAlignment="Center">Comptes (séparés par une virgule)</TextBlock>
+                        <TextBox Grid.Row="3" Grid.Column="1"
+                                 Text="{Binding Comptes}"
+                                 PlaceholderText="Ex. 2312, 6061" />
 
-        <Border Classes="divider" />
+                        <TextBlock Classes="field-label" Grid.Row="4" Grid.Column="0"
+                                   VerticalAlignment="Center" TextWrapping="Wrap">Responsable de la conduite de la procédure</TextBlock>
+                        <TextBox Grid.Row="4" Grid.Column="1"
+                                 Text="{Binding ResponsableProcedure}"
+                                 PlaceholderText="Nom ou fonction" />
+                    </Grid>
+                </Border>
 
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button Content="Annuler" Command="{Binding AnnulerCommand}" Classes="ghost" />
-            <Button Content="Enregistrer" Command="{Binding ValiderCommand}" Classes="accent" />
-        </StackPanel>
-    </StackPanel>
+                <!-- Dates prévisionnelles -->
+                <Border Classes="panel">
+                    <StackPanel Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Spacing="2">
+                                <TextBlock Classes="section-title" Text="Dates prévisionnelles" />
+                                <TextBlock Classes="legende"
+                                           Text="Facultatives, dans l'ordre : lancement, ouverture des plis, attribution." />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="Effacer les dates" Classes="ghost"
+                                    VerticalAlignment="Top"
+                                    Command="{Binding EffacerDatesCommand}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto"
+                              RowSpacing="12" ColumnSpacing="12">
+                            <TextBlock Classes="field-label" Grid.Row="0" Grid.Column="0"
+                                       VerticalAlignment="Center">Lancement</TextBlock>
+                            <DatePicker Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch"
+                                        SelectedDate="{Binding DateLancement}" />
+
+                            <TextBlock Classes="field-label" Grid.Row="1" Grid.Column="0"
+                                       VerticalAlignment="Center">Ouverture des plis</TextBlock>
+                            <DatePicker Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch"
+                                        SelectedDate="{Binding DateOuverturePlis}" />
+
+                            <TextBlock Classes="field-label" Grid.Row="2" Grid.Column="0"
+                                       VerticalAlignment="Center">Attribution</TextBlock>
+                            <DatePicker Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch"
+                                        SelectedDate="{Binding DateAttribution}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Services bénéficiaires et montants -->
+                <Border Classes="panel">
+                    <StackPanel Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Spacing="2">
+                                <TextBlock Classes="section-title" Text="Services bénéficiaires et montants (Ar)" />
+                                <TextBlock Classes="legende" TextWrapping="Wrap"
+                                           Text="Si vous ajoutez des services, le montant estimatif de la ligne devient leur somme." />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="Ajouter un service" Classes="ghost"
+                                    VerticalAlignment="Top"
+                                    Command="{Binding AjouterBeneficiaireCommand}" />
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding Beneficiaires}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="dlg:BeneficiaireEditionViewModel">
+                                    <Grid ColumnDefinitions="*,190,Auto" ColumnSpacing="8" Margin="0,0,0,8">
+                                        <TextBox Grid.Column="0" Text="{Binding Service}"
+                                                 PlaceholderText="Nom du service" />
+                                        <NumericUpDown Grid.Column="1" Value="{Binding Montant}"
+                                                       Minimum="0" FormatString="N0" ShowButtonSpinner="False" />
+                                        <Button Grid.Column="2" Classes="icon row-action delete"
+                                                ToolTip.Tip="Retirer ce service"
+                                                Command="{Binding RetirerCommand}">
+                                            <TextBlock Text="✕" />
+                                        </Button>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Montant -->
+                <Border Classes="panel">
+                    <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto" RowSpacing="6" ColumnSpacing="12">
+                        <TextBlock Classes="field-label" Grid.Row="0" Grid.Column="0"
+                                   VerticalAlignment="Center">Montant estimatif (Ar)</TextBlock>
+                        <NumericUpDown Grid.Row="0" Grid.Column="1"
+                                       Value="{Binding MontantEstimatif}"
+                                       IsEnabled="{Binding MontantSaisissable}"
+                                       Minimum="0" FormatString="N0" ShowButtonSpinner="False"
+                                       HorizontalAlignment="Stretch" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" Classes="legende"
+                                   IsVisible="{Binding ADesBeneficiaires}"
+                                   Text="Calculé automatiquement : somme des montants des services bénéficiaires." />
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
 </Window>

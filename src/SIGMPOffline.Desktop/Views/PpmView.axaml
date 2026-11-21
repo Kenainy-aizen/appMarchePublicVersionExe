@@ -9,13 +9,12 @@
              x:DataType="vm:PpmViewModel">
 
     <!--
-        Design de la partie PPM.
-        Les styles ci-dessous sont locaux à cette vue et n'utilisent que les jetons de Palette.axaml :
-        aucune couleur en dur, thèmes clair et sombre pris en charge.
-        Les colonnes des tableaux sont identiques dans l'en-tête, les lignes et le pied (alignement garanti).
+        Module PPM en deux écrans (même page) :
+          1. LISTE des plans (en-têtes)  -> visible quand EstEnVueDetail = false ;
+          2. DÉTAIL d'un plan (ses lignes) -> visible après « Ouvrir » (EstEnVueDetail = true).
+        Styles locaux : uniquement les jetons de Palette.axaml (thèmes clair et sombre).
     -->
     <UserControl.Styles>
-        <!-- Carte d'indicateur (en haut de page). -->
         <Style Selector="Border.stat">
             <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
@@ -32,14 +31,10 @@
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         </Style>
-
-        <!-- Numéro du plan : repère visuel de la ligne. -->
         <Style Selector="TextBlock.plan-number">
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
         </Style>
-
-        <!-- Bandeau « Total du plan ». -->
         <Style Selector="Border.total-band">
             <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBorderBrush}" />
@@ -48,8 +43,6 @@
             <Setter Property="Padding" Value="10,10" />
             <Setter Property="Margin" Value="0,8,0,0" />
         </Style>
-
-        <!-- État vide. -->
         <Style Selector="Border.empty-state">
             <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
             <Setter Property="CornerRadius" Value="{DynamicResource RadiusPanel}" />
@@ -58,26 +51,10 @@
         </Style>
     </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto,Auto,*" RowSpacing="14">
+    <Grid RowDefinitions="Auto,*" RowSpacing="12">
 
-        <!-- ============ En-tête de page ============ -->
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
-            <StackPanel Spacing="2">
-                <TextBlock Classes="page-title" Text="Plans de passation" />
-                <TextBlock Classes="page-subtitle" Text="Plans annuels et lignes de passation des marchés publics." />
-            </StackPanel>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
-                <Button Content="Actualiser"
-                        Command="{Binding ChargerCommand}" Classes="ghost"
-                        IsEnabled="{Binding !EstOccupe}" />
-                <Button Content="Nouveau plan de passation"
-                        Command="{Binding NouveauPpmCommand}" Classes="accent"
-                        IsEnabled="{Binding !EstOccupe}" />
-            </StackPanel>
-        </Grid>
-
-        <!-- ============ Messages ============ -->
-        <StackPanel Grid.Row="1" Spacing="8">
+        <!-- ============ Messages (communs aux deux écrans) ============ -->
+        <StackPanel Grid.Row="0" Spacing="8">
             <Border Classes="error"
                     IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                 <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
@@ -88,262 +65,356 @@
             </Border>
         </StackPanel>
 
-        <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled">
-            <StackPanel Spacing="14" Margin="0,0,12,0">
+        <!-- =====================================================================
+             ÉCRAN 1 : LISTE DES PLANS DE PASSATION
+             ===================================================================== -->
+        <Grid Grid.Row="1" RowDefinitions="Auto,*" RowSpacing="14"
+              IsVisible="{Binding !EstEnVueDetail}">
 
-                <!-- ============ Indicateurs ============ -->
-                <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="12">
-                    <Border Grid.Column="0" Classes="stat">
-                        <Grid ColumnDefinitions="4,*">
-                            <Border Classes="stat-bar" />
-                            <StackPanel Grid.Column="1" Spacing="2" Margin="16,14">
-                                <TextBlock Classes="kpi-label" Text="Plans de passation" />
-                                <TextBlock Classes="stat-value" Text="{Binding Entetes.Count}" />
-                                <TextBlock Classes="legende" Text="dans cette province" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="2">
+                    <TextBlock Classes="page-title" Text="Plans de passation" />
+                    <TextBlock Classes="page-subtitle"
+                               Text="Un plan par exercice. Cliquez sur « Ouvrir » pour voir et saisir ses lignes." />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+                    <Button Content="Actualiser"
+                            Command="{Binding ChargerCommand}" Classes="ghost"
+                            IsEnabled="{Binding !EstOccupe}" />
+                    <Button Content="Nouveau plan de passation"
+                            Command="{Binding NouveauPpmCommand}" Classes="accent"
+                            IsEnabled="{Binding !EstOccupe}" />
+                </StackPanel>
+            </Grid>
 
-                    <Border Grid.Column="1" Classes="stat">
-                        <Grid ColumnDefinitions="4,*">
-                            <Border Classes="stat-bar" />
-                            <StackPanel Grid.Column="1" Spacing="2" Margin="16,14">
-                                <TextBlock Classes="kpi-label" Text="Exercice du plan ouvert" />
-                                <TextBlock Classes="stat-value"
-                                           Text="{Binding EnteteSelectionne.AnneeExercice, TargetNullValue='—'}" />
-                                <TextBlock Classes="legende" Text="sélectionné dans la liste" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
+            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Spacing="14" Margin="0,0,12,0">
 
-                    <Border Grid.Column="2" Classes="stat">
-                        <Grid ColumnDefinitions="4,*">
-                            <Border Classes="stat-bar" />
-                            <StackPanel Grid.Column="1" Spacing="2" Margin="16,14">
-                                <TextBlock Classes="kpi-label" Text="Lignes du plan ouvert" />
-                                <TextBlock Classes="stat-value" Text="{Binding NombreLignesAffiche}" />
-                                <TextBlock Classes="legende" Text="marchés prévus" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-
-                    <Border Grid.Column="3" Classes="stat">
-                        <Grid ColumnDefinitions="4,*">
-                            <Border Classes="stat-bar" />
-                            <StackPanel Grid.Column="1" Spacing="2" Margin="16,14">
-                                <TextBlock Classes="kpi-label" Text="Montant estimatif du plan" />
-                                <TextBlock Classes="stat-value" Text="{Binding MontantTotalAffiche}" />
-                                <TextBlock Classes="legende" Text="somme des lignes" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-                </Grid>
-
-                <!-- ============ Liste des plans ============ -->
-                <Border Classes="card">
-                    <DockPanel>
-                        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
-                            <StackPanel Spacing="2">
-                                <TextBlock Classes="section-title" Text="Plans de passation" />
-                                <TextBlock Classes="legende"
-                                           Text="Sélectionnez un plan pour afficher ses lignes ; le bouton à droite l'ouvre." />
-                            </StackPanel>
-                        </Grid>
-
-                        <Border DockPanel.Dock="Top" Classes="empty-state"
-                                IsVisible="{Binding !Entetes.Count}">
-                            <StackPanel Spacing="10" HorizontalAlignment="Center">
-                                <PathIcon Data="{x:Static vm:Icones.Ppm}" Width="28" Height="28"
-                                          Foreground="{DynamicResource AccentBrush}"
-                                          HorizontalAlignment="Center" />
-                                <TextBlock Text="Aucun plan de passation pour cette province."
-                                           FontWeight="SemiBold" HorizontalAlignment="Center" />
-                                <TextBlock Classes="muted" HorizontalAlignment="Center"
-                                           Text="Créez le premier plan annuel pour commencer à saisir les lignes." />
-                                <Button Content="Nouveau plan de passation" Classes="accent"
-                                        HorizontalAlignment="Center"
-                                        Command="{Binding NouveauPpmCommand}"
-                                        IsEnabled="{Binding !EstOccupe}" />
-                            </StackPanel>
-                        </Border>
-
-                        <Border DockPanel.Dock="Top" Classes="list-header">
-                            <Grid ColumnDefinitions="90,90,2*,110,1.6*,90,170,56" ColumnSpacing="8">
-                                <TextBlock Grid.Column="0" Text="N°" />
-                                <TextBlock Grid.Column="1" Text="Exercice" />
-                                <TextBlock Grid.Column="2" Text="Autorité contractante" />
-                                <TextBlock Grid.Column="3" Text="Élaboré le" />
-                                <TextBlock Grid.Column="4" Text="Dernière mise à jour" />
-                                <TextBlock Grid.Column="5" Text="Lignes" HorizontalAlignment="Right" />
-                                <TextBlock Grid.Column="6" Text="Montant estimatif" HorizontalAlignment="Right" />
-                                <TextBlock Grid.Column="7" Text="Ouvrir" HorizontalAlignment="Center" />
+                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+                        <Border Grid.Column="0" Classes="stat">
+                            <Grid ColumnDefinitions="4,*">
+                                <Border Classes="stat-bar" />
+                                <StackPanel Grid.Column="1" Spacing="2" Margin="16,14">
+                                    <TextBlock Classes="kpi-label" Text="Plans de passation" />
+                                    <TextBlock Classes="stat-value" Text="{Binding NombrePlans}" />
+                                    <TextBlock Classes="legende" Text="dans cette province" />
+                                </StackPanel>
                             </Grid>
                         </Border>
+                        <Border Grid.Column="1" Classes="stat">
+                            <Grid ColumnDefinitions="4,*">
+                                <Border Classes="stat-bar" />
+                                <StackPanel Grid.Column="1" Spacing="2" Margin="16,14">
+                                    <TextBlock Classes="kpi-label" Text="Lignes de passation" />
+                                    <TextBlock Classes="stat-value" Text="{Binding NombreLignesTousPlans}" />
+                                    <TextBlock Classes="legende" Text="tous plans confondus" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <Border Grid.Column="2" Classes="stat">
+                            <Grid ColumnDefinitions="4,*">
+                                <Border Classes="stat-bar" />
+                                <StackPanel Grid.Column="1" Spacing="2" Margin="16,14">
+                                    <TextBlock Classes="kpi-label" Text="Montant estimatif total" />
+                                    <TextBlock Classes="stat-value" Text="{Binding MontantTousPlansAffiche}" />
+                                    <TextBlock Classes="legende" Text="somme de toutes les lignes" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </Grid>
 
-                        <ListBox ItemsSource="{Binding Entetes}" SelectedItem="{Binding EnteteSelectionne}">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate x:DataType="ent:PpmEntete">
-                                    <Grid ColumnDefinitions="90,90,2*,110,1.6*,90,170,56" ColumnSpacing="8"
-                                          MinHeight="46" VerticalAlignment="Center">
-                                        <TextBlock Grid.Column="0" Classes="plan-number"
-                                                   Text="{Binding NumPPM}"
-                                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                                        <TextBlock Grid.Column="1" Text="{Binding AnneeExercice}"
-                                                   VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="2" Text="{Binding AutoriteContractante}"
-                                                   TextWrapping="Wrap" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="3"
-                                                   Text="{Binding DateElaboration, StringFormat='{}{0:dd/MM/yyyy}'}"
-                                                   VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="4" Classes="muted" VerticalAlignment="Center">
-                                            <TextBlock.Text>
-                                                <Binding Path="DateDerniereMAJ" StringFormat="dd/MM/yyyy" TargetNullValue="—" />
-                                            </TextBlock.Text>
-                                        </TextBlock>
-                                        <TextBlock Grid.Column="5"
-                                                   Text="{Binding Details.Count, StringFormat='{}{0}'}"
-                                                   HorizontalAlignment="Right" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="6" FontWeight="SemiBold"
-                                                   Text="{Binding Details, Converter={StaticResource PpmMontantTotal}}"
-                                                   HorizontalAlignment="Right" VerticalAlignment="Center" />
-                                        <Button Grid.Column="7" Classes="icon row-action modify"
-                                                HorizontalAlignment="Center"
-                                                ToolTip.Tip="Ouvrir ce plan"
-                                                Command="{Binding $parent[UserControl].DataContext.OuvrirPpmCommand}"
-                                                CommandParameter="{Binding}">
-                                            <PathIcon Data="{x:Static vm:Icones.Ppm}" Width="18" Height="18" />
-                                        </Button>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </DockPanel>
-                </Border>
+                    <Border Classes="card">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,10">
+                                <TextBlock Classes="section-title" Text="Liste des plans" />
+                                <TextBlock Classes="legende"
+                                           Text="Ouvrir : voir les lignes du plan. Modifier / Supprimer : agir sur l'en-tête du plan." />
+                            </StackPanel>
 
-                <!-- ============ Détail du plan sélectionné ============ -->
-                <Border Classes="card" IsVisible="{Binding AUnEntete}">
-                    <DockPanel>
-                        <StackPanel DockPanel.Dock="Top" Spacing="12" Margin="0,0,0,14">
-                            <TextBlock Classes="section-title" Text="{Binding TitreDetailPpm}" />
+                            <Border DockPanel.Dock="Top" Classes="empty-state"
+                                    IsVisible="{Binding !NombrePlans}">
+                                <StackPanel Spacing="10" HorizontalAlignment="Center">
+                                    <PathIcon Data="{x:Static vm:Icones.Ppm}" Width="28" Height="28"
+                                              Foreground="{DynamicResource AccentBrush}"
+                                              HorizontalAlignment="Center" />
+                                    <TextBlock Text="Aucun plan de passation pour cette province."
+                                               FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                    <TextBlock Classes="muted" HorizontalAlignment="Center"
+                                               Text="Créez le premier plan annuel pour commencer à saisir les lignes." />
+                                    <Button Content="Nouveau plan de passation" Classes="accent"
+                                            HorizontalAlignment="Center"
+                                            Command="{Binding NouveauPpmCommand}"
+                                            IsEnabled="{Binding !EstOccupe}" />
+                                </StackPanel>
+                            </Border>
 
-                            <Border Classes="panel">
-                                <Grid ColumnDefinitions="2*,*,1.4*" ColumnSpacing="16">
-                                    <StackPanel Grid.Column="0" Spacing="2">
-                                        <TextBlock Classes="field-label" Text="Autorité contractante" />
-                                        <TextBlock Text="{Binding EnteteSelectionne.AutoriteContractante}"
-                                                   TextWrapping="Wrap" FontWeight="SemiBold" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="1" Spacing="2">
-                                        <TextBlock Classes="field-label" Text="Élaboré le" />
-                                        <TextBlock Text="{Binding EnteteSelectionne.DateElaboration, StringFormat='{}{0:dd/MM/yyyy}'}"
-                                                   FontWeight="SemiBold" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="2" Spacing="2">
-                                        <TextBlock Classes="field-label" Text="Dernière mise à jour" />
-                                        <TextBlock Text="{Binding DerniereMiseAJourAffichee}"
-                                                   FontWeight="SemiBold" />
-                                    </StackPanel>
+                            <Border DockPanel.Dock="Top" Classes="list-header">
+                                <Grid ColumnDefinitions="90,90,2*,110,1.6*,70,160,128" ColumnSpacing="8">
+                                    <TextBlock Grid.Column="0" Text="N°" />
+                                    <TextBlock Grid.Column="1" Text="Exercice" />
+                                    <TextBlock Grid.Column="2" Text="Autorité contractante" />
+                                    <TextBlock Grid.Column="3" Text="Élaboré le" />
+                                    <TextBlock Grid.Column="4" Text="Dernière mise à jour" />
+                                    <TextBlock Grid.Column="5" Text="Lignes" HorizontalAlignment="Right" />
+                                    <TextBlock Grid.Column="6" Text="Montant estimatif" HorizontalAlignment="Right" />
+                                    <TextBlock Grid.Column="7" Text="Actions" HorizontalAlignment="Center" />
                                 </Grid>
                             </Border>
 
-                            <WrapPanel Orientation="Horizontal">
-                                <Button Content="Ajouter une ligne"
-                                        Command="{Binding AjouterDetailCommand}" Classes="accent"
-                                        IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,0" />
-                                <Button Content="Enregistrer une mise à jour"
-                                        Command="{Binding EnregistrerMiseAJourCommand}"
-                                        IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,0" />
-                                <Button Content="Modifier l'en-tête"
-                                        Command="{Binding ModifierPpmCommand}" Classes="ghost"
-                                        IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,0" />
-                                <Button Content="Supprimer ce plan"
-                                        Command="{Binding SupprimerPpmCommand}" Classes="danger"
-                                        IsEnabled="{Binding !EstOccupe}" />
-                            </WrapPanel>
-                        </StackPanel>
-
-                        <Border DockPanel.Dock="Top" Classes="empty-state"
-                                IsVisible="{Binding !NombreLignesAffiche}">
-                            <StackPanel Spacing="10" HorizontalAlignment="Center">
-                                <TextBlock Text="Ce plan ne contient encore aucune ligne."
-                                           FontWeight="SemiBold" HorizontalAlignment="Center" />
-                                <TextBlock Classes="muted" HorizontalAlignment="Center"
-                                           Text="Ajoutez les marchés prévus : nature, objet, mode de passation et montant estimatif." />
-                                <Button Content="Ajouter une ligne" Classes="accent"
-                                        HorizontalAlignment="Center"
-                                        Command="{Binding AjouterDetailCommand}"
-                                        IsEnabled="{Binding !EstOccupe}" />
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Pied : total du plan, aligné sur la colonne « Montant estimatif ». -->
-                        <Border DockPanel.Dock="Bottom" Classes="total-band">
-                            <Grid ColumnDefinitions="*,170,88" ColumnSpacing="8">
-                                <TextBlock Grid.Column="0" Text="Total du plan" FontWeight="SemiBold"
-                                           VerticalAlignment="Center" />
-                                <TextBlock Grid.Column="1" Text="{Binding MontantTotalAffiche}"
-                                           FontWeight="Bold" HorizontalAlignment="Right"
-                                           VerticalAlignment="Center"
-                                           Foreground="{DynamicResource AccentBrush}" />
-                            </Grid>
-                        </Border>
-
-                        <Border DockPanel.Dock="Top" Classes="list-header">
-                            <Grid ColumnDefinitions="190,*,190,170,88" ColumnSpacing="8">
-                                <TextBlock Grid.Column="0" Text="Nature du marché" />
-                                <TextBlock Grid.Column="1" Text="Objet / Financement" />
-                                <TextBlock Grid.Column="2" Text="Mode de passation" />
-                                <TextBlock Grid.Column="3" Text="Montant estimatif" HorizontalAlignment="Right" />
-                                <TextBlock Grid.Column="4" Text="Actions" HorizontalAlignment="Center" />
-                            </Grid>
-                        </Border>
-
-                        <ListBox ItemsSource="{Binding Details}" SelectedItem="{Binding DetailSelectionne}">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate x:DataType="ent:PpmDetail">
-                                    <Grid ColumnDefinitions="190,*,190,170,88" ColumnSpacing="8"
-                                          MinHeight="56" VerticalAlignment="Center">
-                                        <Border Grid.Column="0" Classes="badge info"
-                                                HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding NatureMarche, Converter={StaticResource EnumLibelle}}" />
-                                        </Border>
-                                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding ObjetProjet}" TextWrapping="Wrap"
-                                                       FontWeight="Medium" />
-                                            <TextBlock Classes="legende">
+                            <ListBox ItemsSource="{Binding Entetes}" SelectedItem="{Binding EnteteSelectionne}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="ent:PpmEntete">
+                                        <Grid ColumnDefinitions="90,90,2*,110,1.6*,70,160,128" ColumnSpacing="8"
+                                              MinHeight="46" VerticalAlignment="Center">
+                                            <TextBlock Grid.Column="0" Classes="plan-number"
+                                                       Text="{Binding NumPPM}"
+                                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Grid.Column="1" Text="{Binding AnneeExercice}"
+                                                       VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding AutoriteContractante}"
+                                                       TextWrapping="Wrap" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="3"
+                                                       Text="{Binding DateElaboration, StringFormat='{}{0:dd/MM/yyyy}'}"
+                                                       VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="4" Classes="muted" VerticalAlignment="Center">
                                                 <TextBlock.Text>
-                                                    <Binding Path="SourceFinancement" StringFormat="Financement : {0}" TargetNullValue="Financement : —" />
+                                                    <Binding Path="DateDerniereMAJ" StringFormat="dd/MM/yyyy" TargetNullValue="—" />
                                                 </TextBlock.Text>
                                             </TextBlock>
-                                        </StackPanel>
-                                        <TextBlock Grid.Column="2"
-                                                   Text="{Binding ModePassation, Converter={StaticResource EnumLibelle}}"
-                                                   Classes="muted" VerticalAlignment="Center" TextWrapping="Wrap" />
-                                        <TextBlock Grid.Column="3" FontWeight="SemiBold"
-                                                   Text="{Binding MontantEstimatif, StringFormat='{}{0:N0} Ar'}"
-                                                   HorizontalAlignment="Right" VerticalAlignment="Center" />
-                                        <StackPanel Grid.Column="4" Orientation="Horizontal"
-                                                    HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4">
-                                            <Button Classes="icon row-action modify"
-                                                    ToolTip.Tip="Modifier"
-                                                    Command="{Binding $parent[UserControl].DataContext.ModifierDetailCommand}"
-                                                    CommandParameter="{Binding}">
-                                                <PathIcon Data="{x:Static vm:Icones.Modifier}" Width="18" Height="18" />
-                                            </Button>
-                                            <Button Classes="icon row-action delete"
-                                                    ToolTip.Tip="Supprimer"
-                                                    Command="{Binding $parent[UserControl].DataContext.SupprimerDetailCommand}"
-                                                    CommandParameter="{Binding}">
-                                                <PathIcon Data="{x:Static vm:Icones.Supprimer}" Width="18" Height="18" />
-                                            </Button>
-                                        </StackPanel>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </DockPanel>
-                </Border>
-            </StackPanel>
-        </ScrollViewer>
+                                            <TextBlock Grid.Column="5"
+                                                       Text="{Binding Details.Count, StringFormat='{}{0}'}"
+                                                       HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="6" FontWeight="SemiBold"
+                                                       Text="{Binding Details, Converter={StaticResource PpmMontantTotal}}"
+                                                       HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                            <StackPanel Grid.Column="7" Orientation="Horizontal" Spacing="4"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Button Classes="icon row-action modify"
+                                                        ToolTip.Tip="Ouvrir ce plan (voir ses lignes)"
+                                                        Command="{Binding $parent[UserControl].DataContext.OuvrirPpmCommand}"
+                                                        CommandParameter="{Binding}">
+                                                    <PathIcon Data="{x:Static vm:Icones.Ppm}" Width="18" Height="18" />
+                                                </Button>
+                                                <Button Classes="icon row-action modify"
+                                                        ToolTip.Tip="Modifier l'en-tête du plan"
+                                                        Command="{Binding $parent[UserControl].DataContext.ModifierPpmCommand}"
+                                                        CommandParameter="{Binding}">
+                                                    <PathIcon Data="{x:Static vm:Icones.Modifier}" Width="18" Height="18" />
+                                                </Button>
+                                                <Button Classes="icon row-action delete"
+                                                        ToolTip.Tip="Supprimer ce plan"
+                                                        Command="{Binding $parent[UserControl].DataContext.SupprimerPpmCommand}"
+                                                        CommandParameter="{Binding}">
+                                                    <PathIcon Data="{x:Static vm:Icones.Supprimer}" Width="18" Height="18" />
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </DockPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- =====================================================================
+             ÉCRAN 2 : DÉTAIL D'UN PLAN (apparaît après « Ouvrir »)
+             ===================================================================== -->
+        <Grid Grid.Row="1" RowDefinitions="Auto,*" RowSpacing="14"
+              IsVisible="{Binding EstEnVueDetail}">
+
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="6">
+                    <Button Content="← Retour aux plans" Classes="ghost" HorizontalAlignment="Left"
+                            Command="{Binding RetourListeCommand}" />
+                    <TextBlock Classes="page-title" Text="{Binding TitreDetailPpm}" />
+                    <TextBlock Classes="page-subtitle" Text="Lignes de passation de ce plan." />
+                </StackPanel>
+                <WrapPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top"
+                           MaxWidth="620" HorizontalAlignment="Right">
+                    <Button Content="Modifier l'en-tête"
+                            Command="{Binding ModifierPpmCommand}" Classes="ghost"
+                            IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,8" />
+                    <Button Content="Supprimer ce plan"
+                            Command="{Binding SupprimerPpmCommand}" Classes="danger"
+                            IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,8" />
+                    <Button Content="Enregistrer une mise à jour"
+                            Command="{Binding EnregistrerMiseAJourCommand}"
+                            IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,8" />
+                    <Button Content="Ajouter une ligne"
+                            Command="{Binding AjouterDetailCommand}" Classes="accent"
+                            IsEnabled="{Binding !EstOccupe}" Margin="0,0,0,8" />
+                </WrapPanel>
+            </Grid>
+
+            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Spacing="14" Margin="0,0,12,0">
+
+                    <Border Classes="panel">
+                        <Grid ColumnDefinitions="2*,*,*,1.4*" ColumnSpacing="16">
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBlock Classes="field-label" Text="Autorité contractante" />
+                                <TextBlock Text="{Binding EnteteSelectionne.AutoriteContractante}"
+                                           TextWrapping="Wrap" FontWeight="SemiBold" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Classes="field-label" Text="Exercice" />
+                                <TextBlock Text="{Binding EnteteSelectionne.AnneeExercice}" FontWeight="SemiBold" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="2">
+                                <TextBlock Classes="field-label" Text="Élaboré le" />
+                                <TextBlock Text="{Binding EnteteSelectionne.DateElaboration, StringFormat='{}{0:dd/MM/yyyy}'}"
+                                           FontWeight="SemiBold" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="3" Spacing="2">
+                                <TextBlock Classes="field-label" Text="Dernière mise à jour" />
+                                <TextBlock Text="{Binding DerniereMiseAJourAffichee}" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <Border Grid.Column="0" Classes="stat">
+                            <Grid ColumnDefinitions="4,*">
+                                <Border Classes="stat-bar" />
+                                <StackPanel Grid.Column="1" Spacing="2" Margin="16,14">
+                                    <TextBlock Classes="kpi-label" Text="Lignes du plan" />
+                                    <TextBlock Classes="stat-value" Text="{Binding NombreLignesAffiche}" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <Border Grid.Column="1" Classes="stat">
+                            <Grid ColumnDefinitions="4,*">
+                                <Border Classes="stat-bar" />
+                                <StackPanel Grid.Column="1" Spacing="2" Margin="16,14">
+                                    <TextBlock Classes="kpi-label" Text="Montant estimatif du plan" />
+                                    <TextBlock Classes="stat-value" Text="{Binding MontantTotalAffiche}" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <Border Classes="card">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Classes="section-title"
+                                       Text="Lignes de passation" Margin="0,0,0,10" />
+
+                            <Border DockPanel.Dock="Top" Classes="empty-state"
+                                    IsVisible="{Binding !NombreLignesAffiche}">
+                                <StackPanel Spacing="10" HorizontalAlignment="Center">
+                                    <TextBlock Text="Ce plan ne contient encore aucune ligne."
+                                               FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                    <TextBlock Classes="muted" HorizontalAlignment="Center"
+                                               Text="Ajoutez les marchés prévus : nature, objet, mode de passation, dates et montants." />
+                                    <Button Content="Ajouter une ligne" Classes="accent"
+                                            HorizontalAlignment="Center"
+                                            Command="{Binding AjouterDetailCommand}"
+                                            IsEnabled="{Binding !EstOccupe}" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Total du plan, aligné sous la colonne « Montant estimatif ». -->
+                            <Border DockPanel.Dock="Bottom" Classes="total-band">
+                                <Grid ColumnDefinitions="*,150,88" ColumnSpacing="8">
+                                    <TextBlock Grid.Column="0" Text="Total du plan" FontWeight="SemiBold"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{Binding MontantTotalAffiche}"
+                                               FontWeight="Bold" HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               Foreground="{DynamicResource AccentBrush}" />
+                                </Grid>
+                            </Border>
+
+                            <Border DockPanel.Dock="Top" Classes="list-header">
+                                <Grid ColumnDefinitions="150,*,150,190,150,88" ColumnSpacing="8">
+                                    <TextBlock Grid.Column="0" Text="Nature du marché" />
+                                    <TextBlock Grid.Column="1" Text="Objet et détails" />
+                                    <TextBlock Grid.Column="2" Text="Mode de passation" />
+                                    <TextBlock Grid.Column="3" Text="Dates prévisionnelles" />
+                                    <TextBlock Grid.Column="4" Text="Montant estimatif" HorizontalAlignment="Right" />
+                                    <TextBlock Grid.Column="5" Text="Actions" HorizontalAlignment="Center" />
+                                </Grid>
+                            </Border>
+
+                            <ListBox ItemsSource="{Binding Details}" SelectedItem="{Binding DetailSelectionne}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="ent:PpmDetail">
+                                        <Grid ColumnDefinitions="150,*,150,190,150,88" ColumnSpacing="8"
+                                              MinHeight="64" VerticalAlignment="Center">
+                                            <Border Grid.Column="0" Classes="badge info"
+                                                    HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding NatureMarche, Converter={StaticResource EnumLibelle}}" />
+                                            </Border>
+
+                                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding ObjetProjet}" TextWrapping="Wrap"
+                                                           FontWeight="Medium" />
+                                                <TextBlock Classes="legende" TextWrapping="Wrap">
+                                                    <TextBlock.Text>
+                                                        <Binding Path="SourceFinancement" StringFormat="Financement : {0}" TargetNullValue="Financement : —" />
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+                                                <TextBlock Classes="legende" TextWrapping="Wrap"
+                                                           Text="{Binding Comptes, StringFormat='Comptes : {0}'}"
+                                                           IsVisible="{Binding Comptes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                <TextBlock Classes="legende" TextWrapping="Wrap"
+                                                           Text="{Binding ResponsableProcedure, StringFormat='Responsable : {0}'}"
+                                                           IsVisible="{Binding ResponsableProcedure, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                <TextBlock Classes="legende" TextWrapping="Wrap"
+                                                           Text="{Binding ServicesBeneficiairesResume, StringFormat='Services bénéficiaires : {0}'}"
+                                                           IsVisible="{Binding ServicesBeneficiairesResume, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding ModePassation, Converter={StaticResource EnumLibelle}}"
+                                                       Classes="muted" VerticalAlignment="Center" TextWrapping="Wrap" />
+
+                                            <StackPanel Grid.Column="3" Spacing="1" VerticalAlignment="Center">
+                                                <TextBlock Classes="legende">
+                                                    <TextBlock.Text>
+                                                        <Binding Path="DateLancementPrevue" StringFormat="Lancement : {0:dd/MM/yyyy}" TargetNullValue="Lancement : —" />
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+                                                <TextBlock Classes="legende">
+                                                    <TextBlock.Text>
+                                                        <Binding Path="DateOuverturePlisPrevue" StringFormat="Ouverture des plis : {0:dd/MM/yyyy}" TargetNullValue="Ouverture des plis : —" />
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+                                                <TextBlock Classes="legende">
+                                                    <TextBlock.Text>
+                                                        <Binding Path="DateAttributionPrevue" StringFormat="Attribution : {0:dd/MM/yyyy}" TargetNullValue="Attribution : —" />
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="4" FontWeight="SemiBold"
+                                                       Text="{Binding MontantEstimatif, StringFormat='{}{0:N0} Ar'}"
+                                                       HorizontalAlignment="Right" VerticalAlignment="Center" />
+
+                                            <StackPanel Grid.Column="5" Orientation="Horizontal"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4">
+                                                <Button Classes="icon row-action modify"
+                                                        ToolTip.Tip="Modifier la ligne"
+                                                        Command="{Binding $parent[UserControl].DataContext.ModifierDetailCommand}"
+                                                        CommandParameter="{Binding}">
+                                                    <PathIcon Data="{x:Static vm:Icones.Modifier}" Width="18" Height="18" />
+                                                </Button>
+                                                <Button Classes="icon row-action delete"
+                                                        ToolTip.Tip="Supprimer la ligne"
+                                                        Command="{Binding $parent[UserControl].DataContext.SupprimerDetailCommand}"
+                                                        CommandParameter="{Binding}">
+                                                    <PathIcon Data="{x:Static vm:Icones.Supprimer}" Width="18" Height="18" />
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </DockPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </UserControl>

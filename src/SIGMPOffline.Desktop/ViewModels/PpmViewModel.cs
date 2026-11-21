@@ -8,7 +8,11 @@ using SIGMPOffline.Services.Abstractions;
 
 namespace SIGMPOffline.Desktop.ViewModels;
 
-/// <summary>Module PPM : gestion (CRUD) des plans de passation et de leurs lignes.</summary>
+/// <summary>
+/// Module PPM : deux écrans dans la même page.
+/// 1. La liste des plans (en-têtes) avec Ouvrir / Modifier / Supprimer ;
+/// 2. le détail d'un plan (ses lignes), affiché seulement après « Ouvrir ».
+/// </summary>
 public partial class PpmViewModel : ViewModelBase, IPageViewModel
 {
     private readonly IPpmService _ppm;
@@ -18,6 +22,13 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     {
         _ppm = ppm ?? throw new ArgumentNullException(nameof(ppm));
         _dialogues = dialogues ?? throw new ArgumentNullException(nameof(dialogues));
+
+        Entetes.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(NombrePlans));
+            OnPropertyChanged(nameof(NombreLignesTousPlans));
+            OnPropertyChanged(nameof(MontantTousPlansAffiche));
+        };
 
         Details.CollectionChanged += (_, _) =>
         {
@@ -46,9 +57,26 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     [NotifyPropertyChangedFor(nameof(AUnDetail))]
     private PpmDetail? _detailSelectionne;
 
+    /// <summary>Vrai quand l'écran « détail d'un plan » est affiché à la place de la liste des plans.</summary>
+    [ObservableProperty] private bool _estEnVueDetail;
+
     [ObservableProperty] private bool _estOccupe;
     [ObservableProperty] private string? _erreur;
     [ObservableProperty] private string? _message;
+
+    // ---------- Chiffres de la liste des plans ----------
+
+    /// <summary>Nombre de plans de la province.</summary>
+    public int NombrePlans => Entetes.Count;
+
+    /// <summary>Nombre total de lignes, tous plans confondus.</summary>
+    public int NombreLignesTousPlans => Entetes.Sum(entete => entete.Details.Count);
+
+    /// <summary>Montant estimatif de tous les plans, formaté en Ariary.</summary>
+    public string MontantTousPlansAffiche
+        => $"{Entetes.Sum(entete => entete.Details.Sum(detail => detail.MontantEstimatif)):N0} Ar";
+
+    // ---------- Chiffres du plan ouvert ----------
 
     /// <summary>Nombre de lignes du plan sélectionné.</summary>
     public int NombreLignesAffiche => Details.Count;
@@ -88,13 +116,25 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
             EstOccupe = true;
             Erreur = null;
 
-            var entetes = await _ppm.ListerAsync();            Entetes.Clear();
+            // On garde le plan sélectionné (s'il existe encore) après un rechargement.
+            var numConserve = EnteteSelectionne?.NumPPM;
+
+            var entetes = await _ppm.ListerAsync();
+            Entetes.Clear();
             foreach (var entete in entetes)
             {
                 Entetes.Add(entete);
             }
 
-            EnteteSelectionne = Entetes.FirstOrDefault();
+            EnteteSelectionne = numConserve is null
+                ? null
+                : Entetes.FirstOrDefault(e => e.NumPPM == numConserve);
+
+            if (EnteteSelectionne is null)
+            {
+                // Le plan affiché n'existe plus : retour à la liste.
+                EstEnVueDetail = false;
+            }
         }
         catch (Exception ex)
         {
@@ -106,17 +146,43 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
         }
     }
 
-    // ---------- En-tête ----------
+    // ---------- Navigation liste <-> détail ----------
 
+    /// <summary>« Ouvrir » : affiche le détail du plan choisi à la place de la liste.</summary>
     [RelayCommand]
-    private void OuvrirPpm(PpmEntete? enteteSelectionnee)
+    private void OuvrirPpm(PpmEntete? enteteChoisi)
     {
-        var entete = enteteSelectionnee ?? EnteteSelectionne;
-        if (entete is not null)
+        var entete = enteteChoisi ?? EnteteSelectionne;
+        if (entete is null)
         {
-            EnteteSelectionne = entete;
+            return;
+        }
+
+        Erreur = null;
+        Message = null;
+
+        var memeSelection = ReferenceEquals(EnteteSelectionne, entete);
+        EnteteSelectionne = entete;
+        EstEnVueDetail = true;
+
+        if (memeSelection)
+        {
+            // Pas de changement de sélection : on relit les lignes pour être à jour.
+            _ = ChargerDetailsAsync(entete.NumPPM);
         }
     }
+
+    /// <summary>« Retour aux plans » : revient à la liste (rechargée pour mettre à jour totaux et dates).</summary>
+    [RelayCommand]
+    private async Task RetourListe()
+    {
+        EstEnVueDetail = false;
+        Erreur = null;
+        Message = null;
+        await ChargerAsync();
+    }
+
+    // ---------- En-tête ----------
 
     [RelayCommand]
     private async Task NouveauPpm()
@@ -128,18 +194,21 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
         }
 
         var entete = dialogue.VersEntite();
-        await ExecuterAsync(
+        var cree = await ExecuterAsync(
             () => _ppm.CreerAsync(entete),
             $"Le PPM « {entete.NumPPM} » a été créé.");
 
-        await ChargerAsync();
-        EnteteSelectionne = Entetes.FirstOrDefault(e => e.NumPPM == entete.NumPPM);
+        if (cree)
+        {
+            await ChargerAsync();
+            EnteteSelectionne = Entetes.FirstOrDefault(e => e.NumPPM == entete.NumPPM);
+        }
     }
 
     [RelayCommand]
-    private async Task ModifierPpm(PpmEntete? enteteSelectionnee)
+    private async Task ModifierPpm(PpmEntete? enteteChoisi)
     {
-        var enteteActuelle = enteteSelectionnee ?? EnteteSelectionne;
+        var enteteActuelle = enteteChoisi ?? EnteteSelectionne;
         if (enteteActuelle is null)
         {
             return;
@@ -152,16 +221,20 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
         }
 
         var entete = dialogue.VersEntite();
-        await ExecuterAsync(() => _ppm.ModifierAsync(entete), "Le PPM a été modifié.");
+        var modifie = await ExecuterAsync(() => _ppm.ModifierAsync(entete), "Le PPM a été modifié.");
 
-        await ChargerAsync();
-        EnteteSelectionne = Entetes.FirstOrDefault(e => e.NumPPM == entete.NumPPM);
+        if (modifie)
+        {
+            // Dans la vue détail on reste sur le même plan ; depuis la liste, on le sélectionne.
+            await ChargerAsync();
+            EnteteSelectionne = Entetes.FirstOrDefault(e => e.NumPPM == entete.NumPPM);
+        }
     }
 
     [RelayCommand]
-    private async Task SupprimerPpm(PpmEntete? enteteSelectionnee)
+    private async Task SupprimerPpm(PpmEntete? enteteChoisi)
     {
-        var enteteActuelle = enteteSelectionnee ?? EnteteSelectionne;
+        var enteteActuelle = enteteChoisi ?? EnteteSelectionne;
         if (enteteActuelle is null)
         {
             return;
@@ -177,8 +250,14 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
             return;
         }
 
-        await ExecuterAsync(() => _ppm.SupprimerAsync(numPpm), "Le PPM a été supprimé.");
-        await ChargerAsync();
+        var supprime = await ExecuterAsync(() => _ppm.SupprimerAsync(numPpm), "Le PPM a été supprimé.");
+        if (supprime)
+        {
+            // Plus rien à afficher dans le détail : retour à la liste.
+            EstEnVueDetail = false;
+            EnteteSelectionne = null;
+            await ChargerAsync();
+        }
     }
 
     // ---------- Mise à jour et lignes de détail ----------
@@ -199,10 +278,11 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
             return;
         }
 
-        await ExecuterAsync(
-            () => _ppm.EnregistrerMiseAJourAsync(EnteteSelectionne.NumPPM),
-            "Mise à jour enregistrée.");
-        await ChargerDetailsAsync(EnteteSelectionne.NumPPM);
+        var numPpm = EnteteSelectionne.NumPPM;
+        if (await ExecuterAsync(() => _ppm.EnregistrerMiseAJourAsync(numPpm), "Mise à jour enregistrée."))
+        {
+            await ChargerAsync();
+        }
     }
 
     [RelayCommand]
@@ -219,23 +299,23 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
             return;
         }
 
+        var numPpm = EnteteSelectionne.NumPPM;
         var detail = dialogue.VersEntite();
-        await ExecuterAsync(
-            () => _ppm.AjouterDetailAsync(EnteteSelectionne.NumPPM, detail),
-            "La ligne a été ajoutée.");
-
-        await ChargerDetailsAsync(EnteteSelectionne.NumPPM);
+        if (await ExecuterAsync(() => _ppm.AjouterDetailAsync(numPpm, detail), "La ligne a été ajoutée."))
+        {
+            await ChargerAsync();
+        }
     }
 
     [RelayCommand]
-    private async Task ModifierDetail(PpmDetail? ligneSelectionnee)
+    private async Task ModifierDetail(PpmDetail? ligneChoisie)
     {
         if (EnteteSelectionne is null)
         {
             return;
         }
 
-        var ligneActuelle = ligneSelectionnee ?? DetailSelectionne;
+        var ligneActuelle = ligneChoisie ?? DetailSelectionne;
         if (ligneActuelle is null)
         {
             return;
@@ -247,28 +327,29 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
             return;
         }
 
+        var numPpm = EnteteSelectionne.NumPPM;
         var detail = dialogue.VersEntite();
-        await ExecuterAsync(
-            () => _ppm.ModifierDetailAsync(EnteteSelectionne.NumPPM, detail),
-            "La ligne a été modifiée.");
-
-        await ChargerDetailsAsync(EnteteSelectionne.NumPPM);
+        if (await ExecuterAsync(() => _ppm.ModifierDetailAsync(numPpm, detail), "La ligne a été modifiée."))
+        {
+            await ChargerAsync();
+        }
     }
 
     [RelayCommand]
-    private async Task SupprimerDetail(PpmDetail? ligneSelectionnee)
+    private async Task SupprimerDetail(PpmDetail? ligneChoisie)
     {
         if (EnteteSelectionne is null)
         {
             return;
         }
 
-        var ligneActuelle = ligneSelectionnee ?? DetailSelectionne;
+        var ligneActuelle = ligneChoisie ?? DetailSelectionne;
         if (ligneActuelle is null)
         {
             return;
         }
 
+        var numPpm = EnteteSelectionne.NumPPM;
         var numDetail = ligneActuelle.NumPPMDetail;
         var confirme = await _dialogues.ConfirmerAsync(
             "Supprimer la ligne",
@@ -279,11 +360,10 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
             return;
         }
 
-        await ExecuterAsync(
-            () => _ppm.SupprimerDetailAsync(EnteteSelectionne.NumPPM, numDetail),
-            "La ligne a été supprimée.");
-
-        await ChargerDetailsAsync(EnteteSelectionne.NumPPM);
+        if (await ExecuterAsync(() => _ppm.SupprimerDetailAsync(numPpm, numDetail), "La ligne a été supprimée."))
+        {
+            await ChargerAsync();
+        }
     }
 
     // ---------- Interne ----------
@@ -305,7 +385,7 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
         {
             var entete = await _ppm.ObtenirAsync(numPpm);
             Details.Clear();
-            foreach (var detail in entete.Details)
+            foreach (var detail in entete.Details.OrderBy(d => d.NumPPMDetail))
             {
                 Details.Add(detail);
             }
@@ -318,7 +398,8 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
         }
     }
 
-    private async Task ExecuterAsync(Func<Task> action, string messageSucces)
+    /// <summary>Exécute une action, affiche le message de succès ou l'erreur. Retourne <c>true</c> si elle a réussi.</summary>
+    private async Task<bool> ExecuterAsync(Func<Task> action, string messageSucces)
     {
         try
         {
@@ -328,11 +409,13 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
 
             await action();
             Message = messageSucces;
+            return true;
         }
         catch (Exception ex)
         {
             Erreur = ex.Message;
             await _dialogues.InformerAsync("Erreur", ex.Message);
+            return false;
         }
         finally
         {

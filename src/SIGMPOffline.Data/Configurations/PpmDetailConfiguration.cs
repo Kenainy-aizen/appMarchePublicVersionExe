@@ -18,6 +18,8 @@ public class PpmDetailConfiguration : IEntityTypeConfiguration<PpmDetail>
         builder.Property(x => x.NumPPMEntete).HasMaxLength(50).IsRequired();
         builder.Property(x => x.ObjetProjet).HasMaxLength(500).IsRequired();
         builder.Property(x => x.SourceFinancement).HasMaxLength(200);
+        builder.Property(x => x.Comptes).HasMaxLength(500);
+        builder.Property(x => x.ResponsableProcedure).HasMaxLength(200);
 
         // Enums persistés en texte (lisibilité en base).
         builder.Property(x => x.NatureMarche)
