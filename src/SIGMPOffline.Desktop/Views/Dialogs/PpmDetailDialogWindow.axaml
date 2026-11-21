@@ -3,52 +3,73 @@
         xmlns:dlg="using:SIGMPOffline.Desktop.ViewModels.Dialogs"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="360"
+        mc:Ignorable="d" d:DesignWidth="580" d:DesignHeight="520"
         x:Class="SIGMPOffline.Desktop.Views.Dialogs.PpmDetailDialogWindow"
         x:DataType="dlg:PpmDetailDialogViewModel"
         Title="{Binding Titre}"
-        Width="520" SizeToContent="Height"
+        Width="580" SizeToContent="Height"
         CanResize="False" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
 
-    <StackPanel Margin="22" Spacing="16">
-        <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
+    <StackPanel Margin="24" Spacing="16">
+        <StackPanel Spacing="2">
+            <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
+            <TextBlock Classes="legende"
+                       Text="Décrivez le marché prévu au plan. Les champs marqués d'une étoile sont obligatoires." />
+        </StackPanel>
 
-        <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
-              RowSpacing="12" ColumnSpacing="12">
-            <TextBlock Classes="field-label" Grid.Row="0" Grid.Column="0">N° de la ligne <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
-            <TextBox Grid.Row="0" Grid.Column="1"
-                     Text="{Binding NumPPMDetail}"
-                     IsEnabled="{Binding NumDetailModifiable}"
-                     PlaceholderText="ex. 2026-004" />
+        <!-- Identification -->
+        <Border Classes="panel">
+            <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto"
+                  RowSpacing="12" ColumnSpacing="12">
+                <TextBlock Classes="field-label" Grid.Row="0" Grid.Column="0"
+                           VerticalAlignment="Center">N° de la ligne <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
+                <TextBox Grid.Row="0" Grid.Column="1"
+                         Text="{Binding NumPPMDetail}"
+                         IsEnabled="{Binding NumDetailModifiable}"
+                         PlaceholderText="ex. 2026-004" />
 
-            <TextBlock Classes="field-label" Grid.Row="1" Grid.Column="0">Objet du projet <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
-            <TextBox Grid.Row="1" Grid.Column="1"
-                     Text="{Binding ObjetProjet}"
-                     AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
+                <TextBlock Classes="field-label" Grid.Row="1" Grid.Column="0"
+                           VerticalAlignment="Top" Margin="0,8,0,0">Objet du projet <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
+                <TextBox Grid.Row="1" Grid.Column="1"
+                         Text="{Binding ObjetProjet}"
+                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="72"
+                         PlaceholderText="Ex. Construction d'un bâtiment administratif" />
+            </Grid>
+        </Border>
 
-            <TextBlock Classes="field-label" Grid.Row="2" Grid.Column="0">Nature du marché</TextBlock>
-            <ComboBox Grid.Row="2" Grid.Column="1"
-                      HorizontalAlignment="Stretch"
-                      ItemsSource="{Binding Natures}"
-                      SelectedItem="{Binding NatureSelectionnee}" />
+        <!-- Classification et financement -->
+        <Border Classes="panel">
+            <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto,Auto"
+                  RowSpacing="12" ColumnSpacing="12">
+                <TextBlock Classes="field-label" Grid.Row="0" Grid.Column="0"
+                           VerticalAlignment="Center">Nature du marché</TextBlock>
+                <ComboBox Grid.Row="0" Grid.Column="1"
+                          HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding Natures}"
+                          SelectedItem="{Binding NatureSelectionnee}" />
 
-            <TextBlock Classes="field-label" Grid.Row="3" Grid.Column="0">Mode de passation</TextBlock>
-            <ComboBox Grid.Row="3" Grid.Column="1"
-                      HorizontalAlignment="Stretch"
-                      ItemsSource="{Binding Modes}"
-                      SelectedItem="{Binding ModeSelectionne}" />
+                <TextBlock Classes="field-label" Grid.Row="1" Grid.Column="0"
+                           VerticalAlignment="Center">Mode de passation</TextBlock>
+                <ComboBox Grid.Row="1" Grid.Column="1"
+                          HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding Modes}"
+                          SelectedItem="{Binding ModeSelectionne}" />
 
-            <TextBlock Classes="field-label" Grid.Row="4" Grid.Column="0">Montant estimatif entier (Ar)</TextBlock>
-            <NumericUpDown Grid.Row="4" Grid.Column="1"
-                           Value="{Binding MontantEstimatif}"
-                           Minimum="0" FormatString="N0" ShowButtonSpinner="False" />
+                <TextBlock Classes="field-label" Grid.Row="2" Grid.Column="0"
+                           VerticalAlignment="Center">Montant estimatif (Ar)</TextBlock>
+                <NumericUpDown Grid.Row="2" Grid.Column="1"
+                               Value="{Binding MontantEstimatif}"
+                               Minimum="0" FormatString="N0" ShowButtonSpinner="False"
+                               HorizontalAlignment="Stretch" />
 
-            <TextBlock Classes="field-label" Grid.Row="5" Grid.Column="0">Source de financement</TextBlock>
-            <TextBox Grid.Row="5" Grid.Column="1"
-                     Text="{Binding SourceFinancement}"
-                     PlaceholderText="Budget national, bailleur…" />
-        </Grid>
+                <TextBlock Classes="field-label" Grid.Row="3" Grid.Column="0"
+                           VerticalAlignment="Center">Source de financement</TextBlock>
+                <TextBox Grid.Row="3" Grid.Column="1"
+                         Text="{Binding SourceFinancement}"
+                         PlaceholderText="Budget national, bailleur…" />
+            </Grid>
+        </Border>
 
         <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
             <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />

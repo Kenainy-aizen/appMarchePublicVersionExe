@@ -3,42 +3,53 @@
         xmlns:dlg="using:SIGMPOffline.Desktop.ViewModels.Dialogs"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="300"
+        mc:Ignorable="d" d:DesignWidth="560" d:DesignHeight="380"
         x:Class="SIGMPOffline.Desktop.Views.Dialogs.PpmEnteteDialogWindow"
         x:DataType="dlg:PpmEnteteDialogViewModel"
         Title="{Binding Titre}"
-        Width="500" SizeToContent="Height"
+        Width="560" SizeToContent="Height"
         CanResize="False" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
 
-    <StackPanel Margin="22" Spacing="16">
-        <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
+    <StackPanel Margin="24" Spacing="16">
+        <StackPanel Spacing="2">
+            <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
+            <TextBlock Classes="legende"
+                       Text="Informations générales du plan annuel. Les champs marqués d'une étoile sont obligatoires." />
+        </StackPanel>
 
-        <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto"
-              RowSpacing="12" ColumnSpacing="12">
-            <TextBlock Classes="field-label" Grid.Row="0" Grid.Column="0">Numéro du PPM <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
-            <TextBox Grid.Row="0" Grid.Column="1"
-                     Text="{Binding NumPPM}"
-                     IsEnabled="{Binding NumPpmModifiable}"
-                     PlaceholderText="ex. PPM-2026" />
+        <Border Classes="panel">
+            <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto,Auto"
+                  RowSpacing="12" ColumnSpacing="12">
+                <TextBlock Classes="field-label" Grid.Row="0" Grid.Column="0"
+                           VerticalAlignment="Center">Numéro du PPM <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
+                <TextBox Grid.Row="0" Grid.Column="1"
+                         Text="{Binding NumPPM}"
+                         IsEnabled="{Binding NumPpmModifiable}"
+                         PlaceholderText="ex. PPM-2026" />
 
-            <TextBlock Classes="field-label" Grid.Row="1" Grid.Column="0">Exercice budgétaire <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
-            <NumericUpDown Grid.Row="1" Grid.Column="1"
-                           Value="{Binding AnneeExercice}"
-                           IsEnabled="{Binding AnneeModifiable}"
-                           Minimum="2000" Maximum="2100"
-                           FormatString="N0" ShowButtonSpinner="False" />
+                <TextBlock Classes="field-label" Grid.Row="1" Grid.Column="0"
+                           VerticalAlignment="Center">Exercice budgétaire <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
+                <NumericUpDown Grid.Row="1" Grid.Column="1"
+                               Value="{Binding AnneeExercice}"
+                               IsEnabled="{Binding AnneeModifiable}"
+                               Minimum="2000" Maximum="2100"
+                               FormatString="N0" ShowButtonSpinner="False"
+                               HorizontalAlignment="Stretch" />
 
-            <TextBlock Classes="field-label" Grid.Row="2" Grid.Column="0">Autorité contractante <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
-            <TextBox Grid.Row="2" Grid.Column="1"
-                     Text="{Binding AutoriteContractante}"
-                     PlaceholderText="PRMP - Ministère…" />
+                <TextBlock Classes="field-label" Grid.Row="2" Grid.Column="0"
+                           VerticalAlignment="Center">Autorité contractante <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
+                <TextBox Grid.Row="2" Grid.Column="1"
+                         Text="{Binding AutoriteContractante}"
+                         PlaceholderText="PRMP - Ministère…" />
 
-            <TextBlock Classes="field-label" Grid.Row="3" Grid.Column="0">Date d'élaboration</TextBlock>
-            <DatePicker Grid.Row="3" Grid.Column="1" SelectedDate="{Binding DateElaboration}"
-                        IsEnabled="{Binding DateElaborationModifiable}"
-                        HorizontalAlignment="Stretch" />
-        </Grid>
+                <TextBlock Classes="field-label" Grid.Row="3" Grid.Column="0"
+                           VerticalAlignment="Center">Date d'élaboration</TextBlock>
+                <DatePicker Grid.Row="3" Grid.Column="1" SelectedDate="{Binding DateElaboration}"
+                            IsEnabled="{Binding DateElaborationModifiable}"
+                            HorizontalAlignment="Stretch" />
+            </Grid>
+        </Border>
 
         <Border Classes="error" IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
             <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
