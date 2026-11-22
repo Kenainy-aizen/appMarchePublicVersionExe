@@ -22,6 +22,18 @@
                         Command="{Binding ChargerCommand}" VerticalAlignment="Top" />
             </Grid>
 
+            <!-- Filtres de pilotage -->
+            <Border Classes="panel">
+                <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="10">
+                    <ComboBox ItemsSource="{Binding ExercicesDisponibles}"
+                              SelectedItem="{Binding ExerciceFiltre}" />
+                    <ComboBox Grid.Column="1" ItemsSource="{Binding StatutsDisponibles}"
+                              SelectedItem="{Binding StatutFiltre}" />
+                    <Button Grid.Column="2" Content="Réinitialiser"
+                            Classes="ghost" Command="{Binding ReinitialiserFiltresCommand}" />
+                </Grid>
+            </Border>
+
             <!-- Indicateurs clés -->
             <WrapPanel Orientation="Horizontal">
 
@@ -97,6 +109,48 @@
                     <TextBlock Classes="kpi-label" Text="Montant total des marchés (HT)" />
                     <TextBlock Classes="kpi-value"
                                Text="{Binding MontantTotalHt, StringFormat='{}{0:N0} Ar'}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Échéances à venir -->
+            <Border Classes="card">
+                <StackPanel Spacing="12">
+                    <TextBlock Classes="section-title" Text="Échéances dans les 30 prochains jours" />
+                    <Border Classes="success" IsVisible="{Binding !Echeances.Count}">
+                        <TextBlock Text="Aucune échéance proche." />
+                    </Border>
+                    <ItemsControl ItemsSource="{Binding Echeances}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:AlerteEcheance">
+                                <Border Background="{DynamicResource WarningSurfaceBrush}"
+                                        BorderBrush="{DynamicResource WarningBorderBrush}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,3">
+                                    <Grid ColumnDefinitions="*,Auto,Auto">
+                                        <StackPanel><TextBlock Text="{Binding RefMarche}" FontWeight="SemiBold" /><TextBlock Text="{Binding ObjetMarche}" Classes="secondaire" /></StackPanel>
+                                        <TextBlock Grid.Column="1" Margin="14,0" VerticalAlignment="Center" Text="{Binding DateLimite, StringFormat='Limite : {0:dd/MM/yyyy}'}" />
+                                        <Border Grid.Column="2" Classes="badge warning" Padding="10,3"><TextBlock Text="{Binding JoursRestants, StringFormat='dans {0} j'}" /></Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Données incomplètes -->
+            <Border Classes="card">
+                <StackPanel Spacing="12">
+                    <TextBlock Classes="section-title" Text="Données de suivi à compléter" />
+                    <Border Classes="success" IsVisible="{Binding !MarchesIncomplets.Count}"><TextBlock Text="Aucune information manquante détectée." /></Border>
+                    <ItemsControl ItemsSource="{Binding MarchesIncomplets}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:MarcheIncomplet">
+                                <Border Background="{DynamicResource WarningSurfaceBrush}" BorderBrush="{DynamicResource WarningBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,3">
+                                    <Grid ColumnDefinitions="140,*,Auto"><TextBlock Text="{Binding RefMarche}" FontWeight="SemiBold" /><TextBlock Grid.Column="1" Text="{Binding ObjetMarche}" Classes="secondaire" /><Border Grid.Column="2" Classes="badge warning"><TextBlock Text="{Binding Anomalie}" /></Border></Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </StackPanel>
             </Border>
 

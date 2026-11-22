@@ -13,6 +13,8 @@ public class MarcheRepository : Repository<Marche>, IMarcheRepository
     public async Task<Marche?> GetWithExecutionAsync(string refMarche, CancellationToken cancellationToken = default)
         => await Set
             .Include(x => x.Dossier)
+            .ThenInclude(x => x!.PpmDetail)
+            .ThenInclude(x => x!.Entete)
             .Include(x => x.Titulaire)
             .Include(x => x.Elements)
             .Include(x => x.Suivi)
@@ -24,6 +26,8 @@ public class MarcheRepository : Repository<Marche>, IMarcheRepository
         => await Set
             .AsNoTracking()
             .Include(x => x.Dossier)
+            .ThenInclude(x => x!.PpmDetail)
+            .ThenInclude(x => x!.Entete)
             .Include(x => x.Titulaire)
             .Include(x => x.Suivi)
             .Include(x => x.Avenants)

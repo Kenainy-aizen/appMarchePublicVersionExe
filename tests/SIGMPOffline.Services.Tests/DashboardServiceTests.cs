@@ -1,5 +1,6 @@
 using SIGMPOffline.Domain.Enums;
 using SIGMPOffline.Services.Dashboard;
+using SIGMPOffline.Services.Models;
 using SIGMPOffline.Services.Tests.Infrastructure;
 
 namespace SIGMPOffline.Services.Tests;
@@ -7,6 +8,39 @@ namespace SIGMPOffline.Services.Tests;
 /// <summary>Tests du tableau de bord (KPI et alertes).</summary>
 public class DashboardServiceTests
 {
+    [Fact]
+    public async Task Dashboard_filtre_par_exercice_et_statut_les_indicateurs()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        await GraphSeeder.SeedMarcheAsync(db, refMarche: "M-001");
+        await GraphSeeder.SeedMarcheAsync(db, refMarche: "M-002");
+        var suivi = new SIGMPOffline.Services.Suivi.SuiviExecutionService(db.UnitOfWork);
+        await suivi.EmettreOrdreServiceAsync("M-001", DateOnly.FromDateTime(DateTime.Today));
+        var dashboard = new DashboardService(db.UnitOfWork);
+
+        var kpi = await dashboard.ObtenirKpiAsync(new DashboardFiltre(2026, StatutExecution.EnCours));
+
+        Assert.Equal(1, kpi.TotalMarches);
+        Assert.Equal(1, kpi.MarchesEnCours);
+    }
+
+    [Fact]
+    public async Task Dashboard_liste_les_echeances_proches_et_les_donnees_incompletes()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        await GraphSeeder.SeedMarcheAsync(db, refMarche: "M-001", delaiJours: 10);
+        var dashboard = new DashboardService(db.UnitOfWork);
+
+        var suivi = new SIGMPOffline.Services.Suivi.SuiviExecutionService(db.UnitOfWork);
+        await suivi.EmettreOrdreServiceAsync("M-001", DateOnly.FromDateTime(DateTime.Today));
+
+        var echeances = await dashboard.ListerEcheancesAsync();
+        var incomplets = await dashboard.ListerMarchesIncompletsAsync();
+
+        Assert.Single(echeances);
+        Assert.Contains(incomplets, anomalie => anomalie.Anomalie == "TEF absent");
+    }
+
     [Fact]
     public async Task Kpi_compte_les_marches_et_le_montant_total()
     {
