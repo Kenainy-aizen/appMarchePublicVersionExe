@@ -59,6 +59,10 @@ public class DossierDaoService : IDossierDaoService
         => await _dossiers.GetAllAsync(cancellationToken);
 
     /// <inheritdoc />
+    public Task<IReadOnlyList<DossierDao>> ListerAvecDetailsAsync(CancellationToken cancellationToken = default)
+        => _dossiers.ListerAvecDetailsAsync(cancellationToken);
+
+    /// <inheritdoc />
     public async Task<DossierDao> ObtenirAsync(string refDossier, CancellationToken cancellationToken = default)
     {
         var dossier = await _dossiers.GetFullAsync(refDossier, cancellationToken);

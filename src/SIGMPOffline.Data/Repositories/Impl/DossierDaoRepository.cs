@@ -23,4 +23,15 @@ public class DossierDaoRepository : Repository<DossierDao>, IDossierDaoRepositor
             .Include(x => x.Candidats)
             .Include(x => x.Marche)
             .FirstOrDefaultAsync(x => x.RefDossier == refDossier, cancellationToken);
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<DossierDao>> ListerAvecDetailsAsync(CancellationToken cancellationToken = default)
+        => await Set
+            .AsNoTracking()
+            .Include(x => x.PpmDetail)
+            .Include(x => x.Candidats)
+            .Include(x => x.Acheteurs)
+            .OrderByDescending(x => x.DateCreation)
+            .ThenBy(x => x.RefDossier)
+            .ToListAsync(cancellationToken);
 }

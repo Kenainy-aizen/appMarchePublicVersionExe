@@ -62,6 +62,24 @@ public class DossierDaoServiceTests
     }
 
     [Fact]
+    public async Task ListerAvecDetailsAsync_charge_la_ligne_ppm_les_candidats_et_les_acheteurs()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        var numDetail = await SeedLignePpmAsync(db);
+        var service = new DossierDaoService(db.UnitOfWork);
+        await service.CreerAsync(NouveauDossier(numDetail));
+        await service.AjouterCandidatAsync("DOS-001", new Candidat { NomEntreprise = "ACME", MontantOffre = 1_000m });
+        await service.AjouterAcheteurAsync("DOS-001", new AcheteurDao { RaisonSociale = "Fournisseur", NumStat = "S1" });
+
+        var liste = await service.ListerAvecDetailsAsync();
+
+        var dossier = Assert.Single(liste);
+        Assert.Equal("Objet de test", dossier.PpmDetail?.ObjetProjet);
+        Assert.Single(dossier.Candidats);
+        Assert.Single(dossier.Acheteurs);
+    }
+
+    [Fact]
     public async Task CreerAsync_refuse_une_reference_deja_existante()
     {
         await using var db = await TestDatabase.CreateAsync();

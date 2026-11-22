@@ -52,8 +52,8 @@ la base contient déjà des données).
 Fenêtre unique avec **menu latéral**, une page par module :
 
 1. **Tableau de bord** — KPI et alertes de dépassement de délai.
-2. **Plan de Passation (PPM)** — en-têtes et lignes de détail.
-3. **DAO & Attribution** — dossiers, candidats, acheteurs DAO.
+2. **Plan de Passation (PPM)** — liste des plans, ouverture du détail, lignes de passation et mise à jour de l'en-tête.
+3. **DAO & Attribution** — liste des dossiers avec compteurs, ouverture du détail, candidats et acheteurs DAO.
 4. **Marchés** — marchés et éléments du bordereau.
 5. **Suivi d'exécution** — OS, TEF, avenants, réceptions, clôture.
 6. **Sauvegarde** — export/restauration du fichier SQLite (clé USB).
@@ -109,10 +109,16 @@ dotnet ef database update --project src/SIGMPOffline.Data --startup-project src/
 
 ## Modules fonctionnels
 
-1. **PPM** — saisie / révision de l'en-tête et des lignes de détail.
+1. **PPM** — liste des plans par exercice, ouverture du détail, CRUD des lignes
+   (nature, objet, mode de passation, dates prévisionnelles, comptes, source de
+   financement, responsable, services bénéficiaires), total du plan et mise à jour
+   volontaire de l'en-tête. La date de mise à jour est saisissable et incrémente
+   automatiquement le numéro de mise à jour ; la suppression est refusée si un
+   dossier DAO utilise la ligne ou le plan.
    *CRUD complet (fenêtres modales).*
-2. **DAO & Attribution** — création du dossier, acheteurs DAO, candidats.
-   *CRUD complet (dossiers, candidats, acheteurs) + désignation du retenu.*
+2. **DAO & Attribution** — dossiers rattachés aux lignes PPM, candidats et acheteurs.
+   *Liste avec compteurs et écran de détail ; CRUD complet (dossiers, candidats,
+   acheteurs) + désignation du retenu.*
 3. **Marché & Bordereau** — formalisation du contrat et éléments du marché.
    *CRUD complet (marché + éléments du bordereau) + recalcul des montants.*
 4. **Suivi d'Exécution** *(cœur)* — TEF, Ordre de Service, avenants, réceptions, clôture.
@@ -120,6 +126,11 @@ dotnet ef database update --project src/SIGMPOffline.Data --startup-project src/
 5. **Tableau de bord** — alertes de dépassement de délai et statuts.
 6. **Utilitaire** — sauvegarde / restauration en un clic du fichier SQLite (clé USB).
    *Sélecteurs natifs (dossier/fichier) et confirmation avant restauration.*
+
+## Documentation
+
+- [`docs/modele-donnees.md`](docs/modele-donnees.md) — schéma SQLite (tables,
+  relations, index), énumérations, conventions de stockage et règles métier PPM.
 
 ## Licence
 

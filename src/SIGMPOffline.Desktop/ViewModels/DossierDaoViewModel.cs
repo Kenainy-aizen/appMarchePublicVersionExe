@@ -20,6 +20,17 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
         _dao = dao ?? throw new ArgumentNullException(nameof(dao));
         _ppm = ppm ?? throw new ArgumentNullException(nameof(ppm));
         _dialogues = dialogues ?? throw new ArgumentNullException(nameof(dialogues));
+
+        Dossiers.CollectionChanged += (_, _) => NotifierCompteursDossiers();
+
+        Candidats.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(NombreCandidats));
+            OnPropertyChanged(nameof(MontantTotalOffres));
+            OnPropertyChanged(nameof(MontantTotalOffresAffiche));
+        };
+
+        Acheteurs.CollectionChanged += (_, _) => OnPropertyChanged(nameof(NombreAcheteurs));
     }
 
     /// <inheritdoc />
@@ -36,6 +47,10 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AUnDossier))]
+    [NotifyPropertyChangedFor(nameof(TitreDetailDossier))]
+    [NotifyPropertyChangedFor(nameof(LignePpmAffichee))]
+    [NotifyPropertyChangedFor(nameof(CoutCahierAffiche))]
+    [NotifyPropertyChangedFor(nameof(CautionAffichee))]
     private DossierDao? _dossierSelectionne;
 
     [ObservableProperty]
@@ -45,6 +60,9 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AUnAcheteur))]
     private AcheteurDao? _acheteurSelectionne;
+
+    /// <summary>Vrai quand l'écran « détail d'un dossier » est affiché à la place de la liste.</summary>
+    [ObservableProperty] private bool _estEnVueDetail;
 
     [ObservableProperty] private bool _estOccupe;
     [ObservableProperty] private string? _erreur;
@@ -59,6 +77,51 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     /// <summary>Vrai si un acheteur est sélectionné.</summary>
     public bool AUnAcheteur => AcheteurSelectionne is not null;
 
+    // ---------- Chiffres de la liste des dossiers ----------
+
+    /// <summary>Nombre de dossiers de la province.</summary>
+    public int NombreDossiers => Dossiers.Count;
+
+    /// <summary>Nombre total de candidats, tous dossiers confondus.</summary>
+    public int NombreCandidatsTousDossiers => Dossiers.Sum(dossier => dossier.Candidats.Count);
+
+    /// <summary>Nombre total d'acheteurs, tous dossiers confondus.</summary>
+    public int NombreAcheteursTousDossiers => Dossiers.Sum(dossier => dossier.Acheteurs.Count);
+
+    // ---------- Chiffres du dossier ouvert ----------
+
+    /// <summary>Nombre de candidats du dossier ouvert.</summary>
+    public int NombreCandidats => Candidats.Count;
+
+    /// <summary>Nombre d'acheteurs du dossier ouvert.</summary>
+    public int NombreAcheteurs => Acheteurs.Count;
+
+    /// <summary>Somme des offres des candidats du dossier ouvert.</summary>
+    public decimal MontantTotalOffres => Candidats.Sum(candidat => candidat.MontantOffre);
+
+    /// <summary>Montant total des offres formaté en Ariary.</summary>
+    public string MontantTotalOffresAffiche => $"{MontantTotalOffres:N0} Ar";
+
+    /// <summary>Titre du dossier ouvert.</summary>
+    public string TitreDetailDossier
+        => DossierSelectionne is { } dossier
+            ? $"Dossier n° {dossier.RefDossier}"
+            : "Dossier d'appel d'offres";
+
+    /// <summary>Ligne PPM rattachée au dossier.</summary>
+    public string LignePpmAffichee
+        => DossierSelectionne?.PpmDetail is { } ligne
+            ? $"{ligne.NumPPMDetail} — {ligne.ObjetProjet}"
+            : "—";
+
+    /// <summary>Coût du cahier des charges formaté en Ariary.</summary>
+    public string CoutCahierAffiche
+        => $"{(DossierSelectionne?.CoutCahierCharges ?? 0m):N0} Ar";
+
+    /// <summary>Montant de la caution de soumission formaté en Ariary.</summary>
+    public string CautionAffichee
+        => $"{(DossierSelectionne?.MontantCaution ?? 0m):N0} Ar";
+
     /// <inheritdoc />
     [RelayCommand]
     public async Task ChargerAsync()
@@ -68,14 +131,27 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
             EstOccupe = true;
             Erreur = null;
 
-            var dossiers = await _dao.ListerAsync();
+            // On garde le dossier sélectionné (s'il existe encore) après un rechargement.
+            var refConserve = DossierSelectionne?.RefDossier;
+
+            var dossiers = await _dao.ListerAvecDetailsAsync();
             Dossiers.Clear();
             foreach (var dossier in dossiers)
             {
                 Dossiers.Add(dossier);
             }
 
-            DossierSelectionne = Dossiers.FirstOrDefault();
+            DossierSelectionne = refConserve is null
+                ? Dossiers.FirstOrDefault()
+                : Dossiers.FirstOrDefault(d => d.RefDossier == refConserve) ?? Dossiers.FirstOrDefault();
+
+            if (DossierSelectionne is null)
+            {
+                // Plus de dossier à afficher : retour à la liste.
+                EstEnVueDetail = false;
+            }
+
+            NotifierCompteursDossiers();
         }
         catch (Exception ex)
         {
@@ -85,6 +161,42 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
         {
             EstOccupe = false;
         }
+    }
+
+    // ---------- Navigation liste <-> détail ----------
+
+    /// <summary>« Ouvrir » : affiche le détail du dossier choisi à la place de la liste.</summary>
+    [RelayCommand]
+    private void OuvrirDossier(DossierDao? dossierChoisi)
+    {
+        var dossier = dossierChoisi ?? DossierSelectionne;
+        if (dossier is null)
+        {
+            return;
+        }
+
+        Erreur = null;
+        Message = null;
+
+        var memeSelection = ReferenceEquals(DossierSelectionne, dossier);
+        DossierSelectionne = dossier;
+        EstEnVueDetail = true;
+
+        if (memeSelection)
+        {
+            // Pas de changement de sélection : on relit les détails pour être à jour.
+            _ = ChargerDetailsAsync(dossier.RefDossier);
+        }
+    }
+
+    /// <summary>« Retour aux dossiers » : revient à la liste (rechargée pour mettre à jour les compteurs).</summary>
+    [RelayCommand]
+    private async Task RetourListe()
+    {
+        EstEnVueDetail = false;
+        Erreur = null;
+        Message = null;
+        await ChargerAsync();
     }
 
     // ---------- Dossiers ----------
@@ -160,8 +272,13 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
             return;
         }
 
-        await ExecuterAsync(() => _dao.SupprimerAsync(refDossier), "Le dossier a été supprimé.");
-        await ChargerAsync();
+        if (await ExecuterAsync(() => _dao.SupprimerAsync(refDossier), "Le dossier a été supprimé."))
+        {
+            // Plus rien à afficher dans le détail : retour à la liste.
+            EstEnVueDetail = false;
+            DossierSelectionne = null;
+            await ChargerAsync();
+        }
     }
 
     // ---------- Candidats ----------
@@ -406,7 +523,15 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
         return lignes;
     }
 
-    private async Task ExecuterAsync(Func<Task> action, string messageSucces)
+    private void NotifierCompteursDossiers()
+    {
+        OnPropertyChanged(nameof(NombreDossiers));
+        OnPropertyChanged(nameof(NombreCandidatsTousDossiers));
+        OnPropertyChanged(nameof(NombreAcheteursTousDossiers));
+    }
+
+    /// <summary>Exécute une action, affiche le message de succès ou l'erreur. Retourne <c>true</c> si elle a réussi.</summary>
+    private async Task<bool> ExecuterAsync(Func<Task> action, string messageSucces)
     {
         try
         {
@@ -416,11 +541,13 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
 
             await action();
             Message = messageSucces;
+            return true;
         }
         catch (Exception ex)
         {
             Erreur = ex.Message;
             await _dialogues.InformerAsync("Erreur", ex.Message);
+            return false;
         }
         finally
         {

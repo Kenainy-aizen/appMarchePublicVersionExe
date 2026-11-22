@@ -10,4 +10,7 @@ public interface IDossierDaoRepository : IRepository<DossierDao>
 
     /// <summary>Charge un dossier complet (ligne PPM, acheteurs, candidats, marché).</summary>
     Task<DossierDao?> GetFullAsync(string refDossier, CancellationToken cancellationToken = default);
+
+    /// <summary>Liste les dossiers avec leur ligne PPM, leurs candidats et leurs acheteurs.</summary>
+    Task<IReadOnlyList<DossierDao>> ListerAvecDetailsAsync(CancellationToken cancellationToken = default);
 }

@@ -11,6 +11,9 @@ public interface IDossierDaoService
     /// <summary>Liste tous les dossiers.</summary>
     Task<IReadOnlyList<DossierDao>> ListerAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>Liste les dossiers avec leur ligne PPM, leurs candidats et leurs acheteurs.</summary>
+    Task<IReadOnlyList<DossierDao>> ListerAvecDetailsAsync(CancellationToken cancellationToken = default);
+
     /// <summary>Récupère un dossier complet (lève si absent).</summary>
     Task<DossierDao> ObtenirAsync(string refDossier, CancellationToken cancellationToken = default);
 
