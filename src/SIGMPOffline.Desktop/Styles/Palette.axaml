@@ -43,14 +43,14 @@
              ================================================================= -->
         <ResourceDictionary x:Key="Light">
 
-            <!-- Accent Fluent (bleu institutionnel). Sert aussi aux sélections natives. -->
-            <Color x:Key="SystemAccentColor">#2563EB</Color>
-            <Color x:Key="SystemAccentColorLight1">#3B82F6</Color>
-            <Color x:Key="SystemAccentColorLight2">#60A5FA</Color>
-            <Color x:Key="SystemAccentColorLight3">#93C5FD</Color>
-            <Color x:Key="SystemAccentColorDark1">#1D4ED8</Color>
-            <Color x:Key="SystemAccentColorDark2">#1E40AF</Color>
-            <Color x:Key="SystemAccentColorDark3">#1E3A8A</Color>
+            <!-- Accent Fluent (vert institutionnel). Sert aussi aux sélections natives. -->
+            <Color x:Key="SystemAccentColor">#15803D</Color>
+            <Color x:Key="SystemAccentColorLight1">#22C55E</Color>
+            <Color x:Key="SystemAccentColorLight2">#4ADE80</Color>
+            <Color x:Key="SystemAccentColorLight3">#86EFAC</Color>
+            <Color x:Key="SystemAccentColorDark1">#166534</Color>
+            <Color x:Key="SystemAccentColorDark2">#14532D</Color>
+            <Color x:Key="SystemAccentColorDark3">#064E3B</Color>
 
             <!-- Surfaces -->
             <SolidColorBrush x:Key="AppBackgroundBrush" Color="#F4F6FA" />
@@ -62,13 +62,13 @@
             <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#FFFFFF" />
 
             <!-- Barre latérale -->
-            <SolidColorBrush x:Key="SidebarBrush" Color="#12233B" />
-            <SolidColorBrush x:Key="SidebarHoverBrush" Color="#1C3350" />
-            <SolidColorBrush x:Key="SidebarActiveBrush" Color="#2563EB" />
+            <SolidColorBrush x:Key="SidebarBrush" Color="#123524" />
+            <SolidColorBrush x:Key="SidebarHoverBrush" Color="#1B4332" />
+            <SolidColorBrush x:Key="SidebarActiveBrush" Color="#15803D" />
             <SolidColorBrush x:Key="SidebarTextBrush" Color="#C3D2E2" />
             <SolidColorBrush x:Key="SidebarTextActiveBrush" Color="#FFFFFF" />
             <SolidColorBrush x:Key="SidebarMutedBrush" Color="#8296AB" />
-            <SolidColorBrush x:Key="SidebarDividerBrush" Color="#1E3350" />
+            <SolidColorBrush x:Key="SidebarDividerBrush" Color="#1B4332" />
 
             <!-- Texte — 15,65:1 et 5,47:1 sur blanc -->
             <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1B2430" />
@@ -82,27 +82,27 @@
             <SolidColorBrush x:Key="DividerBrush" Color="#E8EDF2" />
 
             <!-- Accent texte/lien (sur fond clair) : 5,17:1 sur blanc -->
-            <SolidColorBrush x:Key="AccentBrush" Color="#2563EB" />
-            <SolidColorBrush x:Key="AccentHoverBrush" Color="#1D4ED8" />
-            <SolidColorBrush x:Key="AccentPressedBrush" Color="#1E40AF" />
-            <SolidColorBrush x:Key="AccentSubtleBrush" Color="#E3EDFD" />
-            <SolidColorBrush x:Key="AccentBorderBrush" Color="#A9C4F5" />
+            <SolidColorBrush x:Key="AccentBrush" Color="#15803D" />
+            <SolidColorBrush x:Key="AccentHoverBrush" Color="#166534" />
+            <SolidColorBrush x:Key="AccentPressedBrush" Color="#14532D" />
+            <SolidColorBrush x:Key="AccentSubtleBrush" Color="#DCFCE7" />
+            <SolidColorBrush x:Key="AccentBorderBrush" Color="#86EFAC" />
 
-            <!-- Accent plein (boutons) : texte blanc sur #2563EB = 5,17:1 -->
-            <SolidColorBrush x:Key="AccentSurfaceBrush" Color="#2563EB" />
-            <SolidColorBrush x:Key="AccentSurfaceHoverBrush" Color="#1D4ED8" />
-            <SolidColorBrush x:Key="AccentSurfacePressedBrush" Color="#1E40AF" />
+            <!-- Accent plein (boutons) : texte blanc sur #15803D = 5,17:1 -->
+            <SolidColorBrush x:Key="AccentSurfaceBrush" Color="#15803D" />
+            <SolidColorBrush x:Key="AccentSurfaceHoverBrush" Color="#166534" />
+            <SolidColorBrush x:Key="AccentSurfacePressedBrush" Color="#14532D" />
 
             <LinearGradientBrush x:Key="AccentGradientBrush" StartPoint="0%,0%" EndPoint="100%,100%">
-                <GradientStop Offset="0" Color="#3B82F6" />
-                <GradientStop Offset="1" Color="#1D4ED8" />
+                <GradientStop Offset="0" Color="#22C55E" />
+                <GradientStop Offset="1" Color="#166534" />
             </LinearGradientBrush>
 
             <!-- Écrans d'authentification (fond dégradé doux) -->
             <LinearGradientBrush x:Key="AuthBackdropBrush" StartPoint="0%,0%" EndPoint="100%,100%">
-                <GradientStop Offset="0" Color="#F8FAFE" />
-                <GradientStop Offset="0.55" Color="#EAF1FC" />
-                <GradientStop Offset="1" Color="#DCE8FA" />
+                <GradientStop Offset="0" Color="#F7FEF9" />
+                <GradientStop Offset="0.55" Color="#E9F8EE" />
+                <GradientStop Offset="1" Color="#D8F3E2" />
             </LinearGradientBrush>
 
             <!-- Sémantique -->
@@ -128,14 +128,14 @@
              ================================================================= -->
         <ResourceDictionary x:Key="Dark">
 
-            <!-- Accent « plein » : texte blanc sur #2563EB = 5,17:1 -->
-            <Color x:Key="SystemAccentColor">#2563EB</Color>
-            <Color x:Key="SystemAccentColorLight1">#2F6FE8</Color>
-            <Color x:Key="SystemAccentColorLight2">#60A5FA</Color>
-            <Color x:Key="SystemAccentColorLight3">#93C5FD</Color>
-            <Color x:Key="SystemAccentColorDark1">#1D4ED8</Color>
-            <Color x:Key="SystemAccentColorDark2">#1E40AF</Color>
-            <Color x:Key="SystemAccentColorDark3">#1E3A8A</Color>
+            <!-- Accent « plein » : texte blanc sur #15803D = 5,17:1 -->
+            <Color x:Key="SystemAccentColor">#15803D</Color>
+            <Color x:Key="SystemAccentColorLight1">#34D399</Color>
+            <Color x:Key="SystemAccentColorLight2">#4ADE80</Color>
+            <Color x:Key="SystemAccentColorLight3">#86EFAC</Color>
+            <Color x:Key="SystemAccentColorDark1">#166534</Color>
+            <Color x:Key="SystemAccentColorDark2">#14532D</Color>
+            <Color x:Key="SystemAccentColorDark3">#064E3B</Color>
 
             <!-- Surfaces -->
             <SolidColorBrush x:Key="AppBackgroundBrush" Color="#0E1621" />
@@ -147,13 +147,13 @@
             <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#1E2A38" />
 
             <!-- Barre latérale -->
-            <SolidColorBrush x:Key="SidebarBrush" Color="#0A121C" />
-            <SolidColorBrush x:Key="SidebarHoverBrush" Color="#16273A" />
-            <SolidColorBrush x:Key="SidebarActiveBrush" Color="#2563EB" />
+            <SolidColorBrush x:Key="SidebarBrush" Color="#0A1710" />
+            <SolidColorBrush x:Key="SidebarHoverBrush" Color="#163A26" />
+            <SolidColorBrush x:Key="SidebarActiveBrush" Color="#15803D" />
             <SolidColorBrush x:Key="SidebarTextBrush" Color="#A6B6C6" />
             <SolidColorBrush x:Key="SidebarTextActiveBrush" Color="#FFFFFF" />
             <SolidColorBrush x:Key="SidebarMutedBrush" Color="#6E8095" />
-            <SolidColorBrush x:Key="SidebarDividerBrush" Color="#16273A" />
+            <SolidColorBrush x:Key="SidebarDividerBrush" Color="#163A26" />
 
             <!-- Texte — 13,93:1 et 7,40:1 sur SurfaceBrush -->
             <SolidColorBrush x:Key="TextPrimaryBrush" Color="#E6EDF3" />
@@ -165,28 +165,28 @@
             <SolidColorBrush x:Key="BorderBrush" Color="#26333F" />
             <SolidColorBrush x:Key="DividerBrush" Color="#1E2A38" />
 
-            <!-- Accent texte/lien : #60A5FA = 6,48:1 sur SurfaceBrush, 5,72:1 sur SurfaceAltBrush -->
-            <SolidColorBrush x:Key="AccentBrush" Color="#60A5FA" />
-            <SolidColorBrush x:Key="AccentHoverBrush" Color="#93C5FD" />
-            <SolidColorBrush x:Key="AccentPressedBrush" Color="#BFDBFE" />
-            <SolidColorBrush x:Key="AccentSubtleBrush" Color="#172A45" />
-            <SolidColorBrush x:Key="AccentBorderBrush" Color="#31527F" />
+            <!-- Accent texte/lien : #4ADE80 = 6,48:1 sur SurfaceBrush, 5,72:1 sur SurfaceAltBrush -->
+            <SolidColorBrush x:Key="AccentBrush" Color="#4ADE80" />
+            <SolidColorBrush x:Key="AccentHoverBrush" Color="#86EFAC" />
+            <SolidColorBrush x:Key="AccentPressedBrush" Color="#A7F3D0" />
+            <SolidColorBrush x:Key="AccentSubtleBrush" Color="#123524" />
+            <SolidColorBrush x:Key="AccentBorderBrush" Color="#276749" />
 
-            <!-- Accent plein (boutons) : jamais #3B82F6 ici (blanc = 3,68:1, échec AA). -->
-            <SolidColorBrush x:Key="AccentSurfaceBrush" Color="#2563EB" />
-            <SolidColorBrush x:Key="AccentSurfaceHoverBrush" Color="#2F6FE8" />
-            <SolidColorBrush x:Key="AccentSurfacePressedBrush" Color="#1D4ED8" />
+            <!-- Accent plein (boutons) : jamais #22C55E ici (blanc = 3,68:1, échec AA). -->
+            <SolidColorBrush x:Key="AccentSurfaceBrush" Color="#15803D" />
+            <SolidColorBrush x:Key="AccentSurfaceHoverBrush" Color="#166534" />
+            <SolidColorBrush x:Key="AccentSurfacePressedBrush" Color="#166534" />
 
             <LinearGradientBrush x:Key="AccentGradientBrush" StartPoint="0%,0%" EndPoint="100%,100%">
-                <GradientStop Offset="0" Color="#60A5FA" />
-                <GradientStop Offset="1" Color="#2563EB" />
+                <GradientStop Offset="0" Color="#4ADE80" />
+                <GradientStop Offset="1" Color="#15803D" />
             </LinearGradientBrush>
 
             <!-- Écrans d'authentification (fond dégradé sombre) -->
             <LinearGradientBrush x:Key="AuthBackdropBrush" StartPoint="0%,0%" EndPoint="100%,100%">
-                <GradientStop Offset="0" Color="#0B1420" />
-                <GradientStop Offset="0.55" Color="#101C2B" />
-                <GradientStop Offset="1" Color="#14283F" />
+                <GradientStop Offset="0" Color="#0B1710" />
+                <GradientStop Offset="0.55" Color="#102319" />
+                <GradientStop Offset="1" Color="#143A27" />
             </LinearGradientBrush>
 
             <!-- Sémantique -->
