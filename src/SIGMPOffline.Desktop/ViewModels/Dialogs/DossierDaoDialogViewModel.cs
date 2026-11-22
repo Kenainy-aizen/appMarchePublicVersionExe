@@ -18,6 +18,10 @@ public partial class DossierDaoDialogViewModel : DialogViewModelBase
 
         _refDossier = existant?.RefDossier ?? string.Empty;
         _objetDossier = existant?.ObjetDossier ?? string.Empty;
+        var dateCreation = existant is not null && existant.DateCreation != default
+            ? existant.DateCreation
+            : DateTime.Today;
+        _dateCreation = new DateTimeOffset(dateCreation.Date);
         _coutCahierCharges = existant?.CoutCahierCharges ?? 0m;
         _montantCaution = existant?.MontantCaution ?? 0m;
 
@@ -37,6 +41,7 @@ public partial class DossierDaoDialogViewModel : DialogViewModelBase
 
     [ObservableProperty] private string _refDossier;
     [ObservableProperty] private string _objetDossier;
+    [ObservableProperty] private DateTimeOffset? _dateCreation;
     [ObservableProperty] private decimal _coutCahierCharges;
     [ObservableProperty] private decimal _montantCaution;
     [ObservableProperty] private OptionLignePpm? _ligneSelectionnee;
@@ -47,6 +52,7 @@ public partial class DossierDaoDialogViewModel : DialogViewModelBase
     {
         RefDossier = RefDossier.Trim(),
         NumPPMDetail = LigneSelectionnee?.NumPPMDetail ?? string.Empty,
+        DateCreation = (DateCreation ?? DateTimeOffset.Now).Date,
         ObjetDossier = ObjetDossier.Trim(),
         CoutCahierCharges = CoutCahierCharges,
         MontantCaution = MontantCaution
@@ -70,6 +76,12 @@ public partial class DossierDaoDialogViewModel : DialogViewModelBase
         if (string.IsNullOrWhiteSpace(ObjetDossier))
         {
             Erreur = "L'objet du dossier est obligatoire.";
+            return false;
+        }
+
+        if (DateCreation is null)
+        {
+            Erreur = "La date de création du DAO est obligatoire.";
             return false;
         }
 

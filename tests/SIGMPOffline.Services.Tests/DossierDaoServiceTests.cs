@@ -112,12 +112,14 @@ public class DossierDaoServiceTests
         var dossier = await service.ObtenirAsync("DOS-001");
         dossier.ObjetDossier = "Objet modifié";
         dossier.CoutCahierCharges = 30_000m;
+        dossier.DateCreation = new DateTime(2025, 6, 15);
 
         await service.ModifierAsync(dossier);
 
         var relu = await service.ObtenirAsync("DOS-001");
         Assert.Equal("Objet modifié", relu.ObjetDossier);
         Assert.Equal(30_000m, relu.CoutCahierCharges);
+        Assert.Equal(new DateTime(2025, 6, 15), relu.DateCreation);
     }
 
     [Fact]

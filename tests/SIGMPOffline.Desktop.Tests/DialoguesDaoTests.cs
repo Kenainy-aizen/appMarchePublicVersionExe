@@ -60,6 +60,22 @@ public class DialoguesDaoTests
     }
 
     [Fact]
+    public void DossierDao_VersEntite_conserve_la_date_de_creation_saisie()
+    {
+        var date = new DateTimeOffset(2025, 6, 15, 0, 0, 0, TimeSpan.Zero);
+        var vm = new DossierDaoDialogViewModel(Lignes())
+        {
+            RefDossier = "DOS-9",
+            ObjetDossier = "Objet",
+            DateCreation = date
+        };
+
+        var entite = vm.VersEntite();
+
+        Assert.Equal(new DateTime(2025, 6, 15), entite.DateCreation);
+    }
+
+    [Fact]
     public void DossierDao_la_reference_n_est_modifiable_qu_a_la_creation()
     {
         Assert.True(new DossierDaoDialogViewModel(Lignes()).RefDossierModifiable);

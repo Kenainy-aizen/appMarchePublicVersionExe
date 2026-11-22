@@ -14,7 +14,7 @@
     <StackPanel Margin="22" Spacing="16">
         <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
 
-        <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+        <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
               RowSpacing="12" ColumnSpacing="12">
             <TextBlock Classes="field-label" Grid.Row="0" Grid.Column="0">Référence du dossier <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
             <TextBox Grid.Row="0" Grid.Column="1"
@@ -28,18 +28,23 @@
                       ItemsSource="{Binding Lignes}"
                       SelectedItem="{Binding LigneSelectionnee}" />
 
-            <TextBlock Classes="field-label" Grid.Row="2" Grid.Column="0">Objet du dossier <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
-            <TextBox Grid.Row="2" Grid.Column="1"
+            <TextBlock Classes="field-label" Grid.Row="2" Grid.Column="0">Date de création du DAO <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
+            <DatePicker Grid.Row="2" Grid.Column="1"
+                        SelectedDate="{Binding DateCreation}"
+                        HorizontalAlignment="Stretch" />
+
+            <TextBlock Classes="field-label" Grid.Row="3" Grid.Column="0">Objet du dossier <Run Foreground="{DynamicResource DangerBrush}">*</Run></TextBlock>
+            <TextBox Grid.Row="3" Grid.Column="1"
                      Text="{Binding ObjetDossier}"
                      AcceptsReturn="True" TextWrapping="Wrap" MinHeight="56" />
 
-            <TextBlock Classes="field-label" Grid.Row="3" Grid.Column="0">Coût du cahier des charges (Ar)</TextBlock>
-            <NumericUpDown Grid.Row="3" Grid.Column="1"
+            <TextBlock Classes="field-label" Grid.Row="4" Grid.Column="0">Coût du cahier des charges (Ar)</TextBlock>
+            <NumericUpDown Grid.Row="4" Grid.Column="1"
                            Value="{Binding CoutCahierCharges}"
                            Minimum="0" FormatString="N0" ShowButtonSpinner="False" />
 
-            <TextBlock Classes="field-label" Grid.Row="4" Grid.Column="0">Montant de la caution (Ar)</TextBlock>
-            <NumericUpDown Grid.Row="4" Grid.Column="1"
+            <TextBlock Classes="field-label" Grid.Row="5" Grid.Column="0">Montant de la caution (Ar)</TextBlock>
+            <NumericUpDown Grid.Row="5" Grid.Column="1"
                            Value="{Binding MontantCaution}"
                            Minimum="0" FormatString="N0" ShowButtonSpinner="False" />
         </Grid>

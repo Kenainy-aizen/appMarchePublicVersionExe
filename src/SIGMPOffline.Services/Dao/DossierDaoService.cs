@@ -158,6 +158,7 @@ public class DossierDaoService : IDossierDaoService
 
         // Copie sur l'instance suivie par EF (l'entité de l'IHM provient d'une liste non suivie).
         existant.NumPPMDetail = dossier.NumPPMDetail;
+        existant.DateCreation = dossier.DateCreation == default ? existant.DateCreation : dossier.DateCreation.Date;
         existant.ObjetDossier = dossier.ObjetDossier;
         existant.CoutCahierCharges = dossier.CoutCahierCharges;
         existant.MontantCaution = dossier.MontantCaution;

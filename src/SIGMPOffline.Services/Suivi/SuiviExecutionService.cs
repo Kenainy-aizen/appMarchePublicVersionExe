@@ -260,12 +260,19 @@ public class SuiviExecutionService : ISuiviExecutionService
             RefMarche = marche.RefMarche,
             ObjetMarche = marche.ObjetMarche,
             DateOS = marche.Suivi?.DateOS,
+            DateReceptionProvisoire = marche.Suivi?.DateReceptionProvisoire,
+            DateReceptionDefinitive = marche.Suivi?.DateReceptionDefinitive,
+            DateCloture = marche.Suivi?.DateCloture,
             RefTef = marche.Suivi?.RefTEF,
             DateLimiteExecution = dateLimite,
             JoursRestants = MarcheDelais.JoursRestants(dateLimite, aujourdhui),
             EstEnRetard = MarcheDelais.EstEnRetard(dateLimite, estCloture, aujourdhui),
             Statut = marche.StatutExecution,
-            EstCloture = estCloture
+            EstCloture = estCloture,
+            DelaiContractuelJours = marche.DelaiExecutionJours,
+            ProlongationAvenantsJours = marche.Avenants.Sum(avenant => avenant.ProlongationDelaiJours),
+            MontantInitialHt = marche.MontantHT,
+            VariationAvenants = marche.Avenants.Sum(avenant => avenant.VariationMontant)
         };
     }
 

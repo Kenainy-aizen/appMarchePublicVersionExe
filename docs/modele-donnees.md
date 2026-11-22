@@ -100,7 +100,8 @@ PPMEntete (1) ──< (N) PPMDetail
 - `RefDossier` (PK)
 - `NumPPMDetail` (FK → `PPMDetail.NumPPMDetail`, **suppression RESTRICT**)
 - `IdProvince` (FK → `Province.IdProvince`, nullable) — province propriétaire
-- `DateCreation`, `ObjetDossier`, `CoutCahierCharges`, `MontantCaution`
+- `DateCreation` (date saisie manuellement dans l'en-tête du DAO), `ObjetDossier`,
+  `CoutCahierCharges`, `MontantCaution`
 
 ### 5. AcheteurDAO
 

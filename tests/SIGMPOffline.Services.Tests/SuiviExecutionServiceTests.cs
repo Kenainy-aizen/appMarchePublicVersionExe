@@ -25,6 +25,33 @@ public class SuiviExecutionServiceTests
     }
 
     [Fact]
+    public async Task ObtenirSituationAsync_calcule_la_synthese_des_avenants_et_des_etapes()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        await GraphSeeder.SeedMarcheAsync(db);
+        var service = new SuiviExecutionService(db.UnitOfWork);
+
+        await service.EmettreOrdreServiceAsync("M-001", new DateOnly(2026, 2, 1));
+        await service.EnregistrerTefAsync("M-001", "TEF-001");
+        await service.AjouterAvenantAsync("M-001", new Avenant
+        {
+            NumAvenant = "AV-01",
+            VariationMontant = 50_000m,
+            ProlongationDelaiJours = 15
+        });
+
+        var situation = await service.ObtenirSituationAsync("M-001");
+
+        Assert.Equal(30, situation.DelaiContractuelJours);
+        Assert.Equal(15, situation.ProlongationAvenantsJours);
+        Assert.Equal(45, situation.DelaiTotalJours);
+        Assert.Equal(950_000m, situation.MontantFinalHt);
+        Assert.Equal("Fait", situation.EtatOs);
+        Assert.Equal("Fait", situation.EtatTef);
+        Assert.Equal("À faire", situation.EtatReceptionProvisoire);
+    }
+
+    [Fact]
     public async Task EmettreOrdreService_renseigne_la_date_et_passe_en_cours()
     {
         await using var db = await TestDatabase.CreateAsync();
