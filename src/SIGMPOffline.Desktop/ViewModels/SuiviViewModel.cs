@@ -35,9 +35,12 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
     /// <summary>Avenants du marché sélectionné.</summary>
     public ObservableCollection<Avenant> Avenants { get; } = new();
 
+    private readonly Dictionary<string, SituationMarche> _situations = new(StringComparer.OrdinalIgnoreCase);
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AUnMarche))]
     [NotifyPropertyChangedFor(nameof(PeutModifier))]
+    [NotifyPropertyChangedFor(nameof(TitreDetailMarche))]
     private Marche? _marcheSelectionne;
 
     [ObservableProperty]
@@ -52,6 +55,9 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
     [ObservableProperty] private string? _message;
     [ObservableProperty] private string? _erreur;
 
+    /// <summary>Vrai lorsque l'écran de détail est affiché.</summary>
+    [ObservableProperty] private bool _estEnVueDetail;
+
     /// <summary>Vrai si un marché est sélectionné.</summary>
     public bool AUnMarche => MarcheSelectionne is not null;
 
@@ -60,6 +66,20 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
 
     /// <summary>Vrai si le marché sélectionné peut encore être modifié (non clôturé).</summary>
     public bool PeutModifier => MarcheSelectionne is not null && Situation is { EstCloture: false };
+
+    /// <summary>Nombre de marchés suivis.</summary>
+    public int NombreMarches => Marches.Count;
+
+    /// <summary>Nombre de marchés actuellement en retard.</summary>
+    public int NombreMarchesEnRetard => _situations.Values.Count(x => x.EstEnRetard);
+
+    /// <summary>Nombre de marchés clôturés.</summary>
+    public int NombreMarchesClotures => _situations.Values.Count(x => x.EstCloture);
+
+    /// <summary>Titre du détail du marché.</summary>
+    public string TitreDetailMarche => MarcheSelectionne is { } marche
+        ? $"Marché n° {marche.RefMarche}"
+        : "Suivi du marché";
 
     /// <inheritdoc />
     [RelayCommand]
@@ -71,6 +91,12 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
             Erreur = null;
 
             var marches = await _marches.ListerAsync();
+            var situations = await _suivi.ListerSituationsAsync();
+            _situations.Clear();
+            foreach (var situation in situations)
+            {
+                _situations[situation.RefMarche] = situation;
+            }
             Marches.Clear();
             foreach (var marche in marches)
             {
@@ -78,6 +104,7 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
             }
 
             MarcheSelectionne = Marches.FirstOrDefault();
+            NotifierCompteurs();
         }
         catch (Exception ex)
         {
@@ -87,6 +114,30 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
         {
             EstOccupe = false;
         }
+    }
+
+    // ---------- Navigation liste <-> détail ----------
+
+    [RelayCommand]
+    private void OuvrirMarche(Marche? marcheChoisi)
+    {
+        var marche = marcheChoisi ?? MarcheSelectionne;
+        if (marche is null) return;
+
+        Erreur = null;
+        Message = null;
+        MarcheSelectionne = marche;
+        EstEnVueDetail = true;
+        _ = ActualiserAsync(marche.RefMarche);
+    }
+
+    [RelayCommand]
+    private async Task RetourListe()
+    {
+        EstEnVueDetail = false;
+        Erreur = null;
+        Message = null;
+        await ChargerAsync();
     }
 
     // ---------- Actions d'exécution ----------
@@ -270,6 +321,13 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
         {
             _ = ActualiserAsync(value.RefMarche);
         }
+    }
+
+    private void NotifierCompteurs()
+    {
+        OnPropertyChanged(nameof(NombreMarches));
+        OnPropertyChanged(nameof(NombreMarchesEnRetard));
+        OnPropertyChanged(nameof(NombreMarchesClotures));
     }
 
     private async Task EnregistrerReceptionAsync(string titre, string libelle, bool definitive)

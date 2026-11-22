@@ -32,6 +32,29 @@ public class MarcheServiceTests
     }
 
     [Fact]
+    public async Task ListerAvecBordereauAsync_charge_le_dossier_le_titulaire_et_les_elements()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        await GraphSeeder.SeedMarcheAsync(db);
+        var service = new MarcheService(db.UnitOfWork);
+        await service.AjouterElementAsync("M-001", new ElementMarche
+        {
+            CodeElement = "ART-1",
+            Libelle = "Article 1",
+            PrixUnitaire = 1_000m,
+            Quantite = 2m,
+            Unite = "u"
+        });
+
+        var liste = await service.ListerAvecBordereauAsync();
+
+        var marche = Assert.Single(liste);
+        Assert.Equal("DOS-M-001", marche.Dossier?.RefDossier);
+        Assert.Equal("ACME BTP", marche.Titulaire?.RaisonSociale);
+        Assert.Single(marche.Elements);
+    }
+
+    [Fact]
     public async Task ModifierAsync_refuse_un_objet_vide()
     {
         await using var db = await TestDatabase.CreateAsync();

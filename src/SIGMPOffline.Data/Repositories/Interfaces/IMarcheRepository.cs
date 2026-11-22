@@ -10,4 +10,7 @@ public interface IMarcheRepository : IRepository<Marche>
 
     /// <summary>Liste tous les marchés avec leurs données d'exécution (suivi + avenants).</summary>
     Task<IReadOnlyList<Marche>> ListWithExecutionAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Liste les marchés avec leur dossier, leur titulaire et leur bordereau.</summary>
+    Task<IReadOnlyList<Marche>> ListerAvecBordereauAsync(CancellationToken cancellationToken = default);
 }

@@ -9,6 +9,9 @@ public interface ISuiviExecutionService
     /// <summary>Retourne la situation d'exécution calculée d'un marché.</summary>
     Task<SituationMarche> ObtenirSituationAsync(string refMarche, CancellationToken cancellationToken = default);
 
+    /// <summary>Retourne la situation d'exécution calculée de tous les marchés.</summary>
+    Task<IReadOnlyList<SituationMarche>> ListerSituationsAsync(CancellationToken cancellationToken = default);
+
     /// <summary>Récupère le suivi d'exécution, ou le crée s'il n'existe pas encore.</summary>
     Task<SuiviExecution> ObtenirOuCreerSuiviAsync(string refMarche, CancellationToken cancellationToken = default);
 

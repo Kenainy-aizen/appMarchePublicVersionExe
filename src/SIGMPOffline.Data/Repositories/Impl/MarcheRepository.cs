@@ -29,4 +29,16 @@ public class MarcheRepository : Repository<Marche>, IMarcheRepository
             .Include(x => x.Avenants)
             .OrderBy(x => x.RefMarche)
             .ToListAsync(cancellationToken);
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<Marche>> ListerAvecBordereauAsync(CancellationToken cancellationToken = default)
+        => await Set
+            .AsNoTracking()
+            .Include(x => x.Dossier)
+            .Include(x => x.Titulaire)
+            .Include(x => x.Suivi)
+            .Include(x => x.Avenants)
+            .Include(x => x.Elements)
+            .OrderBy(x => x.RefMarche)
+            .ToListAsync(cancellationToken);
 }

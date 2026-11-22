@@ -65,6 +65,10 @@ public class MarcheService : IMarcheService
         => _marches.ListWithExecutionAsync(cancellationToken);
 
     /// <inheritdoc />
+    public Task<IReadOnlyList<Marche>> ListerAvecBordereauAsync(CancellationToken cancellationToken = default)
+        => _marches.ListerAvecBordereauAsync(cancellationToken);
+
+    /// <inheritdoc />
     public async Task<ElementMarche> AjouterElementAsync(
         string refMarche,
         ElementMarche element,

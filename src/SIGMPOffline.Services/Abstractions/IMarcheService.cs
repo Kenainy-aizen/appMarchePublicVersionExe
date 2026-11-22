@@ -14,6 +14,9 @@ public interface IMarcheService
     /// <summary>Liste tous les marchés.</summary>
     Task<IReadOnlyList<Marche>> ListerAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>Liste les marchés avec leur dossier, leur titulaire et leur bordereau.</summary>
+    Task<IReadOnlyList<Marche>> ListerAvecBordereauAsync(CancellationToken cancellationToken = default);
+
     /// <summary>Ajoute un élément (article) au bordereau du marché.</summary>
     Task<ElementMarche> AjouterElementAsync(string refMarche, ElementMarche element, CancellationToken cancellationToken = default);
 

@@ -21,6 +21,15 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
         _marches = marches ?? throw new ArgumentNullException(nameof(marches));
         _dao = dao ?? throw new ArgumentNullException(nameof(dao));
         _dialogues = dialogues ?? throw new ArgumentNullException(nameof(dialogues));
+
+        Marches.CollectionChanged += (_, _) => NotifierCompteursMarches();
+
+        Elements.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(NombreElements));
+            OnPropertyChanged(nameof(TotalBordereau));
+            OnPropertyChanged(nameof(TotalBordereauAffiche));
+        };
     }
 
     /// <inheritdoc />
@@ -34,11 +43,20 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AUnMarche))]
+    [NotifyPropertyChangedFor(nameof(TitreDetailMarche))]
+    [NotifyPropertyChangedFor(nameof(DossierAffiche))]
+    [NotifyPropertyChangedFor(nameof(TitulaireAffiche))]
+    [NotifyPropertyChangedFor(nameof(DelaiAffiche))]
+    [NotifyPropertyChangedFor(nameof(MontantHtAffiche))]
+    [NotifyPropertyChangedFor(nameof(MontantTtcAffiche))]
     private Marche? _marcheSelectionne;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AUnElement))]
     private ElementMarche? _elementSelectionne;
+
+    /// <summary>Vrai quand l'écran « détail d'un marché » est affiché à la place de la liste.</summary>
+    [ObservableProperty] private bool _estEnVueDetail;
 
     [ObservableProperty] private bool _estOccupe;
     [ObservableProperty] private string? _erreur;
@@ -50,6 +68,61 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
     /// <summary>Vrai si un élément du bordereau est sélectionné.</summary>
     public bool AUnElement => ElementSelectionne is not null;
 
+    // ---------- Chiffres de la liste des marchés ----------
+
+    /// <summary>Nombre de marchés de la province.</summary>
+    public int NombreMarches => Marches.Count;
+
+    /// <summary>Somme des montants TTC de tous les marchés.</summary>
+    public decimal MontantTtcTotal => Marches.Sum(marche => marche.MontantTTC);
+
+    /// <summary>Montant TTC total formaté en Ariary.</summary>
+    public string MontantTtcTotalAffiche => $"{MontantTtcTotal:N0} Ar";
+
+    /// <summary>Nombre total d'éléments de bordereau, tous marchés confondus.</summary>
+    public int NombreElementsTousMarches => Marches.Sum(marche => marche.Elements.Count);
+
+    // ---------- Chiffres du marché ouvert ----------
+
+    /// <summary>Nombre d'éléments du bordereau du marché ouvert.</summary>
+    public int NombreElements => Elements.Count;
+
+    /// <summary>Somme des montants des lignes du bordereau (HT).</summary>
+    public decimal TotalBordereau => Elements.Sum(element => element.MontantLigne);
+
+    /// <summary>Total du bordereau formaté en Ariary.</summary>
+    public string TotalBordereauAffiche => $"{TotalBordereau:N0} Ar";
+
+    /// <summary>Titre du marché ouvert.</summary>
+    public string TitreDetailMarche
+        => MarcheSelectionne is { } marche
+            ? $"Marché n° {marche.RefMarche}"
+            : "Marché";
+
+    /// <summary>Dossier DAO d'origine du marché.</summary>
+    public string DossierAffiche
+        => MarcheSelectionne?.Dossier is { } dossier
+            ? $"{dossier.RefDossier} — {dossier.ObjetDossier}"
+            : "—";
+
+    /// <summary>Titulaire du marché (acheteur DAO retenu).</summary>
+    public string TitulaireAffiche
+        => MarcheSelectionne?.Titulaire is { } titulaire
+            ? $"{titulaire.RaisonSociale} ({titulaire.NumStat})"
+            : "—";
+
+    /// <summary>Délai d'exécution affiché.</summary>
+    public string DelaiAffiche
+        => $"{(MarcheSelectionne?.DelaiExecutionJours ?? 0)} jours";
+
+    /// <summary>Montant HT formaté en Ariary.</summary>
+    public string MontantHtAffiche
+        => $"{(MarcheSelectionne?.MontantHT ?? 0m):N0} Ar";
+
+    /// <summary>Montant TTC formaté en Ariary.</summary>
+    public string MontantTtcAffiche
+        => $"{(MarcheSelectionne?.MontantTTC ?? 0m):N0} Ar";
+
     /// <inheritdoc />
     [RelayCommand]
     public async Task ChargerAsync()
@@ -59,14 +132,27 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
             EstOccupe = true;
             Erreur = null;
 
-            var marches = await _marches.ListerAsync();
+            // On garde le marché sélectionné (s'il existe encore) après un rechargement.
+            var refConservee = MarcheSelectionne?.RefMarche;
+
+            var marches = await _marches.ListerAvecBordereauAsync();
             Marches.Clear();
             foreach (var marche in marches)
             {
                 Marches.Add(marche);
             }
 
-            MarcheSelectionne = Marches.FirstOrDefault();
+            MarcheSelectionne = refConservee is null
+                ? Marches.FirstOrDefault()
+                : Marches.FirstOrDefault(m => m.RefMarche == refConservee) ?? Marches.FirstOrDefault();
+
+            if (MarcheSelectionne is null)
+            {
+                // Plus de marché à afficher : retour à la liste.
+                EstEnVueDetail = false;
+            }
+
+            NotifierCompteursMarches();
         }
         catch (Exception ex)
         {
@@ -76,6 +162,42 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
         {
             EstOccupe = false;
         }
+    }
+
+    // ---------- Navigation liste <-> détail ----------
+
+    /// <summary>« Ouvrir » : affiche le détail du marché choisi à la place de la liste.</summary>
+    [RelayCommand]
+    private void OuvrirMarche(Marche? marcheChoisi)
+    {
+        var marche = marcheChoisi ?? MarcheSelectionne;
+        if (marche is null)
+        {
+            return;
+        }
+
+        Erreur = null;
+        Message = null;
+
+        var memeSelection = ReferenceEquals(MarcheSelectionne, marche);
+        MarcheSelectionne = marche;
+        EstEnVueDetail = true;
+
+        if (memeSelection)
+        {
+            // Pas de changement de sélection : on relit le bordereau pour être à jour.
+            _ = ChargerElementsAsync(marche.RefMarche);
+        }
+    }
+
+    /// <summary>« Retour aux marchés » : revient à la liste (rechargée pour mettre à jour les compteurs).</summary>
+    [RelayCommand]
+    private async Task RetourListe()
+    {
+        EstEnVueDetail = false;
+        Erreur = null;
+        Message = null;
+        await ChargerAsync();
     }
 
     // ---------- Marchés ----------
@@ -159,8 +281,13 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
             return;
         }
 
-        await ExecuterAsync(() => _marches.SupprimerAsync(reference), "Le marché a été supprimé.");
-        await ChargerAsync();
+        if (await ExecuterAsync(() => _marches.SupprimerAsync(reference), "Le marché a été supprimé."))
+        {
+            // Plus rien à afficher dans le détail : retour à la liste.
+            EstEnVueDetail = false;
+            MarcheSelectionne = null;
+            await ChargerAsync();
+        }
     }
 
     // ---------- Bordereau ----------
@@ -340,7 +467,16 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
     private static string LibelleDossier(Marche marche)
         => $"{marche.RefDossier} — {marche.ObjetMarche}";
 
-    private async Task ExecuterAsync(Func<Task> action, string messageSucces)
+    private void NotifierCompteursMarches()
+    {
+        OnPropertyChanged(nameof(NombreMarches));
+        OnPropertyChanged(nameof(MontantTtcTotal));
+        OnPropertyChanged(nameof(MontantTtcTotalAffiche));
+        OnPropertyChanged(nameof(NombreElementsTousMarches));
+    }
+
+    /// <summary>Exécute une action, affiche le message de succès ou l'erreur. Retourne <c>true</c> si elle a réussi.</summary>
+    private async Task<bool> ExecuterAsync(Func<Task> action, string messageSucces)
     {
         try
         {
@@ -350,11 +486,13 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
 
             await action();
             Message = messageSucces;
+            return true;
         }
         catch (Exception ex)
         {
             Erreur = ex.Message;
             await _dialogues.InformerAsync("Erreur", ex.Message);
+            return false;
         }
         finally
         {

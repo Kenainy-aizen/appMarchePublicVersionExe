@@ -25,27 +25,19 @@ public class SuiviExecutionService : ISuiviExecutionService
         CancellationToken cancellationToken = default)
     {
         var marche = await ChargerMarcheAsync(refMarche, cancellationToken);
+        return ConstruireSituation(marche, DateOnly.FromDateTime(DateTime.Today));
+    }
 
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SituationMarche>> ListerSituationsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var marches = await _marches.ListWithExecutionAsync(cancellationToken);
         var aujourdhui = DateOnly.FromDateTime(DateTime.Today);
-        var dateLimite = MarcheDelais.CalculerDateLimiteExecution(
-            marche.Suivi?.DateOS,
-            marche.DelaiExecutionJours,
-            marche.Avenants);
 
-        var estCloture = marche.Suivi?.EstCloture ?? false;
-
-        return new SituationMarche
-        {
-            RefMarche = marche.RefMarche,
-            ObjetMarche = marche.ObjetMarche,
-            DateOS = marche.Suivi?.DateOS,
-            RefTef = marche.Suivi?.RefTEF,
-            DateLimiteExecution = dateLimite,
-            JoursRestants = MarcheDelais.JoursRestants(dateLimite, aujourdhui),
-            EstEnRetard = MarcheDelais.EstEnRetard(dateLimite, estCloture, aujourdhui),
-            Statut = marche.StatutExecution,
-            EstCloture = estCloture
-        };
+        return marches
+            .Select(marche => ConstruireSituation(marche, aujourdhui))
+            .ToList();
     }
 
     /// <inheritdoc />
@@ -251,6 +243,30 @@ public class SuiviExecutionService : ISuiviExecutionService
 
         _marches.Update(marche);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>Calcule la situation d'un marché déjà chargé (suivi + avenants).</summary>
+    private static SituationMarche ConstruireSituation(Marche marche, DateOnly aujourdhui)
+    {
+        var dateLimite = MarcheDelais.CalculerDateLimiteExecution(
+            marche.Suivi?.DateOS,
+            marche.DelaiExecutionJours,
+            marche.Avenants);
+
+        var estCloture = marche.Suivi?.EstCloture ?? false;
+
+        return new SituationMarche
+        {
+            RefMarche = marche.RefMarche,
+            ObjetMarche = marche.ObjetMarche,
+            DateOS = marche.Suivi?.DateOS,
+            RefTef = marche.Suivi?.RefTEF,
+            DateLimiteExecution = dateLimite,
+            JoursRestants = MarcheDelais.JoursRestants(dateLimite, aujourdhui),
+            EstEnRetard = MarcheDelais.EstEnRetard(dateLimite, estCloture, aujourdhui),
+            Statut = marche.StatutExecution,
+            EstCloture = estCloture
+        };
     }
 
     private async Task<Marche> ChargerMarcheAsync(string refMarche, CancellationToken cancellationToken)

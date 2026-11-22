@@ -10,6 +10,21 @@ namespace SIGMPOffline.Services.Tests;
 public class SuiviExecutionServiceTests
 {
     [Fact]
+    public async Task ListerSituationsAsync_retourne_la_situation_de_tous_les_marches()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        await GraphSeeder.SeedMarcheAsync(db, "M-001");
+        await GraphSeeder.SeedMarcheAsync(db, "M-002", delaiJours: 10);
+        var service = new SuiviExecutionService(db.UnitOfWork);
+
+        var situations = await service.ListerSituationsAsync();
+
+        Assert.Equal(2, situations.Count);
+        Assert.Contains(situations, situation => situation.RefMarche == "M-001");
+        Assert.Contains(situations, situation => situation.RefMarche == "M-002");
+    }
+
+    [Fact]
     public async Task EmettreOrdreService_renseigne_la_date_et_passe_en_cours()
     {
         await using var db = await TestDatabase.CreateAsync();
