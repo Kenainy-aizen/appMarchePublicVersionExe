@@ -47,6 +47,31 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     /// <summary>Lignes du PPM sélectionné.</summary>
     public ObservableCollection<PpmDetail> Details { get; } = new();
 
+    [ObservableProperty] private string _recherchePpm = string.Empty;
+    [ObservableProperty] private string _exerciceFiltre = "Tous";
+
+    /// <summary>Plans correspondant à la recherche et à l'exercice sélectionné.</summary>
+    public IEnumerable<PpmEntete> EntetesFiltres => Entetes.Where(entete =>
+        (string.IsNullOrWhiteSpace(RecherchePpm)
+            || entete.NumPPM.Contains(RecherchePpm, StringComparison.OrdinalIgnoreCase)
+            || entete.AutoriteContractante.Contains(RecherchePpm, StringComparison.OrdinalIgnoreCase))
+        && (ExerciceFiltre == "Tous" || entete.AnneeExercice.ToString() == ExerciceFiltre));
+
+    public IReadOnlyList<string> ExercicesDisponibles
+        => new[] { "Tous" }
+            .Concat(Entetes.Select(entete => entete.AnneeExercice.ToString()).Distinct().OrderByDescending(annee => annee))
+            .ToArray();
+
+    partial void OnRecherchePpmChanged(string value) => OnPropertyChanged(nameof(EntetesFiltres));
+    partial void OnExerciceFiltreChanged(string value) => OnPropertyChanged(nameof(EntetesFiltres));
+
+    [RelayCommand]
+    private void ReinitialiserFiltres()
+    {
+        RecherchePpm = string.Empty;
+        ExerciceFiltre = "Tous";
+    }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AUnEntete))]
     [NotifyPropertyChangedFor(nameof(TitreDetailPpm))]
@@ -125,6 +150,7 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
             {
                 Entetes.Add(entete);
             }
+            OnPropertyChanged(nameof(ExercicesDisponibles));
 
             EnteteSelectionne = numConserve is null
                 ? null

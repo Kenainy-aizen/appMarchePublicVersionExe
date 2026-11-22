@@ -41,6 +41,29 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
     /// <summary>Éléments (bordereau) du marché sélectionné.</summary>
     public ObservableCollection<ElementMarche> Elements { get; } = new();
 
+    [ObservableProperty] private string _rechercheMarche = string.Empty;
+    [ObservableProperty] private string _filtreStatutMarche = "Tous";
+
+    /// <summary>Marchés correspondant à la recherche et au statut choisi.</summary>
+    public IEnumerable<Marche> MarchesFiltres => Marches.Where(marche =>
+        (string.IsNullOrWhiteSpace(RechercheMarche)
+            || marche.RefMarche.Contains(RechercheMarche, StringComparison.OrdinalIgnoreCase)
+            || marche.ObjetMarche.Contains(RechercheMarche, StringComparison.OrdinalIgnoreCase)
+            || marche.RefDossier.Contains(RechercheMarche, StringComparison.OrdinalIgnoreCase))
+        && (FiltreStatutMarche == "Tous" || Libelles.Pour(marche.StatutExecution) == FiltreStatutMarche));
+
+    public IReadOnlyList<string> StatutsMarchesDisponibles { get; } = new[] { "Tous", "Non démarré", "En cours", "Réception provisoire", "Réception définitive", "Clôturé", "Résilié", "Annulé" };
+
+    partial void OnRechercheMarcheChanged(string value) => OnPropertyChanged(nameof(MarchesFiltres));
+    partial void OnFiltreStatutMarcheChanged(string value) => OnPropertyChanged(nameof(MarchesFiltres));
+
+    [RelayCommand]
+    private void ReinitialiserFiltres()
+    {
+        RechercheMarche = string.Empty;
+        FiltreStatutMarche = "Tous";
+    }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AUnMarche))]
     [NotifyPropertyChangedFor(nameof(TitreDetailMarche))]

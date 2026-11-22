@@ -122,6 +122,13 @@
                         </Border>
                     </Grid>
 
+                    <Border Classes="panel">
+                        <Grid ColumnDefinitions="2*,*,Auto" ColumnSpacing="10">
+                            <TextBox PlaceholderText="Rechercher par référence, objet ou ligne PPM…" Text="{Binding RechercheDossier, UpdateSourceTrigger=PropertyChanged}" />
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding FiltresDossiersDisponibles}" SelectedItem="{Binding FiltreDossiers}" />
+                            <Button Grid.Column="2" Content="Réinitialiser" Classes="ghost" Command="{Binding ReinitialiserFiltresCommand}" />
+                        </Grid>
+                    </Border>
                     <Border Classes="card">
                         <DockPanel>
                             <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,10">
@@ -158,7 +165,7 @@
                                 </Grid>
                             </Border>
 
-                            <ListBox ItemsSource="{Binding Dossiers}" SelectedItem="{Binding DossierSelectionne}">
+                            <ListBox ItemsSource="{Binding DossiersFiltres}" SelectedItem="{Binding DossierSelectionne}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="ent:DossierDao">
                                         <Grid ColumnDefinitions="120,*,110,80,90,128" ColumnSpacing="8"

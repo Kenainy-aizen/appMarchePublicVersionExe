@@ -35,6 +35,31 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
     /// <summary>Avenants du marché sélectionné.</summary>
     public ObservableCollection<Avenant> Avenants { get; } = new();
 
+    [ObservableProperty] private string _rechercheSuivi = string.Empty;
+    [ObservableProperty] private string _filtreStatutSuivi = "Tous";
+
+    /// <summary>Marchés du suivi correspondant à la recherche et au statut choisi.</summary>
+    public IEnumerable<Marche> MarchesFiltres => Marches.Where(marche =>
+        (string.IsNullOrWhiteSpace(RechercheSuivi)
+            || marche.RefMarche.Contains(RechercheSuivi, StringComparison.OrdinalIgnoreCase)
+            || marche.ObjetMarche.Contains(RechercheSuivi, StringComparison.OrdinalIgnoreCase)
+            || marche.RefDossier.Contains(RechercheSuivi, StringComparison.OrdinalIgnoreCase))
+        && (FiltreStatutSuivi == "Tous"
+            || (_situations.TryGetValue(marche.RefMarche, out var situation)
+                && Libelles.Pour(situation.Statut) == FiltreStatutSuivi)));
+
+    public IReadOnlyList<string> StatutsSuiviDisponibles { get; } = new[] { "Tous", "Non démarré", "En cours", "Réception provisoire", "Réception définitive", "Clôturé", "Résilié", "Annulé" };
+
+    partial void OnRechercheSuiviChanged(string value) => OnPropertyChanged(nameof(MarchesFiltres));
+    partial void OnFiltreStatutSuiviChanged(string value) => OnPropertyChanged(nameof(MarchesFiltres));
+
+    [RelayCommand]
+    private void ReinitialiserFiltres()
+    {
+        RechercheSuivi = string.Empty;
+        FiltreStatutSuivi = "Tous";
+    }
+
     private readonly Dictionary<string, SituationMarche> _situations = new(StringComparer.OrdinalIgnoreCase);
 
     [ObservableProperty]
@@ -105,6 +130,7 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
 
             MarcheSelectionne = Marches.FirstOrDefault();
             NotifierCompteurs();
+            OnPropertyChanged(nameof(MarchesFiltres));
         }
         catch (Exception ex)
         {

@@ -131,6 +131,8 @@ dotnet ef database update --project src/SIGMPOffline.Data --startup-project src/
 
 ## Documentation
 
+- [Recherche et filtres de l'interface](docs/recherche-filtres.md)
+
 - [`docs/modele-donnees.md`](docs/modele-donnees.md) — schéma SQLite (tables,
   relations, index), énumérations, conventions de stockage et règles métier PPM.
 

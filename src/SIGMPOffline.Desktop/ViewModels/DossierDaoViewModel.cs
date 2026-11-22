@@ -45,6 +45,31 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     /// <summary>Acheteurs du dossier sélectionné.</summary>
     public ObservableCollection<AcheteurDao> Acheteurs { get; } = new();
 
+    [ObservableProperty] private string _rechercheDossier = string.Empty;
+    [ObservableProperty] private string _filtreDossiers = "Tous";
+
+    /// <summary>Dossiers correspondant à la recherche et au filtre de contenu.</summary>
+    public IEnumerable<DossierDao> DossiersFiltres => Dossiers.Where(dossier =>
+        (string.IsNullOrWhiteSpace(RechercheDossier)
+            || dossier.RefDossier.Contains(RechercheDossier, StringComparison.OrdinalIgnoreCase)
+            || dossier.ObjetDossier.Contains(RechercheDossier, StringComparison.OrdinalIgnoreCase)
+            || (dossier.PpmDetail?.ObjetProjet?.Contains(RechercheDossier, StringComparison.OrdinalIgnoreCase) ?? false))
+        && (FiltreDossiers == "Tous"
+            || (FiltreDossiers == "Avec candidats" && dossier.Candidats.Count > 0)
+            || (FiltreDossiers == "Sans candidats" && dossier.Candidats.Count == 0)));
+
+    public IReadOnlyList<string> FiltresDossiersDisponibles { get; } = new[] { "Tous", "Avec candidats", "Sans candidats" };
+
+    partial void OnRechercheDossierChanged(string value) => OnPropertyChanged(nameof(DossiersFiltres));
+    partial void OnFiltreDossiersChanged(string value) => OnPropertyChanged(nameof(DossiersFiltres));
+
+    [RelayCommand]
+    private void ReinitialiserFiltres()
+    {
+        RechercheDossier = string.Empty;
+        FiltreDossiers = "Tous";
+    }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AUnDossier))]
     [NotifyPropertyChangedFor(nameof(TitreDetailDossier))]
