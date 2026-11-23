@@ -11,11 +11,17 @@ public interface IDashboardService
     /// <summary>Liste les marchés en dépassement de délai (les plus en retard d'abord).</summary>
     Task<IReadOnlyList<AlerteRetard>> ListerAlertesAsync(DashboardFiltre? filtre = null, CancellationToken cancellationToken = default);
 
-    /// <summary>Liste les échéances dans les 30 prochains jours.</summary>
+    /// <summary>Liste les échéances dans la fenêtre définie par le filtre.</summary>
     Task<IReadOnlyList<AlerteEcheance>> ListerEcheancesAsync(DashboardFiltre? filtre = null, CancellationToken cancellationToken = default);
 
-    /// <summary>Liste les marchés présentant une information de suivi manquante.</summary>
+    /// <summary>Liste les marchés présentant au moins une information de suivi manquante.</summary>
     Task<IReadOnlyList<MarcheIncomplet>> ListerMarchesIncompletsAsync(DashboardFiltre? filtre = null, CancellationToken cancellationToken = default);
+
+    /// <summary>Répartit les marchés filtrés par statut d'exécution.</summary>
+    Task<IReadOnlyList<RepartitionStatut>> ListerRepartitionAsync(DashboardFiltre? filtre = null, CancellationToken cancellationToken = default);
+
+    /// <summary>Compte les échéances des trois prochains mois, mois par mois.</summary>
+    Task<IReadOnlyList<EcheanceMois>> ListerEcheancesParMoisAsync(DashboardFiltre? filtre = null, CancellationToken cancellationToken = default);
 
     /// <summary>Liste les exercices présents dans les marchés de la province.</summary>
     Task<IReadOnlyList<int>> ListerExercicesAsync(CancellationToken cancellationToken = default);

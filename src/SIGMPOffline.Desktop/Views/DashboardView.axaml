@@ -4,9 +4,38 @@
              xmlns:models="using:SIGMPOffline.Services.Models"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+             mc:Ignorable="d" d:DesignWidth="1366" d:DesignHeight="760"
              x:Class="SIGMPOffline.Desktop.Views.DashboardView"
              x:DataType="vm:DashboardViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Button.row-link">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.row-link /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+        <Style Selector="Button.row-link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="Button.row-link:pointerover">
+            <Setter Property="Opacity" Value="0.9" />
+        </Style>
+        <Style Selector="TextBlock.kpi-money">
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        </Style>
+    </UserControl.Styles>
 
     <ScrollViewer>
         <StackPanel Spacing="18">
@@ -16,21 +45,46 @@
                 <StackPanel Spacing="2">
                     <TextBlock Classes="page-title" Text="Tableau de bord" />
                     <TextBlock Classes="page-subtitle"
-                               Text="Vue d'ensemble des marchés et alertes de dépassement de délai." />
+                               Text="Pilotage des marchés, échéances et alertes d'exécution." />
                 </StackPanel>
-                <Button Grid.Column="1" Classes="ghost" Content="Actualiser"
-                        Command="{Binding ChargerCommand}" VerticalAlignment="Top" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10"
+                            VerticalAlignment="Top">
+                    <TextBlock Classes="legende" Text="{Binding DerniereActualisation}"
+                               VerticalAlignment="Center" />
+                    <Button Classes="ghost" Content="Actualiser"
+                            Command="{Binding ChargerCommand}"
+                            IsEnabled="{Binding !EstOccupe}" />
+                </StackPanel>
             </Grid>
+
+            <!-- Erreur -->
+            <Border Classes="error"
+                    IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
+            </Border>
 
             <!-- Filtres de pilotage -->
             <Border Classes="panel">
-                <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="10">
-                    <ComboBox ItemsSource="{Binding ExercicesDisponibles}"
-                              SelectedItem="{Binding ExerciceFiltre}" />
-                    <ComboBox Grid.Column="1" ItemsSource="{Binding StatutsDisponibles}"
-                              SelectedItem="{Binding StatutFiltre}" />
-                    <Button Grid.Column="2" Content="Réinitialiser"
-                            Classes="ghost" Command="{Binding ReinitialiserFiltresCommand}" />
+                <Grid ColumnDefinitions="*,*,*,Auto" ColumnSpacing="12">
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="field-label" Text="Exercice" />
+                        <ComboBox ItemsSource="{Binding ExercicesDisponibles}"
+                                  SelectedItem="{Binding ExerciceFiltre}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Spacing="4">
+                        <TextBlock Classes="field-label" Text="Statut" />
+                        <ComboBox ItemsSource="{Binding StatutsDisponibles}"
+                                  SelectedItem="{Binding StatutFiltre}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Spacing="4">
+                        <TextBlock Classes="field-label" Text="Échéances" />
+                        <ComboBox ItemsSource="{Binding PeriodesDisponibles}"
+                                  SelectedItem="{Binding PeriodeEcheances}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="3" Spacing="4" VerticalAlignment="Bottom">
+                        <Button Content="Réinitialiser" Classes="ghost"
+                                Command="{Binding ReinitialiserFiltresCommand}" />
+                    </StackPanel>
                 </Grid>
             </Border>
 
@@ -49,6 +103,7 @@
                         <StackPanel VerticalAlignment="Center" Spacing="2">
                             <TextBlock Classes="kpi-label" Text="Marchés" />
                             <TextBlock Classes="kpi-value" Text="{Binding TotalMarches}" />
+                            <TextBlock Classes="legende" Text="tous statuts" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -65,6 +120,7 @@
                         <StackPanel VerticalAlignment="Center" Spacing="2">
                             <TextBlock Classes="kpi-label" Text="En cours" />
                             <TextBlock Classes="kpi-value" Text="{Binding MarchesEnCours}" />
+                            <TextBlock Classes="legende" Text="exécution active" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -81,6 +137,7 @@
                         <StackPanel VerticalAlignment="Center" Spacing="2">
                             <TextBlock Classes="kpi-label" Text="Clôturés" />
                             <TextBlock Classes="kpi-value" Text="{Binding MarchesClotures}" />
+                            <TextBlock Classes="legende" Text="marchés terminés" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -97,99 +154,276 @@
                         <StackPanel VerticalAlignment="Center" Spacing="2">
                             <TextBlock Classes="kpi-label" Text="En retard" />
                             <TextBlock Classes="kpi-value" Text="{Binding MarchesEnRetard}" />
+                            <TextBlock Classes="legende" Text="dépassement de délai" />
                         </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="card" Width="232" Margin="0,0,12,12">
+                    <StackPanel Orientation="Horizontal" Spacing="14">
+                        <Border Width="46" Height="46" CornerRadius="10" VerticalAlignment="Center"
+                                Background="{DynamicResource WarningSurfaceBrush}">
+                            <PathIcon Width="20" Height="20"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      Foreground="{DynamicResource WarningBrush}"
+                                      Data="M4 6 H20 V8 H4 Z M4 11 H20 V13 H4 Z M4 16 H20 V18 H4 Z" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Classes="kpi-label" Text="Non démarrés" />
+                            <TextBlock Classes="kpi-value" Text="{Binding MarchesNonDemarres}" />
+                            <TextBlock Classes="legende" Text="OS non émis" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="card" Width="232" Margin="0,0,12,12">
+                    <StackPanel Orientation="Horizontal" Spacing="14">
+                        <Border Width="46" Height="46" CornerRadius="10" VerticalAlignment="Center"
+                                Background="{DynamicResource AccentSubtleBrush}">
+                            <PathIcon Width="20" Height="20"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      Foreground="{DynamicResource AccentBrush}"
+                                      Data="M10 16.2 L4.8 11 L6.2 9.6 L10 13.4 L17.8 5.6 L19.2 7 Z" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="4" Width="140">
+                            <TextBlock Classes="kpi-label" Text="Taux de clôture" />
+                            <TextBlock Classes="kpi-money" Text="{Binding TauxClotureAffiche}" />
+                            <ProgressBar Minimum="0" Maximum="100"
+                                         Value="{Binding TauxClotureValeur}"
+                                         Height="6"
+                                         MinWidth="0"
+                                         Foreground="{DynamicResource AccentBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="card" Width="232" Margin="0,0,12,12">
+                    <StackPanel Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <PathIcon Width="14" Height="14" VerticalAlignment="Center"
+                                      Foreground="{DynamicResource SuccessBrush}"
+                                      Data="M3 6 H21 V18 H3 Z M6 9 V15 H18 V9 Z" />
+                            <TextBlock Classes="kpi-label" Text="Montant total" />
+                        </StackPanel>
+                        <TextBlock Classes="kpi-money" Text="{Binding MontantTotalFormate}" />
+                        <TextBlock Classes="legende"
+                                   Text="{Binding MontantTotalTtcFormate, StringFormat='TTC : {0}'}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="card" Width="232" Margin="0,0,12,12">
+                    <StackPanel Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <PathIcon Width="14" Height="14" VerticalAlignment="Center"
+                                      Foreground="{DynamicResource DangerBrush}"
+                                      Data="M12 3 L22 20 H2 Z" />
+                            <TextBlock Classes="kpi-label" Text="Montant en retard" />
+                        </StackPanel>
+                        <TextBlock Classes="kpi-money"
+                                   Foreground="{DynamicResource DangerBrush}"
+                                   Text="{Binding MontantEnRetardFormate}" />
+                        <TextBlock Classes="legende" Text="montant HT à risque" />
                     </StackPanel>
                 </Border>
 
             </WrapPanel>
 
-            <!-- Montant total -->
-            <Border Classes="card">
-                <StackPanel Spacing="4">
-                    <TextBlock Classes="kpi-label" Text="Montant total des marchés (HT)" />
-                    <TextBlock Classes="kpi-value"
-                               Text="{Binding MontantTotalHt, StringFormat='{}{0:N0} Ar'}" />
-                </StackPanel>
-            </Border>
-
-            <!-- Échéances à venir -->
-            <Border Classes="card">
-                <StackPanel Spacing="12">
-                    <TextBlock Classes="section-title" Text="Échéances dans les 30 prochains jours" />
-                    <Border Classes="success" IsVisible="{Binding !Echeances.Count}">
-                        <TextBlock Text="Aucune échéance proche." />
-                    </Border>
-                    <ItemsControl ItemsSource="{Binding Echeances}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="models:AlerteEcheance">
-                                <Border Background="{DynamicResource WarningSurfaceBrush}"
-                                        BorderBrush="{DynamicResource WarningBorderBrush}"
-                                        BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,3">
-                                    <Grid ColumnDefinitions="*,Auto,Auto">
-                                        <StackPanel><TextBlock Text="{Binding RefMarche}" FontWeight="SemiBold" /><TextBlock Text="{Binding ObjetMarche}" Classes="secondaire" /></StackPanel>
-                                        <TextBlock Grid.Column="1" Margin="14,0" VerticalAlignment="Center" Text="{Binding DateLimite, StringFormat='Limite : {0:dd/MM/yyyy}'}" />
-                                        <Border Grid.Column="2" Classes="badge warning" Padding="10,3"><TextBlock Text="{Binding JoursRestants, StringFormat='dans {0} j'}" /></Border>
+            <!-- Synthèse visuelle -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <Border Classes="card">
+                    <StackPanel Spacing="12">
+                        <TextBlock Classes="section-title" Text="Répartition par statut" />
+                        <Border Classes="empty" IsVisible="{Binding !Repartition.Count}">
+                            <TextBlock Text="Aucun marché à répartir pour ces filtres." />
+                        </Border>
+                        <ItemsControl ItemsSource="{Binding Repartition}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:RepartitionStatut">
+                                    <Grid ColumnDefinitions="150,*,52,36" ColumnSpacing="10" Margin="0,3">
+                                        <TextBlock Classes="muted" TextTrimming="CharacterEllipsis"
+                                                   Text="{Binding Statut, Converter={StaticResource EnumLibelle}}" />
+                                        <ProgressBar Grid.Column="1" Minimum="0" Maximum="100"
+                                                     Value="{Binding Pourcentage}" Height="8"
+                                                     VerticalAlignment="Center"
+                                                     Foreground="{DynamicResource AccentBrush}" />
+                                        <TextBlock Grid.Column="2" Classes="muted"
+                                                   HorizontalAlignment="Right"
+                                                   Text="{Binding Pourcentage, StringFormat='{}{0:0.#} %'}" />
+                                        <TextBlock Grid.Column="3" FontWeight="SemiBold"
+                                                   HorizontalAlignment="Right"
+                                                   Text="{Binding Nombre}" />
                                     </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
 
-            <!-- Données incomplètes -->
+                <Border Grid.Column="1" Classes="card">
+                    <StackPanel Spacing="12">
+                        <TextBlock Classes="section-title" Text="Échéances des 3 prochains mois" />
+                        <ItemsControl ItemsSource="{Binding EcheancesMois}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:EcheanceMois">
+                                    <Grid ColumnDefinitions="76,*,36" ColumnSpacing="10" Margin="0,3">
+                                        <TextBlock Classes="muted" Text="{Binding Libelle}" />
+                                        <ProgressBar Grid.Column="1" Minimum="0"
+                                                     Maximum="{Binding $parent[UserControl].DataContext.MaximumEcheancesMois}"
+                                                     Value="{Binding Nombre}" Height="8"
+                                                     VerticalAlignment="Center"
+                                                     Foreground="{DynamicResource InfoBrush}" />
+                                        <TextBlock Grid.Column="2" FontWeight="SemiBold"
+                                                   HorizontalAlignment="Right"
+                                                   Text="{Binding Nombre}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Alertes de retard (priorité haute) -->
             <Border Classes="card">
                 <StackPanel Spacing="12">
-                    <TextBlock Classes="section-title" Text="Données de suivi à compléter" />
-                    <Border Classes="success" IsVisible="{Binding !MarchesIncomplets.Count}"><TextBlock Text="Aucune information manquante détectée." /></Border>
-                    <ItemsControl ItemsSource="{Binding MarchesIncomplets}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="models:MarcheIncomplet">
-                                <Border Background="{DynamicResource WarningSurfaceBrush}" BorderBrush="{DynamicResource WarningBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,3">
-                                    <Grid ColumnDefinitions="140,*,Auto"><TextBlock Text="{Binding RefMarche}" FontWeight="SemiBold" /><TextBlock Grid.Column="1" Text="{Binding ObjetMarche}" Classes="secondaire" /><Border Grid.Column="2" Classes="badge warning"><TextBlock Text="{Binding Anomalie}" /></Border></Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Border>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Classes="section-title" Text="{Binding TitreAlertes}" />
+                        <Button Grid.Column="1" Classes="ghost"
+                                Content="{Binding LibelleAlertes}"
+                                Command="{Binding BasculerAlertesCommand}"
+                                IsVisible="{Binding AlertesLongues}" />
+                    </Grid>
 
-            <!-- Erreur -->
-            <Border Classes="error"
-                    IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
-            </Border>
-
-            <!-- Alertes -->
-            <Border Classes="card">
-                <StackPanel Spacing="12">
-                    <TextBlock Classes="section-title" Text="Alertes de dépassement de délai" />
-
-                    <Border Classes="success" IsVisible="{Binding !Alertes.Count}">
-                        <TextBlock Text="Aucun marché en retard. 👍" />
+                    <Border Classes="empty" IsVisible="{Binding !Alertes.Count}">
+                        <TextBlock Text="Aucun marché en retard." />
                     </Border>
 
-                    <ItemsControl ItemsSource="{Binding Alertes}">
+                    <ItemsControl ItemsSource="{Binding AlertesAffichees}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="models:AlerteRetard">
-                                <Border Background="{DynamicResource DangerSurfaceBrush}"
-                                        BorderBrush="{DynamicResource DangerBorderBrush}"
-                                        BorderThickness="1" CornerRadius="8"
-                                        Padding="14,10" Margin="0,3">
-                                    <Grid ColumnDefinitions="*,Auto,Auto">
-                                        <StackPanel Grid.Column="0" Spacing="2">
-                                            <TextBlock Text="{Binding RefMarche}" FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource TextPrimaryBrush}" />
-                                            <TextBlock Text="{Binding ObjetMarche}" Classes="secondaire" />
-                                        </StackPanel>
-                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="14,0"
-                                                   Foreground="{DynamicResource TextSecondaryBrush}"
-                                                   Text="{Binding DateLimite, StringFormat='Limite : {0:dd/MM/yyyy}'}" />
-                                        <Border Grid.Column="2" Classes="badge danger" Padding="10,3">
-                                            <TextBlock Text="{Binding JoursDeRetard, StringFormat='+{0} j'}" />
-                                        </Border>
-                                    </Grid>
-                                </Border>
+                                <Button Classes="row-link" Margin="0,3"
+                                        Command="{Binding $parent[UserControl].DataContext.OuvrirMarcheCommand}"
+                                        CommandParameter="{Binding RefMarche}">
+                                    <Border Background="{DynamicResource DangerSurfaceBrush}"
+                                            BorderBrush="{DynamicResource DangerBorderBrush}"
+                                            BorderThickness="1" CornerRadius="8" Padding="14,10">
+                                        <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="12">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="{Binding RefMarche}" FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                                                <TextBlock Text="{Binding ObjetMarche}" Classes="secondaire" />
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       Text="{Binding DateLimite, StringFormat='Limite : {0:dd/MM/yyyy}'}" />
+                                            <Border Grid.Column="2" Classes="badge danger" Padding="10,3">
+                                                <TextBlock Text="{Binding JoursDeRetard, StringFormat='+{0} j'}" />
+                                            </Border>
+                                            <TextBlock Grid.Column="3" Text="Ouvrir →" Classes="accent"
+                                                       VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Border>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Échéances proches -->
+            <Border Classes="card">
+                <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Classes="section-title" Text="{Binding TitreEcheances}" />
+                        <Button Grid.Column="1" Classes="ghost"
+                                Content="{Binding LibelleEcheances}"
+                                Command="{Binding BasculerEcheancesCommand}"
+                                IsVisible="{Binding EcheancesLongues}" />
+                    </Grid>
+
+                    <Border Classes="empty" IsVisible="{Binding !Echeances.Count}">
+                        <TextBlock Text="Aucune échéance dans la période sélectionnée." />
+                    </Border>
+
+                    <ItemsControl ItemsSource="{Binding EcheancesAffichees}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:AlerteEcheance">
+                                <Button Classes="row-link" Margin="0,3"
+                                        Command="{Binding $parent[UserControl].DataContext.OuvrirMarcheCommand}"
+                                        CommandParameter="{Binding RefMarche}">
+                                    <Border Background="{DynamicResource WarningSurfaceBrush}"
+                                            BorderBrush="{DynamicResource WarningBorderBrush}"
+                                            BorderThickness="1" CornerRadius="8" Padding="14,10">
+                                        <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="12">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="{Binding RefMarche}" FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                                                <TextBlock Text="{Binding ObjetMarche}" Classes="secondaire" />
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" VerticalAlignment="Center"
+                                                       Text="{Binding DateLimite, StringFormat='Limite : {0:dd/MM/yyyy}'}" />
+                                            <Border Grid.Column="2" Classes="badge warning" Padding="10,3">
+                                                <TextBlock Text="{Binding DelaiAffiche}" />
+                                            </Border>
+                                            <TextBlock Grid.Column="3" Text="Ouvrir →" Classes="accent"
+                                                       VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Border>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Données de suivi incomplètes -->
+            <Border Classes="card">
+                <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Classes="section-title" Text="{Binding TitreIncomplets}" />
+                        <Button Grid.Column="1" Classes="ghost"
+                                Content="{Binding LibelleIncomplets}"
+                                Command="{Binding BasculerIncompletsCommand}"
+                                IsVisible="{Binding IncompletsLongs}" />
+                    </Grid>
+
+                    <Border Classes="empty" IsVisible="{Binding !MarchesIncomplets.Count}">
+                        <TextBlock Text="Aucune information manquante détectée." />
+                    </Border>
+
+                    <ItemsControl ItemsSource="{Binding IncompletsAffiches}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:MarcheIncomplet">
+                                <Button Classes="row-link" Margin="0,3"
+                                        Command="{Binding $parent[UserControl].DataContext.OuvrirMarcheCommand}"
+                                        CommandParameter="{Binding RefMarche}">
+                                    <Border Background="{DynamicResource WarningSurfaceBrush}"
+                                            BorderBrush="{DynamicResource WarningBorderBrush}"
+                                            BorderThickness="1" CornerRadius="8" Padding="14,10">
+                                        <Grid ColumnDefinitions="140,*,Auto,Auto" ColumnSpacing="12">
+                                            <TextBlock Grid.Column="0" Text="{Binding RefMarche}"
+                                                       FontWeight="SemiBold" />
+                                            <TextBlock Grid.Column="1" Text="{Binding ObjetMarche}"
+                                                       Classes="secondaire" />
+                                            <ItemsControl Grid.Column="2" ItemsSource="{Binding Anomalies}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <StackPanel Orientation="Horizontal" Spacing="4" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Classes="badge warning">
+                                                            <TextBlock Text="{Binding}" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <TextBlock Grid.Column="3" Text="Ouvrir →" Classes="accent"
+                                                       VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Border>
+                                </Button>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

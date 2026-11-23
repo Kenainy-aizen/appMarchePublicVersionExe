@@ -23,18 +23,19 @@ public class DashboardService : IDashboardService
         var marches = AppliquerFiltre(await _marches.ListWithExecutionAsync(cancellationToken), filtre);
         var aujourdhui = DateOnly.FromDateTime(DateTime.Today);
 
-        var enRetard = marches.Count(m =>
-            MarcheDelais.EstEnRetard(
-                MarcheDelais.CalculerDateLimiteExecution(m.Suivi?.DateOS, m.DelaiExecutionJours, m.Avenants),
-                m.Suivi?.EstCloture ?? false,
-                aujourdhui));
+        var enRetard = marches
+            .Where(m => EstEnRetard(m, aujourdhui))
+            .ToList();
 
         return new DashboardKpi(
             TotalMarches: marches.Count,
             MarchesEnCours: marches.Count(m => m.StatutExecution == StatutExecution.EnCours),
             MarchesClotures: marches.Count(m => m.StatutExecution == StatutExecution.Cloture),
-            MarchesEnRetard: enRetard,
-            MontantTotalHt: marches.Sum(m => m.MontantHT));
+            MarchesEnRetard: enRetard.Count,
+            MontantTotalHt: marches.Sum(m => m.MontantHT),
+            MontantTotalTtc: marches.Sum(m => m.MontantTTC),
+            MontantEnRetard: enRetard.Sum(m => m.MontantHT),
+            MarchesNonDemarres: marches.Count(m => m.StatutExecution == StatutExecution.NonDemarre));
     }
 
     /// <inheritdoc />
@@ -66,7 +67,7 @@ public class DashboardService : IDashboardService
     {
         var marches = AppliquerFiltre(await _marches.ListWithExecutionAsync(cancellationToken), filtre);
         var aujourdHui = DateOnly.FromDateTime(DateTime.Today);
-        var limite = aujourdHui.AddDays(30);
+        var limite = aujourdHui.AddDays(filtre?.JoursEcheances ?? 30);
 
         return marches
             .Select(marche => new
@@ -96,17 +97,73 @@ public class DashboardService : IDashboardService
         foreach (var marche in marches)
         {
             var suivi = marche.Suivi;
+            var anomalies = new List<string>();
+
             if (suivi?.DateOS is null)
-                resultats.Add(new(marche.RefMarche, marche.ObjetMarche, "Ordre de service absent"));
+                anomalies.Add("OS absent");
             if (string.IsNullOrWhiteSpace(suivi?.RefTEF))
-                resultats.Add(new(marche.RefMarche, marche.ObjetMarche, "TEF absent"));
+                anomalies.Add("TEF absent");
             if (suivi?.DateReceptionProvisoire is null && marche.StatutExecution != StatutExecution.NonDemarre)
-                resultats.Add(new(marche.RefMarche, marche.ObjetMarche, "Réception provisoire absente"));
+                anomalies.Add("Réception provisoire absente");
             if (suivi?.DateReceptionDefinitive is null && suivi?.DateReceptionProvisoire is not null)
-                resultats.Add(new(marche.RefMarche, marche.ObjetMarche, "Réception définitive absente"));
+                anomalies.Add("Réception définitive absente");
+
+            if (anomalies.Count > 0)
+                resultats.Add(new MarcheIncomplet(marche.RefMarche, marche.ObjetMarche, anomalies));
         }
 
-        return resultats;
+        return resultats
+            .OrderByDescending(marche => marche.NombreAnomalies)
+            .ThenBy(marche => marche.RefMarche)
+            .ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<RepartitionStatut>> ListerRepartitionAsync(
+        DashboardFiltre? filtre = null, CancellationToken cancellationToken = default)
+    {
+        var marches = AppliquerFiltre(await _marches.ListWithExecutionAsync(cancellationToken), filtre);
+        if (marches.Count == 0)
+        {
+            return [];
+        }
+
+        return marches
+            .GroupBy(marche => marche.StatutExecution)
+            .OrderBy(groupe => groupe.Key)
+            .Select(groupe => new RepartitionStatut(
+                groupe.Key,
+                groupe.Count(),
+                Math.Round(groupe.Count() * 100d / marches.Count, 1)))
+            .ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<EcheanceMois>> ListerEcheancesParMoisAsync(
+        DashboardFiltre? filtre = null, CancellationToken cancellationToken = default)
+    {
+        var marches = AppliquerFiltre(await _marches.ListWithExecutionAsync(cancellationToken), filtre);
+        var aujourdHui = DateOnly.FromDateTime(DateTime.Today);
+        var premierMois = new DateOnly(aujourdHui.Year, aujourdHui.Month, 1);
+        var fin = premierMois.AddMonths(3).AddDays(-1);
+
+        var datesLimites = marches
+            .Where(marche => marche.Suivi?.EstCloture != true)
+            .Select(marche => MarcheDelais.CalculerDateLimiteExecution(
+                marche.Suivi?.DateOS, marche.DelaiExecutionJours, marche.Avenants))
+            .Where(date => date is not null && date.Value >= aujourdHui && date.Value <= fin)
+            .Select(date => date!.Value)
+            .ToList();
+
+        return Enumerable.Range(0, 3)
+            .Select(decalage =>
+            {
+                var mois = premierMois.AddMonths(decalage);
+                var moisSuivant = mois.AddMonths(1);
+                var nombre = datesLimites.Count(date => date >= mois && date < moisSuivant);
+                return new EcheanceMois(mois, nombre);
+            })
+            .ToList();
     }
 
     /// <inheritdoc />
@@ -118,6 +175,13 @@ public class DashboardService : IDashboardService
             .Distinct()
             .OrderByDescending(annee => annee)
             .ToList();
+
+    private static bool EstEnRetard(Domain.Entities.Marche marche, DateOnly aujourdhui)
+        => MarcheDelais.EstEnRetard(
+            MarcheDelais.CalculerDateLimiteExecution(
+                marche.Suivi?.DateOS, marche.DelaiExecutionJours, marche.Avenants),
+            marche.Suivi?.EstCloture ?? false,
+            aujourdhui);
 
     private static IReadOnlyList<Domain.Entities.Marche> AppliquerFiltre(
         IReadOnlyList<Domain.Entities.Marche> marches, DashboardFiltre? filtre)

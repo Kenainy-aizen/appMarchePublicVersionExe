@@ -51,7 +51,7 @@ la base contient déjà des données).
 
 Fenêtre unique avec **menu latéral**, une page par module :
 
-1. **Tableau de bord** — KPI et alertes de dépassement de délai.
+1. **Tableau de bord** — KPI, filtres, alertes cliquables et synthèse visuelle des marchés.
 2. **Plan de Passation (PPM)** — liste des plans, ouverture du détail, lignes de passation et mise à jour de l'en-tête.
 3. **DAO & Attribution** — liste des dossiers avec compteurs, ouverture du détail, candidats et acheteurs DAO numérotés.
 4. **Marchés** — liste des marchés avec compteurs, ouverture du détail et éléments du bordereau.
@@ -125,7 +125,9 @@ dotnet ef database update --project src/SIGMPOffline.Data --startup-project src/
 4. **Suivi d'Exécution** *(cœur)* — liste avec compteurs des marchés en retard et clôturés,
    puis détail du suivi : TEF, Ordre de Service, avenants, réceptions et clôture.
    *Saisies en fenêtres modales ; CRUD complet des avenants ; statut calculé.*
-5. **Tableau de bord** — alertes de dépassement de délai et statuts.
+5. **Tableau de bord** — KPI financiers et d'exécution, filtres par exercice,
+   statut et période, alertes cliquables vers le suivi, répartition par statut
+   et échéances des trois prochains mois.
 6. **Utilitaire** — sauvegarde / restauration en un clic du fichier SQLite (clé USB).
    *Sélecteurs natifs (dossier/fichier) et confirmation avant restauration.*
 

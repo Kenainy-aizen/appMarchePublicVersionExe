@@ -38,7 +38,103 @@ public class DashboardServiceTests
         var incomplets = await dashboard.ListerMarchesIncompletsAsync();
 
         Assert.Single(echeances);
-        Assert.Contains(incomplets, anomalie => anomalie.Anomalie == "TEF absent");
+        var marcheIncomplet = Assert.Single(incomplets);
+        Assert.Contains("TEF absent", marcheIncomplet.Anomalies);
+        Assert.Equal(2, marcheIncomplet.NombreAnomalies);
+    }
+
+    [Fact]
+    public async Task Dashboard_regroupe_les_anomalies_par_marche()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        await GraphSeeder.SeedMarcheAsync(db, refMarche: "M-001");
+        var suivi = new SIGMPOffline.Services.Suivi.SuiviExecutionService(db.UnitOfWork);
+        await suivi.EmettreOrdreServiceAsync("M-001", DateOnly.FromDateTime(DateTime.Today));
+        var dashboard = new DashboardService(db.UnitOfWork);
+
+        var incomplets = await dashboard.ListerMarchesIncompletsAsync();
+
+        var marche = Assert.Single(incomplets);
+        Assert.Equal("M-001", marche.RefMarche);
+        Assert.Contains("TEF absent", marche.Anomalies);
+        Assert.Contains("Réception provisoire absente", marche.Anomalies);
+        Assert.Equal("TEF absent · Réception provisoire absente", marche.Anomalie);
+    }
+
+    [Fact]
+    public async Task Dashboard_calcule_les_indicateurs_financiers_et_de_risque()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        await GraphSeeder.SeedMarcheAsync(db, refMarche: "M-LENT", delaiJours: 1);
+        await GraphSeeder.SeedMarcheAsync(db, refMarche: "M-NEW");
+        var suivi = new SIGMPOffline.Services.Suivi.SuiviExecutionService(db.UnitOfWork);
+        await suivi.EmettreOrdreServiceAsync(
+            "M-LENT", DateOnly.FromDateTime(DateTime.Today).AddDays(-10));
+        var dashboard = new DashboardService(db.UnitOfWork);
+
+        var kpi = await dashboard.ObtenirKpiAsync();
+
+        Assert.Equal(2, kpi.TotalMarches);
+        Assert.Equal(1_800_000m, kpi.MontantTotalHt);
+        Assert.Equal(2_124_000m, kpi.MontantTotalTtc);
+        Assert.Equal(1, kpi.MarchesEnRetard);
+        Assert.Equal(900_000m, kpi.MontantEnRetard);
+        Assert.Equal(1, kpi.MarchesNonDemarres);
+        Assert.Equal(0m, kpi.TauxCloture);
+    }
+
+    [Fact]
+    public async Task Dashboard_repartit_les_marches_par_statut()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        await GraphSeeder.SeedMarcheAsync(db, refMarche: "M-001");
+        await GraphSeeder.SeedMarcheAsync(db, refMarche: "M-002");
+        var suivi = new SIGMPOffline.Services.Suivi.SuiviExecutionService(db.UnitOfWork);
+        await suivi.EmettreOrdreServiceAsync("M-001", DateOnly.FromDateTime(DateTime.Today));
+        var dashboard = new DashboardService(db.UnitOfWork);
+
+        var repartition = await dashboard.ListerRepartitionAsync();
+
+        Assert.Equal(2, repartition.Count);
+        Assert.Contains(repartition, ligne =>
+            ligne.Statut == StatutExecution.EnCours && ligne.Nombre == 1 && ligne.Pourcentage == 50);
+        Assert.Contains(repartition, ligne =>
+            ligne.Statut == StatutExecution.NonDemarre && ligne.Nombre == 1 && ligne.Pourcentage == 50);
+    }
+
+    [Fact]
+    public async Task Dashboard_respecte_la_fenetre_des_echeances()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        await GraphSeeder.SeedMarcheAsync(db, refMarche: "M-001", delaiJours: 45);
+        var suivi = new SIGMPOffline.Services.Suivi.SuiviExecutionService(db.UnitOfWork);
+        await suivi.EmettreOrdreServiceAsync("M-001", DateOnly.FromDateTime(DateTime.Today));
+        var dashboard = new DashboardService(db.UnitOfWork);
+
+        var a30Jours = await dashboard.ListerEcheancesAsync(new DashboardFiltre(JoursEcheances: 30));
+        var a60Jours = await dashboard.ListerEcheancesAsync(new DashboardFiltre(JoursEcheances: 60));
+
+        Assert.Empty(a30Jours);
+        Assert.Single(a60Jours);
+    }
+
+    [Fact]
+    public async Task Dashboard_compte_les_echeances_des_trois_prochains_mois()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        await GraphSeeder.SeedMarcheAsync(db, refMarche: "M-001", delaiJours: 10);
+        var suivi = new SIGMPOffline.Services.Suivi.SuiviExecutionService(db.UnitOfWork);
+        var aujourdHui = DateOnly.FromDateTime(DateTime.Today);
+        await suivi.EmettreOrdreServiceAsync("M-001", aujourdHui);
+        var dashboard = new DashboardService(db.UnitOfWork);
+
+        var echeancesParMois = await dashboard.ListerEcheancesParMoisAsync();
+        var dateLimite = aujourdHui.AddDays(10);
+        var moisAttendu = new DateOnly(dateLimite.Year, dateLimite.Month, 1);
+
+        Assert.Equal(3, echeancesParMois.Count);
+        Assert.Equal(1, echeancesParMois.Sum(mois => mois.Nombre));
+        Assert.Contains(echeancesParMois, mois => mois.Mois == moisAttendu && mois.Nombre == 1);
     }
 
     [Fact]

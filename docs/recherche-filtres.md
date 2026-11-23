@@ -3,7 +3,8 @@
 ## Objectif
 
 Les quatre modules principaux proposent maintenant une recherche immédiate et un
-filtre métier local dans la page :
+filtre métier local dans la page. Le tableau de bord applique, lui, ses filtres
+directement dans le service métier.
 
 | Module | Recherche | Filtre |
 |---|---|---|
@@ -11,8 +12,10 @@ filtre métier local dans la page :
 | DAO | Référence, objet ou ligne PPM | Dossiers avec/sans candidats |
 | Marchés | Référence, objet ou dossier DAO | Statut du marché |
 | Suivi d'exécution | Référence, objet ou dossier DAO | Statut d'exécution |
+| Tableau de bord | — | Exercice, statut et période d'échéance (7/30/60/90 jours) |
 
-Le bouton **Réinitialiser** vide la recherche et remet le filtre à `Tous`.
+Le bouton **Réinitialiser** vide la recherche et remet les filtres à `Tous`
+(et la période d'échéance à 30 jours pour le tableau de bord).
 
 ## Architecture technique
 
@@ -37,6 +40,11 @@ Propriétés principales :
 - `SuiviViewModel.RechercheSuivi`, `FiltreStatutSuivi`, `MarchesFiltres`.
 
 Chaque ViewModel expose aussi `ReinitialiserFiltresCommand`.
+
+Cas particulier du tableau de bord : `ExerciceFiltre`, `StatutFiltre` et
+`PeriodeEcheances` sont convertis en `DashboardFiltre` puis envoyés à
+`IDashboardService`. Les KPI, alertes, échéances, répartitions et synthèses
+mensuelles sont donc tous calculés sur le même périmètre filtré.
 
 ## Règles à respecter pour une prochaine évolution
 

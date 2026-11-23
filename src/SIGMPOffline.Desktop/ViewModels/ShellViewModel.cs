@@ -18,6 +18,7 @@ public partial class ShellViewModel : ViewModelBase
 {
     private readonly IAuthService _auth;
     private readonly IDialogService _dialogues;
+    private Task _chargementPage = Task.CompletedTask;
 
     [ObservableProperty] private NavigationItem _selectedItem;
     [ObservableProperty] private ViewModelBase _currentPage;
@@ -64,6 +65,18 @@ public partial class ShellViewModel : ViewModelBase
         _currentPage = _selectedItem.ViewModel;
 
         _estThemeSombre = Application.Current?.ActualThemeVariant == ThemeVariant.Dark;
+
+        dashboard.MarcheDemandee += async (_, refMarche) =>
+        {
+            try
+            {
+                await OuvrirSuiviAsync(refMarche);
+            }
+            catch (Exception ex)
+            {
+                await _dialogues.InformerAsync("Navigation impossible", ex.Message);
+            }
+        };
     }
 
     /// <summary>
@@ -218,7 +231,28 @@ public partial class ShellViewModel : ViewModelBase
         }
 
         CurrentPage = value.ViewModel;
-        _ = ChargerPageAsync(value.ViewModel);
+        _chargementPage = ChargerPageAsync(value.ViewModel);
+    }
+
+    private async Task OuvrirSuiviAsync(string refMarche)
+    {
+        var cible = NavigationItems.FirstOrDefault(item => item.ViewModel is SuiviViewModel);
+        if (cible?.ViewModel is not SuiviViewModel suivi)
+        {
+            return;
+        }
+
+        if (!ReferenceEquals(SelectedItem, cible))
+        {
+            SelectedItem = cible;
+            await _chargementPage;
+        }
+        else
+        {
+            await ChargerPageAsync(suivi);
+        }
+
+        await suivi.OuvrirMarcheParReferenceAsync(refMarche);
     }
 
     private static async Task ChargerPageAsync(ViewModelBase viewModel)

@@ -157,6 +157,32 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
         _ = ActualiserAsync(marche.RefMarche);
     }
 
+    /// <summary>
+    /// Ouvre directement le détail d'un marché depuis une autre page du shell.
+    /// </summary>
+    public async Task OuvrirMarcheParReferenceAsync(string refMarche)
+    {
+        var marche = Marches.FirstOrDefault(m =>
+            string.Equals(m.RefMarche, refMarche, StringComparison.OrdinalIgnoreCase));
+
+        if (marche is null)
+        {
+            await ChargerAsync();
+            marche = Marches.FirstOrDefault(m =>
+                string.Equals(m.RefMarche, refMarche, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (marche is null)
+        {
+            Erreur = $"Le marché « {refMarche} » est introuvable.";
+            return;
+        }
+
+        RechercheSuivi = string.Empty;
+        FiltreStatutSuivi = "Tous";
+        OuvrirMarche(marche);
+    }
+
     [RelayCommand]
     private async Task RetourListe()
     {

@@ -391,6 +391,18 @@
         <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}" />
     </Style>
 
+    <!-- État vide neutre : ni succès ni erreur. -->
+    <Style Selector="Border.empty">
+        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{DynamicResource RadiusPanel}" />
+        <Setter Property="Padding" Value="12,10" />
+    </Style>
+    <Style Selector="Border.empty TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+
     <Style Selector="Border.warning">
         <Setter Property="Background" Value="{DynamicResource WarningSurfaceBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource WarningBorderBrush}" />
