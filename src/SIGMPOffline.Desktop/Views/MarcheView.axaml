@@ -80,9 +80,6 @@
                     <Button Content="Actualiser"
                             Command="{Binding ChargerCommand}" Classes="ghost"
                             IsEnabled="{Binding !EstOccupe}" />
-                    <Button Content="Nouveau marché"
-                            Command="{Binding NouveauMarcheCommand}" Classes="accent"
-                            IsEnabled="{Binding !EstOccupe}" />
                 </StackPanel>
             </Grid>
 
@@ -131,11 +128,13 @@
                     </Border>
                     <Border Classes="card">
                         <DockPanel>
-                            <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,10">
-                                <TextBlock Classes="section-title" Text="Liste des marchés" />
-                                <TextBlock Classes="legende"
-                                           Text="Ouvrir : gérer le bordereau. Modifier / Supprimer : agir sur le marché." />
-                            </StackPanel>
+                            <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+                                <TextBlock Classes="section-title" Text="Liste des marchés"
+                                           VerticalAlignment="Center" />
+                                <Button Grid.Column="1" Content="Nouveau marché"
+                                        Command="{Binding NouveauMarcheCommand}" Classes="accent"
+                                        IsEnabled="{Binding !EstOccupe}" />
+                            </Grid>
 
                             <Border DockPanel.Dock="Top" Classes="empty-state"
                                     IsVisible="{Binding !NombreMarches}">
@@ -147,10 +146,6 @@
                                                FontWeight="SemiBold" HorizontalAlignment="Center" />
                                     <TextBlock Classes="muted" HorizontalAlignment="Center"
                                                Text="Créez un marché à partir d'un dossier DAO." />
-                                    <Button Content="Nouveau marché" Classes="accent"
-                                            HorizontalAlignment="Center"
-                                            Command="{Binding NouveauMarcheCommand}"
-                                            IsEnabled="{Binding !EstOccupe}" />
                                 </StackPanel>
                             </Border>
 
