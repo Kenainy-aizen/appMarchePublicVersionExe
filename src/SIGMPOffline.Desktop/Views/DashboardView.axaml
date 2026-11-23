@@ -88,6 +88,21 @@
                 </Grid>
             </Border>
 
+            <!-- Résumé d'attention -->
+            <Border Classes="panel">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <PathIcon Width="20" Height="20" VerticalAlignment="Center"
+                              Foreground="{DynamicResource DangerBrush}"
+                              Data="M12 3 L22 20 H2 Z" />
+                    <StackPanel Grid.Column="1" Spacing="2">
+                        <TextBlock Classes="field-label" Text="À surveiller" />
+                        <TextBlock Text="{Binding ResumeAttention}"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
             <!-- Indicateurs clés -->
             <WrapPanel Orientation="Horizontal">
 
@@ -217,12 +232,12 @@
                             <PathIcon Width="14" Height="14" VerticalAlignment="Center"
                                       Foreground="{DynamicResource DangerBrush}"
                                       Data="M12 3 L22 20 H2 Z" />
-                            <TextBlock Classes="kpi-label" Text="Montant en retard" />
+                            <TextBlock Classes="kpi-label" Text="Montant à risque" />
                         </StackPanel>
                         <TextBlock Classes="kpi-money"
                                    Foreground="{DynamicResource DangerBrush}"
                                    Text="{Binding MontantEnRetardFormate}" />
-                        <TextBlock Classes="legende" Text="montant HT à risque" />
+                        <TextBlock Classes="legende" Text="HT des marchés en retard" />
                     </StackPanel>
                 </Border>
 
@@ -405,7 +420,7 @@
                                                        FontWeight="SemiBold" />
                                             <TextBlock Grid.Column="1" Text="{Binding ObjetMarche}"
                                                        Classes="secondaire" />
-                                            <ItemsControl Grid.Column="2" ItemsSource="{Binding Anomalies}">
+                                            <ItemsControl Grid.Column="2" ItemsSource="{Binding AnomaliesCourtes}">
                                                 <ItemsControl.ItemsPanel>
                                                     <ItemsPanelTemplate>
                                                         <StackPanel Orientation="Horizontal" Spacing="4" />

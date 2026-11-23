@@ -18,6 +18,8 @@ propose :
 - marchés avec données de suivi incomplètes, regroupées par marché ;
 - boutons « Voir tout / Voir moins » lorsque les listes dépassent cinq lignes ;
 - date et heure de la dernière actualisation.
+- résumé « À surveiller » indiquant immédiatement le nombre de retards et les
+  marchés accusant au moins dix jours de dépassement ;
 
 Les filtres sont appliqués au niveau du service et non uniquement à l'écran.
 Les chiffres, les listes et la synthèse restent donc cohérents.
@@ -85,8 +87,10 @@ Le service signale chaque anomalie, puis les regroupe par marché :
 - réception provisoire absente pour un marché démarré ;
 - réception définitive absente après la réception provisoire.
 
-`MarcheIncomplet.Anomalies` contient les libellés, `NombreAnomalies` le nombre
-d'anomalies et `Anomalie` un résumé sous forme de texte.
+`MarcheIncomplet.Anomalies` contient les libellés complets,
+`AnomaliesCourtes` fournit les badges compacts (`RP absente`, `RD absente`),
+`NombreAnomalies` le nombre d'anomalies et `Anomalie` un résumé sous forme de
+texte.
 
 ## Répartition par statut
 

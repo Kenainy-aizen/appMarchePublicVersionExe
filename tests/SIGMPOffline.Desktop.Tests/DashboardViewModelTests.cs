@@ -25,6 +25,7 @@ public class DashboardViewModelTests
         Assert.Equal(Montant(1200m), vm.MontantTotalTtcFormate);
         Assert.Equal(Montant(200m), vm.MontantEnRetardFormate);
         Assert.Equal("30 %", vm.TauxClotureAffiche);
+        Assert.Equal("6 marchés nécessitent une attention immédiate.", vm.ResumeAttention);
 
         Assert.Equal(6, vm.Alertes.Count);
         Assert.Equal(5, vm.AlertesAffichees.Count());

@@ -93,6 +93,21 @@ public partial class DashboardViewModel : ViewModelBase, IPageViewModel
 
     public string TitreIncomplets => $"Données de suivi à compléter ({MarchesIncomplets.Count})";
 
+    /// <summary>Résumé immédiat des éléments nécessitant une attention.</summary>
+    public string ResumeAttention
+    {
+        get
+        {
+            if (Alertes.Count == 0)
+                return "Aucun marché en retard pour les filtres sélectionnés.";
+
+            var fortementEnRetard = Alertes.Count(alerte => alerte.JoursDeRetard >= 10);
+            return fortementEnRetard == 0
+                ? $"{Alertes.Count} marché{(Alertes.Count == 1 ? "" : "s")} nécessite{(Alertes.Count == 1 ? "" : "nt")} une attention immédiate."
+                : $"{Alertes.Count} marchés nécessitent une attention immédiate, dont {fortementEnRetard} avec au moins 10 jours de retard.";
+        }
+    }
+
     public IEnumerable<AlerteRetard> AlertesAffichees
         => AfficherToutesAlertes ? Alertes : Alertes.Take(TailleApercu);
 
@@ -300,6 +315,7 @@ public partial class DashboardViewModel : ViewModelBase, IPageViewModel
         OnPropertyChanged(nameof(TitreAlertes));
         OnPropertyChanged(nameof(TitreEcheances));
         OnPropertyChanged(nameof(TitreIncomplets));
+        OnPropertyChanged(nameof(ResumeAttention));
         OnPropertyChanged(nameof(AlertesAffichees));
         OnPropertyChanged(nameof(EcheancesAffichees));
         OnPropertyChanged(nameof(IncompletsAffiches));
