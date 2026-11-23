@@ -1,4 +1,3 @@
-using System.Globalization;
 using SIGMPOffline.Desktop.ViewModels;
 using SIGMPOffline.Domain.Enums;
 using SIGMPOffline.Services.Abstractions;
@@ -21,11 +20,7 @@ public class DashboardViewModelTests
         Assert.Equal(3, vm.MarchesClotures);
         Assert.Equal(2, vm.MarchesEnRetard);
         Assert.Equal(3, vm.MarchesNonDemarres);
-        Assert.Equal(Montant(1000m), vm.MontantTotalFormate);
-        Assert.Equal(Montant(1200m), vm.MontantTotalTtcFormate);
-        Assert.Equal(Montant(200m), vm.MontantEnRetardFormate);
         Assert.Equal("30 %", vm.TauxClotureAffiche);
-        Assert.Equal("6 marchés nécessitent une attention immédiate.", vm.ResumeAttention);
 
         Assert.Equal(6, vm.Alertes.Count);
         Assert.Equal(5, vm.AlertesAffichees.Count());
@@ -81,9 +76,6 @@ public class DashboardViewModelTests
         Assert.Equal("M-001", marcheDemandee);
     }
 
-    private static string Montant(decimal valeur)
-        => valeur.ToString("N0", CultureInfo.GetCultureInfo("fr-FR")) + " Ar";
-
     private sealed class FakeDashboard : IDashboardService
     {
         public DashboardFiltre? DernierFiltre { get; private set; }
@@ -97,9 +89,6 @@ public class DashboardViewModelTests
                 MarchesEnCours: 4,
                 MarchesClotures: 3,
                 MarchesEnRetard: 2,
-                MontantTotalHt: 1000m,
-                MontantTotalTtc: 1200m,
-                MontantEnRetard: 200m,
                 MarchesNonDemarres: 3));
         }
 

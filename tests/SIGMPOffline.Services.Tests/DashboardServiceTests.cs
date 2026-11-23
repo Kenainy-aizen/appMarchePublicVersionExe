@@ -62,7 +62,7 @@ public class DashboardServiceTests
     }
 
     [Fact]
-    public async Task Dashboard_calcule_les_indicateurs_financiers_et_de_risque()
+    public async Task Dashboard_calcule_les_indicateurs_de_suivi_et_de_risque()
     {
         await using var db = await TestDatabase.CreateAsync();
         await GraphSeeder.SeedMarcheAsync(db, refMarche: "M-LENT", delaiJours: 1);
@@ -75,10 +75,7 @@ public class DashboardServiceTests
         var kpi = await dashboard.ObtenirKpiAsync();
 
         Assert.Equal(2, kpi.TotalMarches);
-        Assert.Equal(1_800_000m, kpi.MontantTotalHt);
-        Assert.Equal(2_124_000m, kpi.MontantTotalTtc);
         Assert.Equal(1, kpi.MarchesEnRetard);
-        Assert.Equal(900_000m, kpi.MontantEnRetard);
         Assert.Equal(1, kpi.MarchesNonDemarres);
         Assert.Equal(0m, kpi.TauxCloture);
     }
@@ -138,7 +135,7 @@ public class DashboardServiceTests
     }
 
     [Fact]
-    public async Task Kpi_compte_les_marches_et_le_montant_total()
+    public async Task Kpi_compte_les_marches_et_leur_statut()
     {
         await using var db = await TestDatabase.CreateAsync();
         await GraphSeeder.SeedMarcheAsync(db, refMarche: "M-001");
@@ -148,7 +145,7 @@ public class DashboardServiceTests
         var kpi = await dashboard.ObtenirKpiAsync();
 
         Assert.Equal(2, kpi.TotalMarches);
-        Assert.Equal(1_800_000m, kpi.MontantTotalHt); // 2 × 900 000
+        Assert.Equal(2, kpi.MarchesNonDemarres);
     }
 
     [Fact]

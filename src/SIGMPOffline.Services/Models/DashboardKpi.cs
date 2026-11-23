@@ -5,18 +5,12 @@ namespace SIGMPOffline.Services.Models;
 /// <param name="MarchesEnCours">Marchés en cours d'exécution.</param>
 /// <param name="MarchesClotures">Marchés clôturés.</param>
 /// <param name="MarchesEnRetard">Marchés en dépassement de délai.</param>
-/// <param name="MontantTotalHt">Montant HT cumulé de tous les marchés.</param>
-/// <param name="MontantTotalTtc">Montant TTC cumulé de tous les marchés.</param>
-/// <param name="MontantEnRetard">Montant HT cumulé des marchés en retard.</param>
 /// <param name="MarchesNonDemarres">Marchés dont l'ordre de service n'a pas encore été émis.</param>
 public sealed record DashboardKpi(
     int TotalMarches,
     int MarchesEnCours,
     int MarchesClotures,
     int MarchesEnRetard,
-    decimal MontantTotalHt,
-    decimal MontantTotalTtc,
-    decimal MontantEnRetard,
     int MarchesNonDemarres)
 {
     /// <summary>Taux de clôture des marchés, en pourcentage (0 à 100).</summary>

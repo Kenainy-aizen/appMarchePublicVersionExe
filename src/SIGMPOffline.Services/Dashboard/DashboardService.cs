@@ -32,9 +32,6 @@ public class DashboardService : IDashboardService
             MarchesEnCours: marches.Count(m => m.StatutExecution == StatutExecution.EnCours),
             MarchesClotures: marches.Count(m => m.StatutExecution == StatutExecution.Cloture),
             MarchesEnRetard: enRetard.Count,
-            MontantTotalHt: marches.Sum(m => m.MontantHT),
-            MontantTotalTtc: marches.Sum(m => m.MontantTTC),
-            MontantEnRetard: enRetard.Sum(m => m.MontantHT),
             MarchesNonDemarres: marches.Count(m => m.StatutExecution == StatutExecution.NonDemarre));
     }
 

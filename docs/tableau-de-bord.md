@@ -6,8 +6,6 @@ Le tableau de bord est filtré par province grâce au contexte EF Core actif. Il
 propose :
 
 - KPI des marchés : total, en cours, clôturés, en retard et non démarrés ;
-- indicateurs financiers : montant total HT, montant total TTC et montant HT
-  des marchés en retard (« montant à risque ») ;
 - taux de clôture calculé sur l'ensemble filtré ;
 - filtre par exercice PPM ;
 - filtre par statut d'exécution ;
@@ -18,8 +16,6 @@ propose :
 - marchés avec données de suivi incomplètes, regroupées par marché ;
 - boutons « Voir tout / Voir moins » lorsque les listes dépassent cinq lignes ;
 - date et heure de la dernière actualisation.
-- résumé « À surveiller » indiquant immédiatement le nombre de retards et les
-  marchés accusant au moins dix jours de dépassement ;
 
 Les filtres sont appliqués au niveau du service et non uniquement à l'écran.
 Les chiffres, les listes et la synthèse restent donc cohérents.
@@ -60,7 +56,6 @@ Une valeur nulle pour l'exercice ou le statut signifie « tous ».
 
 - `TotalMarches`, `MarchesEnCours`, `MarchesClotures`, `MarchesEnRetard` ;
 - `MarchesNonDemarres` ;
-- `MontantTotalHt`, `MontantTotalTtc`, `MontantEnRetard` ;
 - `TauxCloture` (propriété calculée, en pourcentage).
 
 ## Règles des alertes

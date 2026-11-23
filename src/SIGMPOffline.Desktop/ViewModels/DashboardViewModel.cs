@@ -47,9 +47,6 @@ public partial class DashboardViewModel : ViewModelBase, IPageViewModel
     [ObservableProperty] private int _marchesClotures;
     [ObservableProperty] private int _marchesEnRetard;
     [ObservableProperty] private int _marchesNonDemarres;
-    [ObservableProperty] private decimal _montantTotalHt;
-    [ObservableProperty] private decimal _montantTotalTtc;
-    [ObservableProperty] private decimal _montantEnRetard;
     [ObservableProperty] private decimal _tauxCloture;
     [ObservableProperty] private bool _estOccupe;
     [ObservableProperty] private string? _erreur;
@@ -68,15 +65,6 @@ public partial class DashboardViewModel : ViewModelBase, IPageViewModel
 
     public IReadOnlyList<string> PeriodesDisponibles { get; } = new[] { "7 jours", "30 jours", "60 jours", "90 jours" };
 
-    /// <summary>Montant total HT formaté.</summary>
-    public string MontantTotalFormate => FormaterMontant(MontantTotalHt);
-
-    /// <summary>Montant total TTC formaté.</summary>
-    public string MontantTotalTtcFormate => FormaterMontant(MontantTotalTtc);
-
-    /// <summary>Montant HT des marchés en retard formaté.</summary>
-    public string MontantEnRetardFormate => FormaterMontant(MontantEnRetard);
-
     /// <summary>Taux de clôture formaté.</summary>
     public string TauxClotureAffiche => $"{TauxCloture.ToString("0.#", CultureFrancaise)} %";
 
@@ -92,21 +80,6 @@ public partial class DashboardViewModel : ViewModelBase, IPageViewModel
     public string TitreEcheances => $"Échéances à {NombreJoursEcheances} jours ({Echeances.Count})";
 
     public string TitreIncomplets => $"Données de suivi à compléter ({MarchesIncomplets.Count})";
-
-    /// <summary>Résumé immédiat des éléments nécessitant une attention.</summary>
-    public string ResumeAttention
-    {
-        get
-        {
-            if (Alertes.Count == 0)
-                return "Aucun marché en retard pour les filtres sélectionnés.";
-
-            var fortementEnRetard = Alertes.Count(alerte => alerte.JoursDeRetard >= 10);
-            return fortementEnRetard == 0
-                ? $"{Alertes.Count} marché{(Alertes.Count == 1 ? "" : "s")} nécessite{(Alertes.Count == 1 ? "" : "nt")} une attention immédiate."
-                : $"{Alertes.Count} marchés nécessitent une attention immédiate, dont {fortementEnRetard} avec au moins 10 jours de retard.";
-        }
-    }
 
     public IEnumerable<AlerteRetard> AlertesAffichees
         => AfficherToutesAlertes ? Alertes : Alertes.Take(TailleApercu);
@@ -151,9 +124,6 @@ public partial class DashboardViewModel : ViewModelBase, IPageViewModel
             MarchesClotures = kpi.MarchesClotures;
             MarchesEnRetard = kpi.MarchesEnRetard;
             MarchesNonDemarres = kpi.MarchesNonDemarres;
-            MontantTotalHt = kpi.MontantTotalHt;
-            MontantTotalTtc = kpi.MontantTotalTtc;
-            MontantEnRetard = kpi.MontantEnRetard;
             TauxCloture = kpi.TauxCloture;
 
             Alertes.Clear();
@@ -302,20 +272,13 @@ public partial class DashboardViewModel : ViewModelBase, IPageViewModel
         return new DashboardFiltre(exercice, statut, NombreJoursEcheances);
     }
 
-    private static string FormaterMontant(decimal montant)
-        => montant.ToString("N0", CultureFrancaise) + " Ar";
-
     private void NotifierSections()
     {
-        OnPropertyChanged(nameof(MontantTotalFormate));
-        OnPropertyChanged(nameof(MontantTotalTtcFormate));
-        OnPropertyChanged(nameof(MontantEnRetardFormate));
         OnPropertyChanged(nameof(TauxClotureAffiche));
         OnPropertyChanged(nameof(TauxClotureValeur));
         OnPropertyChanged(nameof(TitreAlertes));
         OnPropertyChanged(nameof(TitreEcheances));
         OnPropertyChanged(nameof(TitreIncomplets));
-        OnPropertyChanged(nameof(ResumeAttention));
         OnPropertyChanged(nameof(AlertesAffichees));
         OnPropertyChanged(nameof(EcheancesAffichees));
         OnPropertyChanged(nameof(IncompletsAffiches));

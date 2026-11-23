@@ -88,21 +88,6 @@
                 </Grid>
             </Border>
 
-            <!-- Résumé d'attention -->
-            <Border Classes="panel">
-                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                    <PathIcon Width="20" Height="20" VerticalAlignment="Center"
-                              Foreground="{DynamicResource DangerBrush}"
-                              Data="M12 3 L22 20 H2 Z" />
-                    <StackPanel Grid.Column="1" Spacing="2">
-                        <TextBlock Classes="field-label" Text="À surveiller" />
-                        <TextBlock Text="{Binding ResumeAttention}"
-                                   Foreground="{DynamicResource TextPrimaryBrush}"
-                                   TextWrapping="Wrap" />
-                    </StackPanel>
-                </Grid>
-            </Border>
-
             <!-- Indicateurs clés -->
             <WrapPanel Orientation="Horizontal">
 
@@ -209,35 +194,6 @@
                                          MinWidth="0"
                                          Foreground="{DynamicResource AccentBrush}" />
                         </StackPanel>
-                    </StackPanel>
-                </Border>
-
-                <Border Classes="card" Width="232" Margin="0,0,12,12">
-                    <StackPanel Spacing="4">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <PathIcon Width="14" Height="14" VerticalAlignment="Center"
-                                      Foreground="{DynamicResource SuccessBrush}"
-                                      Data="M3 6 H21 V18 H3 Z M6 9 V15 H18 V9 Z" />
-                            <TextBlock Classes="kpi-label" Text="Montant total" />
-                        </StackPanel>
-                        <TextBlock Classes="kpi-money" Text="{Binding MontantTotalFormate}" />
-                        <TextBlock Classes="legende"
-                                   Text="{Binding MontantTotalTtcFormate, StringFormat='TTC : {0}'}" />
-                    </StackPanel>
-                </Border>
-
-                <Border Classes="card" Width="232" Margin="0,0,12,12">
-                    <StackPanel Spacing="4">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <PathIcon Width="14" Height="14" VerticalAlignment="Center"
-                                      Foreground="{DynamicResource DangerBrush}"
-                                      Data="M12 3 L22 20 H2 Z" />
-                            <TextBlock Classes="kpi-label" Text="Montant à risque" />
-                        </StackPanel>
-                        <TextBlock Classes="kpi-money"
-                                   Foreground="{DynamicResource DangerBrush}"
-                                   Text="{Binding MontantEnRetardFormate}" />
-                        <TextBlock Classes="legende" Text="HT des marchés en retard" />
                     </StackPanel>
                 </Border>
 
