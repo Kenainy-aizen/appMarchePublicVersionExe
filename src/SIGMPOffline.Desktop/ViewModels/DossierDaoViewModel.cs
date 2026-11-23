@@ -39,11 +39,11 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     /// <summary>Dossiers d'appel d'offres.</summary>
     public ObservableCollection<DossierDao> Dossiers { get; } = new();
 
-    /// <summary>Candidats du dossier sélectionné.</summary>
-    public ObservableCollection<Candidat> Candidats { get; } = new();
+    /// <summary>Candidats du dossier sélectionné, numérotés pour l'affichage.</summary>
+    public ObservableCollection<LigneCandidat> Candidats { get; } = new();
 
-    /// <summary>Acheteurs du dossier sélectionné.</summary>
-    public ObservableCollection<AcheteurDao> Acheteurs { get; } = new();
+    /// <summary>Acheteurs du dossier sélectionné, numérotés pour l'affichage.</summary>
+    public ObservableCollection<LigneAcheteur> Acheteurs { get; } = new();
 
     [ObservableProperty] private string _rechercheDossier = string.Empty;
     [ObservableProperty] private string _filtreDossiers = "Tous";
@@ -80,11 +80,11 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AUnCandidat))]
-    private Candidat? _candidatSelectionne;
+    private LigneCandidat? _candidatSelectionne;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AUnAcheteur))]
-    private AcheteurDao? _acheteurSelectionne;
+    private LigneAcheteur? _acheteurSelectionne;
 
     /// <summary>Vrai quand l'écran « détail d'un dossier » est affiché à la place de la liste.</summary>
     [ObservableProperty] private bool _estEnVueDetail;
@@ -338,7 +338,7 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
             return;
         }
 
-        var candidatActuel = candidatSelectionne ?? CandidatSelectionne;
+        var candidatActuel = candidatSelectionne ?? CandidatSelectionne?.Candidat;
         if (candidatActuel is null)
         {
             return;
@@ -366,7 +366,7 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
             return;
         }
 
-        var candidatActuel = candidatSelectionne ?? CandidatSelectionne;
+        var candidatActuel = candidatSelectionne ?? CandidatSelectionne?.Candidat;
         if (candidatActuel is null)
         {
             return;
@@ -399,7 +399,7 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
         }
 
         var refDossier = DossierSelectionne.RefDossier;
-        var id = CandidatSelectionne.IdCandidat;
+        var id = CandidatSelectionne.Candidat.IdCandidat;
         await ExecuterAsync(
             () => _dao.DesignerRetenuAsync(refDossier, id),
             "Le candidat retenu a été mis à jour.");
@@ -439,7 +439,7 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
             return;
         }
 
-        var acheteurActuel = acheteurSelectionne ?? AcheteurSelectionne;
+        var acheteurActuel = acheteurSelectionne ?? AcheteurSelectionne?.Acheteur;
         if (acheteurActuel is null)
         {
             return;
@@ -467,7 +467,7 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
             return;
         }
 
-        var acheteurActuel = acheteurSelectionne ?? AcheteurSelectionne;
+        var acheteurActuel = acheteurSelectionne ?? AcheteurSelectionne?.Acheteur;
         if (acheteurActuel is null)
         {
             return;
@@ -512,14 +512,14 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
         {
             var dossier = await _dao.ObtenirAsync(refDossier);
 
-            foreach (var candidat in dossier.Candidats)
+            foreach (var ligne in LignesDao.Numeroter(dossier.Candidats))
             {
-                Candidats.Add(candidat);
+                Candidats.Add(ligne);
             }
 
-            foreach (var acheteur in dossier.Acheteurs)
+            foreach (var ligne in LignesDao.Numeroter(dossier.Acheteurs))
             {
-                Acheteurs.Add(acheteur);
+                Acheteurs.Add(ligne);
             }
 
             CandidatSelectionne = Candidats.FirstOrDefault();

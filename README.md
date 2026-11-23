@@ -53,7 +53,7 @@ Fenêtre unique avec **menu latéral**, une page par module :
 
 1. **Tableau de bord** — KPI et alertes de dépassement de délai.
 2. **Plan de Passation (PPM)** — liste des plans, ouverture du détail, lignes de passation et mise à jour de l'en-tête.
-3. **DAO & Attribution** — liste des dossiers avec compteurs, ouverture du détail, candidats et acheteurs DAO.
+3. **DAO & Attribution** — liste des dossiers avec compteurs, ouverture du détail, candidats et acheteurs DAO numérotés.
 4. **Marchés** — liste des marchés avec compteurs, ouverture du détail et éléments du bordereau.
 5. **Suivi d'exécution** — liste des marchés suivis, ouverture du détail, OS, TEF, avenants, réceptions et clôture.
 6. **Sauvegarde** — export/restauration du fichier SQLite (clé USB).
@@ -117,8 +117,8 @@ dotnet ef database update --project src/SIGMPOffline.Data --startup-project src/
    dossier DAO utilise la ligne ou le plan.
    *CRUD complet (fenêtres modales).*
 2. **DAO & Attribution** — dossiers rattachés aux lignes PPM, candidats et acheteurs.
-   *Liste avec compteurs et écran de détail ; CRUD complet (dossiers, candidats,
-   acheteurs) + désignation du retenu.*
+   *Liste avec compteurs et écran de détail ; candidats et acheteurs numérotés ;
+   CRUD complet (dossiers, candidats, acheteurs) + désignation du retenu.*
 3. **Marché & Bordereau** — formalisation du contrat et éléments du marché.
    *Liste avec compteurs (marchés, montant TTC total, éléments) et écran de détail ;
    CRUD complet (marché + éléments du bordereau) + recalcul des montants.*
