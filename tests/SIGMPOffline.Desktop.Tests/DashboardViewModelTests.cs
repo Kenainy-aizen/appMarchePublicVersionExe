@@ -20,6 +20,7 @@ public class DashboardViewModelTests
         Assert.Equal(3, vm.MarchesClotures);
         Assert.Equal(2, vm.MarchesEnRetard);
         Assert.Equal(3, vm.MarchesNonDemarres);
+        Assert.Equal(2, vm.MarchesEnReception);
         Assert.Equal("30 %", vm.TauxClotureAffiche);
 
         Assert.Equal(6, vm.Alertes.Count);
@@ -80,6 +81,17 @@ public class DashboardViewModelTests
     {
         public DashboardFiltre? DernierFiltre { get; private set; }
 
+        public async Task<DashboardInstantane> ObtenirTableauDeBordAsync(
+            DashboardFiltre? filtre = null, CancellationToken cancellationToken = default)
+            => new(
+                await ObtenirKpiAsync(filtre, cancellationToken),
+                await ListerAlertesAsync(filtre, cancellationToken),
+                await ListerEcheancesAsync(filtre, cancellationToken),
+                await ListerMarchesIncompletsAsync(filtre, cancellationToken),
+                await ListerRepartitionAsync(filtre, cancellationToken),
+                await ListerEcheancesParMoisAsync(filtre, cancellationToken),
+                await ListerExercicesAsync(cancellationToken));
+
         public Task<DashboardKpi> ObtenirKpiAsync(
             DashboardFiltre? filtre = null, CancellationToken cancellationToken = default)
         {
@@ -89,7 +101,8 @@ public class DashboardViewModelTests
                 MarchesEnCours: 4,
                 MarchesClotures: 3,
                 MarchesEnRetard: 2,
-                MarchesNonDemarres: 3));
+                MarchesNonDemarres: 3,
+                MarchesEnReception: 2));
         }
 
         public Task<IReadOnlyList<AlerteRetard>> ListerAlertesAsync(

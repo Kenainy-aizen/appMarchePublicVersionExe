@@ -1,5 +1,6 @@
 using SIGMPOffline.Desktop.ViewModels.Dialogs;
 using SIGMPOffline.Domain.Entities;
+using SIGMPOffline.Services.Auth;
 
 namespace SIGMPOffline.Desktop.Tests;
 
@@ -109,6 +110,37 @@ public class DialoguesProvinceTests
         Assert.Null(vm.ProvinceSelectionnee);
         Assert.Equal(0, vm.IdProvinceChoisi);
         Assert.False(Valider(vm));
+    }
+
+    [Fact]
+    public void NomPrmp_est_prerempli_et_nettoie_les_espaces()
+    {
+        var vm = new NomPrmpDialogViewModel("PRMP Jean Dupont") { NomProprietaire = "  PRMP Awa  " };
+
+        Assert.True(Valider(vm));
+        Assert.Equal("PRMP Awa", vm.VersNomProprietaire());
+    }
+
+    [Fact]
+    public void NomPrmp_refuse_un_nom_vide()
+    {
+        var vm = new NomPrmpDialogViewModel("PRMP") { NomProprietaire = "   " };
+
+        Assert.False(Valider(vm));
+        Assert.NotNull(vm.Erreur);
+        Assert.True(vm.NomInvalide);
+    }
+
+    [Fact]
+    public void NomPrmp_refuse_un_nom_trop_long()
+    {
+        var vm = new NomPrmpDialogViewModel("PRMP")
+        {
+            NomProprietaire = new string('a', AuthService.LongueurMaxNomProprietaire + 1)
+        };
+
+        Assert.False(Valider(vm));
+        Assert.NotNull(vm.Erreur);
     }
 
     private static bool Valider(DialogViewModelBase vm)

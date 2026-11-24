@@ -5,6 +5,12 @@ namespace SIGMPOffline.Services.Abstractions;
 /// <summary>Module Tableau de bord : indicateurs et alertes de dépassement.</summary>
 public interface IDashboardService
 {
+    /// <summary>
+    /// Calcule en une seule lecture de la base toutes les données du tableau de bord
+    /// pour le filtre indiqué.
+    /// </summary>
+    Task<DashboardInstantane> ObtenirTableauDeBordAsync(DashboardFiltre? filtre = null, CancellationToken cancellationToken = default);
+
     /// <summary>Calcule les indicateurs clés.</summary>
     Task<DashboardKpi> ObtenirKpiAsync(DashboardFiltre? filtre = null, CancellationToken cancellationToken = default);
 

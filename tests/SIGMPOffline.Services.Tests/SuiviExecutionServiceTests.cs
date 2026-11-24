@@ -139,6 +139,7 @@ public class SuiviExecutionServiceTests
         var service = new SuiviExecutionService(db.UnitOfWork);
 
         await service.EnregistrerTefAsync("M-001", "TEF-2026-001");
+        await service.EmettreOrdreServiceAsync("M-001", new DateOnly(2026, 1, 15));
         await service.EnregistrerReceptionProvisoireAsync("M-001", new DateOnly(2026, 5, 1));
         await service.EnregistrerReceptionDefinitiveAsync("M-001", new DateOnly(2026, 6, 1));
 

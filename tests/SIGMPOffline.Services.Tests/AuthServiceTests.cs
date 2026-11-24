@@ -144,6 +144,33 @@ public class AuthServiceTests
     }
 
     [Fact]
+    public async Task ModifierNomProprietaireAsync_valide_et_persiste_le_nom()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        var auth = Creer(db);
+        await auth.InitialiserAsync("PRMP", "Province A", "secret");
+
+        var nom = await auth.ModifierNomProprietaireAsync("  PRMP Jean Dupont  ");
+
+        Assert.Equal("PRMP Jean Dupont", nom);
+        Assert.Equal("PRMP Jean Dupont", auth.Configuration!.NomProprietairePRMP);
+        var enregistre = await db.UnitOfWork.Configuration.GetConfigurationAsync();
+        Assert.Equal("PRMP Jean Dupont", enregistre!.NomProprietairePRMP);
+    }
+
+    [Fact]
+    public async Task ModifierNomProprietaireAsync_refuse_un_nom_vide()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        var auth = Creer(db);
+        await auth.InitialiserAsync("PRMP", "Province A", "secret");
+
+        await Assert.ThrowsAsync<DomainException>(
+            () => auth.ModifierNomProprietaireAsync("   "));
+        Assert.Equal("PRMP", auth.Configuration!.NomProprietairePRMP);
+    }
+
+    [Fact]
     public async Task DeconnecterAsync_ferme_la_session()
     {
         await using var db = await TestDatabase.CreateAsync();

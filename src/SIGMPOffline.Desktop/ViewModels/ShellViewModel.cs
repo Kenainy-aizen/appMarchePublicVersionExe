@@ -191,6 +191,33 @@ public partial class ShellViewModel : ViewModelBase
         }
     }
 
+    /// <summary>Modifie le nom du responsable PRMP affiché dans l'en-tête.</summary>
+    [RelayCommand]
+    private async Task ModifierNomPrmp()
+    {
+        if (EstLectureSeule)
+        {
+            return;
+        }
+
+        var dialogue = new NomPrmpDialogViewModel(NomProprietaire);
+        if (!await _dialogues.AfficherAsync(dialogue))
+        {
+            return;
+        }
+
+        try
+        {
+            NomProprietaire = await _auth.ModifierNomProprietaireAsync(dialogue.VersNomProprietaire());
+            await _dialogues.InformerAsync(
+                "Nom de la PRMP modifié", "Le nouveau nom a été enregistré.");
+        }
+        catch (Exception ex)
+        {
+            await _dialogues.InformerAsync("Modification impossible", ex.Message);
+        }
+    }
+
     /// <summary>Bascule vers une autre province en saisissant son mot de passe.</summary>
     [RelayCommand]
     private async Task ChangerProvince()

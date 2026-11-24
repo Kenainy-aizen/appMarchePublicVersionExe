@@ -34,6 +34,14 @@ public interface IAuthService
     /// <summary>Liste les provinces disponibles pour la connexion, triées par nom.</summary>
     Task<IReadOnlyList<Province>> ListerProvincesAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Modifie le nom du responsable PRMP (propriétaire de l'application) affiché
+    /// dans l'en-tête. Retourne le nom enregistré, sans espaces superflus.
+    /// </summary>
+    Task<string> ModifierNomProprietaireAsync(
+        string nomProprietaire,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Crée une nouvelle province avec son propre mot de passe.</summary>
     Task<Province> CreerProvinceAsync(
         string nomProvince,

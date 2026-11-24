@@ -18,6 +18,9 @@ public class AuthService : IAuthService
     /// <summary>Longueur minimale admise pour un mot de passe de province.</summary>
     public const int LongueurMinMotDePasse = 4;
 
+    /// <summary>Longueur maximale du nom du responsable PRMP (alignée sur la base).</summary>
+    public const int LongueurMaxNomProprietaire = 200;
+
     private readonly IUnitOfWork _unitOfWork;
     private readonly IProvinceAccessor _provinceAccessor;
     private readonly AppDbContext _context;
@@ -124,6 +127,40 @@ public class AuthService : IAuthService
     /// <inheritdoc />
     public async Task<IReadOnlyList<Province>> ListerProvincesAsync(CancellationToken cancellationToken = default)
         => await _unitOfWork.Provinces.ListerAsync(cancellationToken);
+
+    /// <inheritdoc />
+    public async Task<string> ModifierNomProprietaireAsync(
+        string nomProprietaire,
+        CancellationToken cancellationToken = default)
+    {
+        var nom = (nomProprietaire ?? string.Empty).Trim();
+
+        if (nom.Length == 0)
+        {
+            throw new DomainException("Le nom du responsable PRMP est obligatoire.");
+        }
+
+        if (nom.Length > LongueurMaxNomProprietaire)
+        {
+            throw new DomainException(
+                $"Le nom du responsable PRMP ne peut pas dépasser {LongueurMaxNomProprietaire} caractères.");
+        }
+
+        var configuration = _configuration
+            ?? await _unitOfWork.Configuration.GetConfigurationAsync(cancellationToken)
+            ?? throw new DomainException("La configuration de l'application est introuvable.");
+
+        if (!string.Equals(configuration.NomProprietairePRMP, nom, StringComparison.Ordinal))
+        {
+            configuration.NomProprietairePRMP = nom;
+            _unitOfWork.Configuration.Update(configuration);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        // Conserve la configuration en mémoire pour l'en-tête du shell.
+        _configuration = configuration;
+        return nom;
+    }
 
     /// <inheritdoc />
     public async Task<Province> CreerProvinceAsync(

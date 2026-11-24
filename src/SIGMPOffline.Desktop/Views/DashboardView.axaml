@@ -145,6 +145,23 @@
                 <Border Classes="card" Width="232" Margin="0,0,12,12">
                     <StackPanel Orientation="Horizontal" Spacing="14">
                         <Border Width="46" Height="46" CornerRadius="10" VerticalAlignment="Center"
+                                Background="{DynamicResource WarningSurfaceBrush}">
+                            <PathIcon Width="20" Height="20"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      Foreground="{DynamicResource WarningBrush}"
+                                      Data="M6 2 H18 V22 H6 Z M9 6 H15 V8 H9 Z M9 10 H15 V12 H9 Z M9 14 H15 V16 H9 Z" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Classes="kpi-label" Text="En réception" />
+                            <TextBlock Classes="kpi-value" Text="{Binding MarchesEnReception}" />
+                            <TextBlock Classes="legende" Text="provisoire ou définitive" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="card" Width="232" Margin="0,0,12,12">
+                    <StackPanel Orientation="Horizontal" Spacing="14">
+                        <Border Width="46" Height="46" CornerRadius="10" VerticalAlignment="Center"
                                 Background="{DynamicResource DangerSurfaceBrush}">
                             <PathIcon Width="20" Height="20"
                                       HorizontalAlignment="Center" VerticalAlignment="Center"

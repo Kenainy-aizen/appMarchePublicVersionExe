@@ -5,7 +5,7 @@
 Le tableau de bord est filtré par province grâce au contexte EF Core actif. Il
 propose :
 
-- KPI des marchés : total, en cours, clôturés, en retard et non démarrés ;
+- KPI des marchés : total, en cours, en réception, clôturés, en retard et non démarrés ;
 - taux de clôture calculé sur l'ensemble filtré ;
 - filtre par exercice PPM ;
 - filtre par statut d'exécution ;
@@ -36,6 +36,9 @@ marché concerné. La navigation est portée par l'événement
 
 `IDashboardService` expose :
 
+- `ObtenirTableauDeBordAsync(DashboardFiltre?)` : photographie complète en une
+  seule lecture de la base (KPI, alertes, échéances, incomplets, répartition,
+  échéances par mois et exercices) ;
 - `ObtenirKpiAsync(DashboardFiltre?)` ;
 - `ListerAlertesAsync(DashboardFiltre?)` ;
 - `ListerEcheancesAsync(DashboardFiltre?)` ;
@@ -43,6 +46,12 @@ marché concerné. La navigation est portée par l'événement
 - `ListerRepartitionAsync(DashboardFiltre?)` ;
 - `ListerEcheancesParMoisAsync(DashboardFiltre?)` ;
 - `ListerExercicesAsync()`.
+
+Les méthodes unitaires restent disponibles (outils, tests) et partagent les
+mêmes calculs privés que `ObtenirTableauDeBordAsync`. Le ViewModel du tableau de
+bord n'appelle plus qu'`ObtenirTableauDeBordAsync` par actualisation, ce qui
+évite de recharger sept fois la liste des marchés. `DashboardInstantane` porte
+le résultat complet.
 
 `DashboardFiltre` contient :
 
@@ -56,31 +65,41 @@ Une valeur nulle pour l'exercice ou le statut signifie « tous ».
 
 - `TotalMarches`, `MarchesEnCours`, `MarchesClotures`, `MarchesEnRetard` ;
 - `MarchesNonDemarres` ;
+- `MarchesEnReception` (réception provisoire ou définitive) ;
 - `TauxCloture` (propriété calculée, en pourcentage).
 
 ## Règles des alertes
 
+### Marché terminé
+
+Un marché **clôturé, résilié ou annulé** n'est jamais considéré comme en retard.
+Il est exclu des alertes, des échéances proches et de la synthèse mensuelle des
+échéances. La règle est centralisée dans `MarcheDelais.EstTermine(StatutExecution)`
+et réutilisée par tous les calculs du tableau de bord.
+
 ### Retard
 
 Un marché est en retard si sa date limite calculée par `MarcheDelais` est
-dépassée et que le marché n'est pas clôturé. Le montant à risque additionne le
-montant HT de ces marchés.
+dépassée et que le marché n'est pas terminé (voir ci-dessus).
 
 ### Échéance proche
 
 Une échéance est affichée si la date limite est comprise entre aujourd'hui et la
-fin de la fenêtre choisie, pour un marché non clôturé. La synthèse mensuelle
+fin de la fenêtre choisie, pour un marché non terminé. La synthèse mensuelle
 regroupe les échéances des trois prochains mois, y compris les mois sans
-échéance.
+échéance, et applique la même exclusion.
 
 ### Donnée incomplète
 
-Le service signale chaque anomalie, puis les regroupe par marché :
+Les marchés **non démarrés**, **résiliés** et **annulés** sont totalement ignorés.
+Pour les autres, le service signale chaque anomalie, puis les regroupe par
+marché :
 
-- OS absent ;
-- TEF absent ;
-- réception provisoire absente pour un marché démarré ;
-- réception définitive absente après la réception provisoire.
+- OS absent si la date d'ordre de service est nulle ;
+- TEF absent si la référence TEF est vide ;
+- réception provisoire absente uniquement pour un marché en réception
+  définitive ou clôturé ;
+- réception définitive absente uniquement pour un marché clôturé.
 
 `MarcheIncomplet.Anomalies` contient les libellés complets,
 `AnomaliesCourtes` fournit les badges compacts (`RP absente`, `RD absente`),
@@ -97,6 +116,8 @@ affichés. Si aucun marché ne correspond aux filtres, la liste est vide.
 
 - `src/SIGMPOffline.Services/Dashboard/DashboardService.cs` : calcul métier ;
 - `src/SIGMPOffline.Services/Models/DashboardFiltre.cs` : filtres ;
+- `src/SIGMPOffline.Services/Models/DashboardInstantane.cs` : résultat complet
+  d'une actualisation ;
 - `src/SIGMPOffline.Services/Models/DashboardKpi.cs` : indicateurs ;
 - `src/SIGMPOffline.Services/Models/AlerteEcheance.cs` : échéance proche ;
 - `src/SIGMPOffline.Services/Models/AlerteRetard.cs` : alerte de retard ;

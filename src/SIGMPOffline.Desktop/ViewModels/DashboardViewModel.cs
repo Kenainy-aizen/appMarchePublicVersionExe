@@ -47,6 +47,7 @@ public partial class DashboardViewModel : ViewModelBase, IPageViewModel
     [ObservableProperty] private int _marchesClotures;
     [ObservableProperty] private int _marchesEnRetard;
     [ObservableProperty] private int _marchesNonDemarres;
+    [ObservableProperty] private int _marchesEnReception;
     [ObservableProperty] private decimal _tauxCloture;
     [ObservableProperty] private bool _estOccupe;
     [ObservableProperty] private string? _erreur;
@@ -118,37 +119,39 @@ public partial class DashboardViewModel : ViewModelBase, IPageViewModel
             Erreur = null;
 
             var filtre = ConstruireFiltre();
-            var kpi = await _dashboard.ObtenirKpiAsync(filtre);
+            var instantane = await _dashboard.ObtenirTableauDeBordAsync(filtre);
+            var kpi = instantane.Kpi;
             TotalMarches = kpi.TotalMarches;
             MarchesEnCours = kpi.MarchesEnCours;
             MarchesClotures = kpi.MarchesClotures;
             MarchesEnRetard = kpi.MarchesEnRetard;
             MarchesNonDemarres = kpi.MarchesNonDemarres;
+            MarchesEnReception = kpi.MarchesEnReception;
             TauxCloture = kpi.TauxCloture;
 
             Alertes.Clear();
-            foreach (var alerte in await _dashboard.ListerAlertesAsync(filtre))
+            foreach (var alerte in instantane.Alertes)
             {
                 Alertes.Add(alerte);
             }
 
             Echeances.Clear();
-            foreach (var echeance in await _dashboard.ListerEcheancesAsync(filtre))
+            foreach (var echeance in instantane.Echeances)
                 Echeances.Add(echeance);
 
             MarchesIncomplets.Clear();
-            foreach (var marche in await _dashboard.ListerMarchesIncompletsAsync(filtre))
+            foreach (var marche in instantane.Incomplets)
                 MarchesIncomplets.Add(marche);
 
             Repartition.Clear();
-            foreach (var ligne in await _dashboard.ListerRepartitionAsync(filtre))
+            foreach (var ligne in instantane.Repartition)
                 Repartition.Add(ligne);
 
             EcheancesMois.Clear();
-            foreach (var mois in await _dashboard.ListerEcheancesParMoisAsync(filtre))
+            foreach (var mois in instantane.EcheancesParMois)
                 EcheancesMois.Add(mois);
 
-            var exercices = await _dashboard.ListerExercicesAsync();
+            var exercices = instantane.Exercices;
             var libellesExercices = new List<string> { "Tous" };
             libellesExercices.AddRange(exercices.Select(exercice => exercice.ToString()));
             if (!ExercicesDisponibles.SequenceEqual(libellesExercices))

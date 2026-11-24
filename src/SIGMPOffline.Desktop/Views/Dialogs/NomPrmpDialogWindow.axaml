@@ -1,0 +1,70 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dlg="using:SIGMPOffline.Desktop.ViewModels.Dialogs"
+        xmlns:vm="using:SIGMPOffline.Desktop.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="460" d:DesignHeight="260"
+        x:Class="SIGMPOffline.Desktop.Views.Dialogs.NomPrmpDialogWindow"
+        x:DataType="dlg:NomPrmpDialogViewModel"
+        Title="{Binding Titre}"
+        Width="460" SizeToContent="Height"
+        Background="{DynamicResource AppBackgroundBrush}"
+        CanResize="False" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+
+    <StackPanel Margin="22" Spacing="16">
+
+        <!-- En-tête -->
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+            <Border Classes="auth-dialog-icon">
+                <PathIcon Data="{x:Static vm:Icones.Utilisateur}"
+                          Width="18" Height="18"
+                          Foreground="{DynamicResource AccentBrush}" />
+            </Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
+                <TextBlock Classes="auth-subtitle"
+                           Text="Ce nom est affiché dans l'en-tête de l'application." />
+            </StackPanel>
+        </Grid>
+
+        <Border Classes="divider" />
+
+        <!-- Formulaire -->
+        <StackPanel Spacing="7">
+            <TextBlock Classes="field-label">
+                Nom du responsable PRMP
+                <Run Foreground="{DynamicResource DangerBrush}">*</Run>
+            </TextBlock>
+            <Border Classes="auth-field" Classes.invalide="{Binding NomInvalide}">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <PathIcon Grid.Column="0"
+                              Data="{x:Static vm:Icones.Utilisateur}"
+                              Width="16" Height="16"
+                              VerticalAlignment="Center"
+                              Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBox Grid.Column="1" Classes="auth-input"
+                             Text="{Binding NomProprietaire}"
+                             PlaceholderText="ex. PRMP Jean Dupont"
+                             AutomationProperties.Name="Nom du responsable PRMP" />
+                </Grid>
+            </Border>
+            <TextBlock Classes="auth-help"
+                       Text="{Binding LongueurMaxNom, StringFormat='{}{0} caractères maximum'}" />
+        </StackPanel>
+
+        <!-- Message d'erreur -->
+        <Border Classes="error"
+                IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
+        </Border>
+
+        <Border Classes="divider" />
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Content="Annuler" Command="{Binding AnnulerCommand}" Classes="ghost" />
+            <Button Content="Enregistrer" Command="{Binding ValiderCommand}" Classes="accent" />
+        </StackPanel>
+    </StackPanel>
+</Window>

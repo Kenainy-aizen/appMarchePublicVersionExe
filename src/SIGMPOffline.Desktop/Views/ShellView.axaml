@@ -97,6 +97,11 @@
                         <TextBlock Text="{Binding NomProprietaire}" />
                     </Border>
 
+                    <Button Classes="icon" Command="{Binding ModifierNomPrmpCommand}"
+                            IsEnabled="{Binding !EstLectureSeule}"
+                            ToolTip.Tip="Modifier le nom de la PRMP">
+                        <PathIcon Data="{x:Static vm:Icones.Modifier}" Width="18" Height="18" />
+                    </Button>
                     <Button Classes="icon" Command="{Binding NouvelleProvinceCommand}"
                             IsEnabled="{Binding !EstLectureSeule}"
                             ToolTip.Tip="Nouvelle province">

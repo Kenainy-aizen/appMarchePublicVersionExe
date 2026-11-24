@@ -1,4 +1,5 @@
 using SIGMPOffline.Domain.Entities;
+using SIGMPOffline.Domain.Enums;
 
 namespace SIGMPOffline.Domain.Common;
 
@@ -8,6 +9,14 @@ namespace SIGMPOffline.Domain.Common;
 /// </summary>
 public static class MarcheDelais
 {
+    /// <summary>
+    /// Indique si un statut correspond à un marché terminé (clôturé, résilié ou annulé).
+    /// Ces marchés ne sont jamais considérés comme en retard et n'apparaissent pas
+    /// dans les échéances.
+    /// </summary>
+    public static bool EstTermine(StatutExecution statut)
+        => statut is StatutExecution.Cloture or StatutExecution.Resilie or StatutExecution.Annule;
+
     /// <summary>
     /// Calcule la date limite d'exécution d'un marché :
     /// <c>DateOS + DelaiExecutionJours + Σ(prolongations des avenants)</c>.

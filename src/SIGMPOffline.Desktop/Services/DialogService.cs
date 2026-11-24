@@ -27,6 +27,7 @@ public sealed class DialogService : IDialogService
         Enregistrer<ProvinceDialogViewModel>(_ => new ProvinceDialogWindow());
         Enregistrer<MotDePasseDialogViewModel>(_ => new MotDePasseDialogWindow());
         Enregistrer<ChangerProvinceDialogViewModel>(_ => new ChangerProvinceDialogWindow());
+        Enregistrer<NomPrmpDialogViewModel>(_ => new NomPrmpDialogWindow());
     }
 
     /// <inheritdoc />

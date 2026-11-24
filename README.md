@@ -66,6 +66,13 @@ disponibles, mais **création, modification, suppression et restauration sont
 désactivées**. Un bandeau le rappelle en haut du contenu et chaque page désactive
 ses boutons d'écriture. Voir [docs/mode-lecture-seule.md](docs/mode-lecture-seule.md).
 
+### Nom de la PRMP
+
+Le nom du responsable PRMP, saisi au premier lancement, est affiché dans
+l'en-tête. Le bouton crayon voisin permet de le modifier à tout moment ; la
+nouvelle valeur est enregistrée dans la configuration globale de l'application
+(et non dans une province). La modification est désactivée en mode lecture seule.
+
 ### Emplacement de la base
 
 Le fichier SQLite est stocké côté utilisateur :
@@ -133,7 +140,7 @@ dotnet ef database update --project src/SIGMPOffline.Data --startup-project src/
 4. **Suivi d'Exécution** *(cœur)* — liste avec compteurs des marchés en retard et clôturés,
    puis détail du suivi : TEF, Ordre de Service, avenants, réceptions et clôture.
    *Saisies en fenêtres modales ; CRUD complet des avenants ; statut calculé.*
-5. **Tableau de bord** — KPI financiers et d'exécution, filtres par exercice,
+5. **Tableau de bord** — KPI d'exécution, filtres par exercice,
    statut et période, alertes cliquables vers le suivi, répartition par statut
    et échéances des trois prochains mois.
 6. **Utilitaire** — sauvegarde / restauration en un clic du fichier SQLite (clé USB).
