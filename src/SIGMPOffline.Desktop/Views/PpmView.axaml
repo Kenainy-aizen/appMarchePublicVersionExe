@@ -163,7 +163,7 @@
                                 </Grid>
                             </Border>
 
-                            <ListBox ItemsSource="{Binding EntetesFiltres}" SelectedItem="{Binding EnteteSelectionne}">
+                            <ListBox ItemsSource="{Binding EntetesFiltres}" SelectedItem="{Binding EnteteListeSelectionne}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="ent:PpmEntete">
                                         <Grid ColumnDefinitions="90,90,2*,110,1.6*,70,160,128" ColumnSpacing="8"

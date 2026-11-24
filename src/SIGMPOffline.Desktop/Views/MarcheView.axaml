@@ -160,7 +160,7 @@
                                 </Grid>
                             </Border>
 
-                            <ListBox ItemsSource="{Binding MarchesFiltres}" SelectedItem="{Binding MarcheSelectionne}">
+                            <ListBox ItemsSource="{Binding MarchesFiltres}" SelectedItem="{Binding MarcheListeSelectionne}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="ent:Marche">
                                         <Grid ColumnDefinitions="110,*,140,90,110,128" ColumnSpacing="8"

@@ -159,7 +159,11 @@ public partial class SuiviViewModel : PageViewModelBase
                 }
                 else
                 {
-                    MarcheSelectionne = restaure;
+                    // Un seul chargement à la fois : le DbContext est partagé et n'est pas thread-safe.
+                    _actualisationParSelectionSuspendue = true;
+                    try { MarcheSelectionne = restaure; }
+                    finally { _actualisationParSelectionSuspendue = false; }
+
                     await ActualiserAsync(restaure.RefMarche);
                 }
             }
@@ -187,9 +191,15 @@ public partial class SuiviViewModel : PageViewModelBase
 
         Erreur = null;
         Message = null;
+        var memeInstance = ReferenceEquals(MarcheSelectionne, marche);
         MarcheSelectionne = marche;
         EstEnVueDetail = true;
-        _ = ActualiserAsync(marche.RefMarche);
+
+        // Si la sélection a changé, OnMarcheSelectionneChanged lance déjà le chargement.
+        if (memeInstance)
+        {
+            _ = ActualiserAsync(marche.RefMarche);
+        }
     }
 
     /// <summary>
@@ -434,11 +444,13 @@ public partial class SuiviViewModel : PageViewModelBase
         Avenants.Clear();
         AvenantSelectionne = null;
 
-        if (value is not null)
+        if (value is not null && !_actualisationParSelectionSuspendue)
         {
             _ = ActualiserAsync(value.RefMarche);
         }
     }
+
+    private bool _actualisationParSelectionSuspendue;
 
     private void NotifierCompteurs()
     {

@@ -228,17 +228,51 @@ public class SuiviExecutionService : ISuiviExecutionService
             throw new DomainException("Impossible d'enregistrer une réception sur un marché clôturé.");
         }
 
-        marche.Suivi ??= new SuiviExecution { RefMarche = refMarche };
+        var suiviActuel = marche.Suivi;
+
+        // Chronologie : OS -> réception provisoire -> réception définitive.
+        if (suiviActuel?.DateOS is not { } dateOs)
+        {
+            throw new DomainException("Impossible d'enregistrer une réception : l'ordre de service n'a pas encore été émis.");
+        }
+
+        if (date < dateOs)
+        {
+            throw new DomainException(
+                $"La date de réception ({date:dd/MM/yyyy}) ne peut pas précéder l'ordre de service ({dateOs:dd/MM/yyyy}).");
+        }
 
         if (definitive)
         {
-            marche.Suivi.DateReceptionDefinitive = date;
+            if (suiviActuel.DateReceptionProvisoire is not { } dateProvisoire)
+            {
+                throw new DomainException("La réception définitive nécessite d'abord une réception provisoire.");
+            }
+
+            if (date < dateProvisoire)
+            {
+                throw new DomainException(
+                    $"La réception définitive ({date:dd/MM/yyyy}) ne peut pas précéder la réception provisoire ({dateProvisoire:dd/MM/yyyy}).");
+            }
+
+            suiviActuel.DateReceptionDefinitive = date;
             marche.StatutExecution = StatutExecution.ReceptionDefinitive;
         }
         else
         {
-            marche.Suivi.DateReceptionProvisoire = date;
-            marche.StatutExecution = StatutExecution.ReceptionProvisoire;
+            if (suiviActuel.DateReceptionDefinitive is { } dateDefinitive && date > dateDefinitive)
+            {
+                throw new DomainException(
+                    $"La réception provisoire ({date:dd/MM/yyyy}) ne peut pas suivre la réception définitive ({dateDefinitive:dd/MM/yyyy}).");
+            }
+
+            suiviActuel.DateReceptionProvisoire = date;
+
+            // Ne jamais faire reculer le statut si la réception définitive existe déjà.
+            if (suiviActuel.DateReceptionDefinitive is null)
+            {
+                marche.StatutExecution = StatutExecution.ReceptionProvisoire;
+            }
         }
 
         _marches.Update(marche);

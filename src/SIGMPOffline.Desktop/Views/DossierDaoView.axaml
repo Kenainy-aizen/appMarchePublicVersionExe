@@ -160,7 +160,7 @@
                                 </Grid>
                             </Border>
 
-                            <ListBox ItemsSource="{Binding DossiersFiltres}" SelectedItem="{Binding DossierSelectionne}">
+                            <ListBox ItemsSource="{Binding DossiersFiltres}" SelectedItem="{Binding DossierListeSelectionne}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="ent:DossierDao">
                                         <Grid ColumnDefinitions="120,*,110,80,90,128" ColumnSpacing="8"

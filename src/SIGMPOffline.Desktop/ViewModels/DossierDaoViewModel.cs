@@ -83,6 +83,12 @@ public partial class DossierDaoViewModel : PageViewModelBase
     [NotifyPropertyChangedFor(nameof(CautionAffichee))]
     private DossierDao? _dossierSelectionne;
 
+    /// <summary>
+    /// Ligne sélectionnée dans la liste. Volontairement distincte de l'élément ouvert en détail :
+    /// la liste remet sa sélection à null à chaque rafraîchissement, ce qui ne doit pas vider le détail.
+    /// </summary>
+    [ObservableProperty] private DossierDao? _dossierListeSelectionne;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AUnCandidat))]
     private LigneCandidat? _candidatSelectionne;
@@ -181,6 +187,7 @@ public partial class DossierDaoViewModel : PageViewModelBase
             }
 
             NotifierCompteursDossiers();
+            OnPropertyChanged(nameof(DossiersFiltres));
         }
         catch (Exception ex)
         {
@@ -198,7 +205,7 @@ public partial class DossierDaoViewModel : PageViewModelBase
     [RelayCommand]
     private void OuvrirDossier(DossierDao? dossierChoisi)
     {
-        var dossier = dossierChoisi ?? DossierSelectionne;
+        var dossier = dossierChoisi ?? DossierListeSelectionne;
         if (dossier is null)
         {
             return;

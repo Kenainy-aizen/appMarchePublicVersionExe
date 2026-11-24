@@ -79,6 +79,12 @@ public partial class MarcheViewModel : PageViewModelBase
     [NotifyPropertyChangedFor(nameof(MontantTtcAffiche))]
     private Marche? _marcheSelectionne;
 
+    /// <summary>
+    /// Ligne sélectionnée dans la liste. Volontairement distincte de l'élément ouvert en détail :
+    /// la liste remet sa sélection à null à chaque rafraîchissement, ce qui ne doit pas vider le détail.
+    /// </summary>
+    [ObservableProperty] private Marche? _marcheListeSelectionne;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AUnElement))]
     private ElementMarche? _elementSelectionne;
@@ -180,6 +186,7 @@ public partial class MarcheViewModel : PageViewModelBase
             }
 
             NotifierCompteursMarches();
+            OnPropertyChanged(nameof(MarchesFiltres));
         }
         catch (Exception ex)
         {
@@ -197,7 +204,7 @@ public partial class MarcheViewModel : PageViewModelBase
     [RelayCommand]
     private void OuvrirMarche(Marche? marcheChoisi)
     {
-        var marche = marcheChoisi ?? MarcheSelectionne;
+        var marche = marcheChoisi ?? MarcheListeSelectionne;
         if (marche is null)
         {
             return;

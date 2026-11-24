@@ -73,6 +73,12 @@ public partial class PpmViewModel : PageViewModelBase
         ExerciceFiltre = "Tous";
     }
 
+    /// <summary>
+    /// Ligne sélectionnée dans la liste. Volontairement distincte de l'élément ouvert en détail :
+    /// la liste remet sa sélection à null à chaque rafraîchissement, ce qui ne doit pas vider le détail.
+    /// </summary>
+    [ObservableProperty] private PpmEntete? _enteteListeSelectionne;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AUnEntete))]
     [NotifyPropertyChangedFor(nameof(TitreDetailPpm))]
@@ -161,6 +167,8 @@ public partial class PpmViewModel : PageViewModelBase
                 // Le plan affiché n'existe plus : retour à la liste.
                 EstEnVueDetail = false;
             }
+
+            OnPropertyChanged(nameof(EntetesFiltres));
         }
         catch (Exception ex)
         {
@@ -178,7 +186,7 @@ public partial class PpmViewModel : PageViewModelBase
     [RelayCommand]
     private void OuvrirPpm(PpmEntete? enteteChoisi)
     {
-        var entete = enteteChoisi ?? EnteteSelectionne;
+        var entete = enteteChoisi ?? EnteteListeSelectionne;
         if (entete is null)
         {
             return;
