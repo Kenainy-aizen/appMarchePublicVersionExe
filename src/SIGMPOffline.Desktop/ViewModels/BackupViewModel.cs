@@ -6,13 +6,18 @@ using SIGMPOffline.Services.Abstractions;
 namespace SIGMPOffline.Desktop.ViewModels;
 
 /// <summary>Module Utilitaire : sauvegarde / restauration du fichier SQLite.</summary>
-public partial class BackupViewModel : ViewModelBase, IPageViewModel
+public partial class BackupViewModel : PageViewModelBase
 {
     private readonly IBackupService _backup;
     private readonly IDialogService _dialogues;
     private readonly IFilePickerService _fichiers;
 
-    public BackupViewModel(IBackupService backup, IDialogService dialogues, IFilePickerService fichiers)
+    public BackupViewModel(
+        IBackupService backup,
+        IDialogService dialogues,
+        IFilePickerService fichiers,
+        ModeLectureService modeLecture)
+        : base(modeLecture)
     {
         _backup = backup ?? throw new ArgumentNullException(nameof(backup));
         _dialogues = dialogues ?? throw new ArgumentNullException(nameof(dialogues));
@@ -20,7 +25,7 @@ public partial class BackupViewModel : ViewModelBase, IPageViewModel
     }
 
     /// <inheritdoc />
-    public string Titre => "Sauvegarde & Restauration";
+    public override string Titre => "Sauvegarde & Restauration";
 
     /// <summary>Chemin du fichier de base de données actif.</summary>
     public string BaseDeDonneesPath => _backup.BaseDeDonneesPath;
@@ -33,11 +38,10 @@ public partial class BackupViewModel : ViewModelBase, IPageViewModel
 
     [ObservableProperty] private string? _message;
     [ObservableProperty] private string? _erreur;
-    [ObservableProperty] private bool _estOccupe;
 
     /// <inheritdoc />
     [RelayCommand]
-    public Task ChargerAsync()
+    public override Task ChargerAsync()
     {
         Message = null;
         Erreur = null;
@@ -94,6 +98,11 @@ public partial class BackupViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task Restaurer()
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(FichierRestauration))
         {
             Erreur = "Indiquez le chemin du fichier de sauvegarde à restaurer.";

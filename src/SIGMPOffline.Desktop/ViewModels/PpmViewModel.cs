@@ -13,12 +13,13 @@ namespace SIGMPOffline.Desktop.ViewModels;
 /// 1. La liste des plans (en-têtes) avec Ouvrir / Modifier / Supprimer ;
 /// 2. le détail d'un plan (ses lignes), affiché seulement après « Ouvrir ».
 /// </summary>
-public partial class PpmViewModel : ViewModelBase, IPageViewModel
+public partial class PpmViewModel : PageViewModelBase
 {
     private readonly IPpmService _ppm;
     private readonly IDialogService _dialogues;
 
-    public PpmViewModel(IPpmService ppm, IDialogService dialogues)
+    public PpmViewModel(IPpmService ppm, IDialogService dialogues, ModeLectureService modeLecture)
+        : base(modeLecture)
     {
         _ppm = ppm ?? throw new ArgumentNullException(nameof(ppm));
         _dialogues = dialogues ?? throw new ArgumentNullException(nameof(dialogues));
@@ -39,7 +40,7 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     }
 
     /// <inheritdoc />
-    public string Titre => "Plan de Passation des Marchés";
+    public override string Titre => "Plan de Passation des Marchés";
 
     /// <summary>En-têtes de PPM.</summary>
     public ObservableCollection<PpmEntete> Entetes { get; } = new();
@@ -85,7 +86,6 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     /// <summary>Vrai quand l'écran « détail d'un plan » est affiché à la place de la liste des plans.</summary>
     [ObservableProperty] private bool _estEnVueDetail;
 
-    [ObservableProperty] private bool _estOccupe;
     [ObservableProperty] private string? _erreur;
     [ObservableProperty] private string? _message;
 
@@ -134,7 +134,7 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
 
     /// <inheritdoc />
     [RelayCommand]
-    public async Task ChargerAsync()
+    public override async Task ChargerAsync()
     {
         try
         {
@@ -213,6 +213,11 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task NouveauPpm()
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         var dialogue = new PpmEnteteDialogViewModel();
         if (!await _dialogues.AfficherAsync(dialogue))
         {
@@ -234,6 +239,11 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task ModifierPpm(PpmEntete? enteteChoisi)
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         var enteteActuelle = enteteChoisi ?? EnteteSelectionne;
         if (enteteActuelle is null)
         {
@@ -260,6 +270,11 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task SupprimerPpm(PpmEntete? enteteChoisi)
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         var enteteActuelle = enteteChoisi ?? EnteteSelectionne;
         if (enteteActuelle is null)
         {
@@ -291,6 +306,11 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task EnregistrerMiseAJour()
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (EnteteSelectionne is null)
         {
             return;
@@ -314,6 +334,11 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task AjouterDetail()
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (EnteteSelectionne is null)
         {
             return;
@@ -336,6 +361,11 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task ModifierDetail(PpmDetail? ligneChoisie)
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (EnteteSelectionne is null)
         {
             return;
@@ -364,6 +394,11 @@ public partial class PpmViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task SupprimerDetail(PpmDetail? ligneChoisie)
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (EnteteSelectionne is null)
         {
             return;

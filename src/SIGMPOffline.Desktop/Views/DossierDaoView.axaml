@@ -133,7 +133,7 @@
                                            VerticalAlignment="Center" />
                                 <Button Grid.Column="1" Content="Nouveau dossier"
                                         Command="{Binding NouveauDossierCommand}" Classes="accent"
-                                        IsEnabled="{Binding !EstOccupe}" />
+                                        IsEnabled="{Binding PeutAgir}" />
                             </Grid>
 
                             <Border DockPanel.Dock="Top" Classes="empty-state"
@@ -194,12 +194,14 @@
                                                 </Button>
                                                 <Button Classes="icon row-action modify"
                                                         ToolTip.Tip="Modifier le dossier"
+                                                        IsEnabled="{Binding $parent[UserControl].DataContext.PeutAgir}"
                                                         Command="{Binding $parent[UserControl].DataContext.ModifierDossierCommand}"
                                                         CommandParameter="{Binding}">
                                                     <PathIcon Data="{x:Static vm:Icones.Modifier}" Width="18" Height="18" />
                                                 </Button>
                                                 <Button Classes="icon row-action delete"
                                                         ToolTip.Tip="Supprimer ce dossier"
+                                                        IsEnabled="{Binding $parent[UserControl].DataContext.PeutAgir}"
                                                         Command="{Binding $parent[UserControl].DataContext.SupprimerDossierCommand}"
                                                         CommandParameter="{Binding}">
                                                     <PathIcon Data="{x:Static vm:Icones.Supprimer}" Width="18" Height="18" />
@@ -233,16 +235,16 @@
                            MaxWidth="620" HorizontalAlignment="Right">
                     <Button Content="Modifier le dossier"
                             Command="{Binding ModifierDossierCommand}" Classes="ghost"
-                            IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,8" />
+                            IsEnabled="{Binding PeutAgir}" Margin="0,0,8,8" />
                     <Button Content="Supprimer ce dossier"
                             Command="{Binding SupprimerDossierCommand}" Classes="danger"
-                            IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,8" />
+                            IsEnabled="{Binding PeutAgir}" Margin="0,0,8,8" />
                     <Button Content="Ajouter un candidat"
                             Command="{Binding AjouterCandidatCommand}"
-                            IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,8" />
+                            IsEnabled="{Binding PeutAgir}" Margin="0,0,8,8" />
                     <Button Content="Ajouter un acheteur"
                             Command="{Binding AjouterAcheteurCommand}" Classes="accent"
-                            IsEnabled="{Binding !EstOccupe}" Margin="0,0,0,8" />
+                            IsEnabled="{Binding PeutAgir}" Margin="0,0,0,8" />
                 </WrapPanel>
             </Grid>
 
@@ -313,11 +315,23 @@
                                         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal"
                                                     Spacing="8" Margin="0,10,0,10">
                                             <Button Content="Ajouter un candidat"
-                                                    Command="{Binding AjouterCandidatCommand}"
-                                                    IsEnabled="{Binding AUnDossier}" Classes="accent" />
+                                                    Command="{Binding AjouterCandidatCommand}" Classes="accent">
+                                                <Button.IsEnabled>
+                                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                        <Binding Path="PeutAgir" />
+                                                        <Binding Path="AUnDossier" />
+                                                    </MultiBinding>
+                                                </Button.IsEnabled>
+                                            </Button>
                                             <Button Content="Désigner retenu"
-                                                    Command="{Binding DesignerRetenuCommand}"
-                                                    IsEnabled="{Binding AUnCandidat}" />
+                                                    Command="{Binding DesignerRetenuCommand}">
+                                                <Button.IsEnabled>
+                                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                        <Binding Path="PeutAgir" />
+                                                        <Binding Path="AUnCandidat" />
+                                                    </MultiBinding>
+                                                </Button.IsEnabled>
+                                            </Button>
                                         </StackPanel>
 
                                         <Border DockPanel.Dock="Top" Classes="empty-state"
@@ -329,8 +343,14 @@
                                                            Text="Ajoutez les entreprises ayant déposé une offre." />
                                                 <Button Content="Ajouter un candidat" Classes="accent"
                                                         HorizontalAlignment="Center"
-                                                        Command="{Binding AjouterCandidatCommand}"
-                                                        IsEnabled="{Binding AUnDossier}" />
+                                                        Command="{Binding AjouterCandidatCommand}">
+                                                    <Button.IsEnabled>
+                                                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                            <Binding Path="PeutAgir" />
+                                                            <Binding Path="AUnDossier" />
+                                                        </MultiBinding>
+                                                    </Button.IsEnabled>
+                                                </Button>
                                             </StackPanel>
                                         </Border>
 
@@ -378,6 +398,7 @@
                                                                     Spacing="4">
                                                             <Button Classes="icon row-action modify"
                                                                     ToolTip.Tip="Modifier le candidat"
+                                                                    IsEnabled="{Binding $parent[UserControl].DataContext.PeutAgir}"
                                                                     Command="{Binding $parent[UserControl].DataContext.ModifierCandidatCommand}"
                                                                     CommandParameter="{Binding Candidat}">
                                                                 <PathIcon Data="{x:Static vm:Icones.Modifier}"
@@ -385,6 +406,7 @@
                                                             </Button>
                                                             <Button Classes="icon row-action delete"
                                                                     ToolTip.Tip="Supprimer le candidat"
+                                                                    IsEnabled="{Binding $parent[UserControl].DataContext.PeutAgir}"
                                                                     Command="{Binding $parent[UserControl].DataContext.SupprimerCandidatCommand}"
                                                                     CommandParameter="{Binding Candidat}">
                                                                 <PathIcon Data="{x:Static vm:Icones.Supprimer}"
@@ -403,8 +425,14 @@
                                         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal"
                                                     Spacing="8" Margin="0,10,0,10">
                                             <Button Content="Ajouter un acheteur"
-                                                    Command="{Binding AjouterAcheteurCommand}"
-                                                    IsEnabled="{Binding AUnDossier}" Classes="accent" />
+                                                    Command="{Binding AjouterAcheteurCommand}" Classes="accent">
+                                                <Button.IsEnabled>
+                                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                        <Binding Path="PeutAgir" />
+                                                        <Binding Path="AUnDossier" />
+                                                    </MultiBinding>
+                                                </Button.IsEnabled>
+                                            </Button>
                                         </StackPanel>
 
                                         <Border DockPanel.Dock="Top" Classes="empty-state"
@@ -416,8 +444,14 @@
                                                            Text="Ajoutez les entreprises ayant acheté le cahier des charges." />
                                                 <Button Content="Ajouter un acheteur" Classes="accent"
                                                         HorizontalAlignment="Center"
-                                                        Command="{Binding AjouterAcheteurCommand}"
-                                                        IsEnabled="{Binding AUnDossier}" />
+                                                        Command="{Binding AjouterAcheteurCommand}">
+                                                    <Button.IsEnabled>
+                                                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                            <Binding Path="PeutAgir" />
+                                                            <Binding Path="AUnDossier" />
+                                                        </MultiBinding>
+                                                    </Button.IsEnabled>
+                                                </Button>
                                             </StackPanel>
                                         </Border>
 
@@ -450,6 +484,7 @@
                                                                     Spacing="4">
                                                             <Button Classes="icon row-action modify"
                                                                     ToolTip.Tip="Modifier l'acheteur"
+                                                                    IsEnabled="{Binding $parent[UserControl].DataContext.PeutAgir}"
                                                                     Command="{Binding $parent[UserControl].DataContext.ModifierAcheteurCommand}"
                                                                     CommandParameter="{Binding Acheteur}">
                                                                 <PathIcon Data="{x:Static vm:Icones.Modifier}"
@@ -457,6 +492,7 @@
                                                             </Button>
                                                             <Button Classes="icon row-action delete"
                                                                     ToolTip.Tip="Supprimer l'acheteur"
+                                                                    IsEnabled="{Binding $parent[UserControl].DataContext.PeutAgir}"
                                                                     Command="{Binding $parent[UserControl].DataContext.SupprimerAcheteurCommand}"
                                                                     CommandParameter="{Binding Acheteur}">
                                                                 <PathIcon Data="{x:Static vm:Icones.Supprimer}"

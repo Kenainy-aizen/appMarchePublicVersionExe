@@ -18,6 +18,7 @@ public partial class ShellViewModel : ViewModelBase
 {
     private readonly IAuthService _auth;
     private readonly IDialogService _dialogues;
+    private readonly ModeLectureService _modeLecture;
     private Task _chargementPage = Task.CompletedTask;
 
     [ObservableProperty] private NavigationItem _selectedItem;
@@ -25,6 +26,9 @@ public partial class ShellViewModel : ViewModelBase
 
     /// <summary>Indique si le thème sombre est actif (pilote l'icône de bascule).</summary>
     [ObservableProperty] private bool _estThemeSombre;
+
+    /// <summary>Indique si le mode lecture seule est actif.</summary>
+    [ObservableProperty] private bool _estLectureSeule;
 
     /// <summary>Nom du responsable PRMP / propriétaire (affiché dans l'en-tête).</summary>
     [ObservableProperty] private string _nomProprietaire = string.Empty;
@@ -41,6 +45,7 @@ public partial class ShellViewModel : ViewModelBase
     public ShellViewModel(
         IAuthService auth,
         IDialogService dialogues,
+        ModeLectureService modeLecture,
         DashboardViewModel dashboard,
         PpmViewModel ppm,
         DossierDaoViewModel dao,
@@ -50,6 +55,7 @@ public partial class ShellViewModel : ViewModelBase
     {
         _auth = auth ?? throw new ArgumentNullException(nameof(auth));
         _dialogues = dialogues ?? throw new ArgumentNullException(nameof(dialogues));
+        _modeLecture = modeLecture ?? throw new ArgumentNullException(nameof(modeLecture));
 
         NavigationItems = new List<NavigationItem>
         {
@@ -65,6 +71,14 @@ public partial class ShellViewModel : ViewModelBase
         _currentPage = _selectedItem.ViewModel;
 
         _estThemeSombre = Application.Current?.ActualThemeVariant == ThemeVariant.Dark;
+        _estLectureSeule = _modeLecture.EstActif;
+        _modeLecture.PropertyChanged += (_, evenement) =>
+        {
+            if (evenement.PropertyName == nameof(ModeLectureService.EstActif))
+            {
+                EstLectureSeule = _modeLecture.EstActif;
+            }
+        };
 
         dashboard.MarcheDemandee += async (_, refMarche) =>
         {
@@ -119,6 +133,11 @@ public partial class ShellViewModel : ViewModelBase
     [RelayCommand]
     private async Task NouvelleProvince()
     {
+        if (EstLectureSeule)
+        {
+            return;
+        }
+
         var dialogue = new ProvinceDialogViewModel();
         if (!await _dialogues.AfficherAsync(dialogue))
         {
@@ -143,6 +162,11 @@ public partial class ShellViewModel : ViewModelBase
     [RelayCommand]
     private async Task ChangerMotDePasse()
     {
+        if (EstLectureSeule)
+        {
+            return;
+        }
+
         var province = _auth.ProvinceActive;
         if (province is null)
         {
@@ -221,6 +245,11 @@ public partial class ShellViewModel : ViewModelBase
 
         await _auth.DeconnecterAsync();
         DeconnexionDemandee?.Invoke(this, EventArgs.Empty);
+    }
+
+    partial void OnEstLectureSeuleChanged(bool value)
+    {
+        _modeLecture.EstActif = value;
     }
 
     partial void OnSelectedItemChanged(NavigationItem value)

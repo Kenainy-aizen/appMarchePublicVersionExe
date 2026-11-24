@@ -134,7 +134,7 @@
                                            VerticalAlignment="Center" />
                                 <Button Grid.Column="1" Content="Nouveau plan de passation"
                                         Command="{Binding NouveauPpmCommand}" Classes="accent"
-                                        IsEnabled="{Binding !EstOccupe}" />
+                                        IsEnabled="{Binding PeutAgir}" />
                             </Grid>
 
                             <Border DockPanel.Dock="Top" Classes="empty-state"
@@ -199,12 +199,14 @@
                                                 </Button>
                                                 <Button Classes="icon row-action modify"
                                                         ToolTip.Tip="Modifier l'en-tête du plan"
+                                                        IsEnabled="{Binding $parent[UserControl].DataContext.PeutAgir}"
                                                         Command="{Binding $parent[UserControl].DataContext.ModifierPpmCommand}"
                                                         CommandParameter="{Binding}">
                                                     <PathIcon Data="{x:Static vm:Icones.Modifier}" Width="18" Height="18" />
                                                 </Button>
                                                 <Button Classes="icon row-action delete"
                                                         ToolTip.Tip="Supprimer ce plan"
+                                                        IsEnabled="{Binding $parent[UserControl].DataContext.PeutAgir}"
                                                         Command="{Binding $parent[UserControl].DataContext.SupprimerPpmCommand}"
                                                         CommandParameter="{Binding}">
                                                     <PathIcon Data="{x:Static vm:Icones.Supprimer}" Width="18" Height="18" />
@@ -237,16 +239,16 @@
                            MaxWidth="620" HorizontalAlignment="Right">
                     <Button Content="Modifier l'en-tête"
                             Command="{Binding ModifierPpmCommand}" Classes="ghost"
-                            IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,8" />
+                            IsEnabled="{Binding PeutAgir}" Margin="0,0,8,8" />
                     <Button Content="Supprimer ce plan"
                             Command="{Binding SupprimerPpmCommand}" Classes="danger"
-                            IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,8" />
+                            IsEnabled="{Binding PeutAgir}" Margin="0,0,8,8" />
                     <Button Content="Enregistrer une mise à jour"
                             Command="{Binding EnregistrerMiseAJourCommand}"
-                            IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,8" />
+                            IsEnabled="{Binding PeutAgir}" Margin="0,0,8,8" />
                     <Button Content="Ajouter une ligne"
                             Command="{Binding AjouterDetailCommand}" Classes="accent"
-                            IsEnabled="{Binding !EstOccupe}" Margin="0,0,0,8" />
+                            IsEnabled="{Binding PeutAgir}" Margin="0,0,0,8" />
                 </WrapPanel>
             </Grid>
 
@@ -312,7 +314,7 @@
                                     <Button Content="Ajouter une ligne" Classes="accent"
                                             HorizontalAlignment="Center"
                                             Command="{Binding AjouterDetailCommand}"
-                                            IsEnabled="{Binding !EstOccupe}" />
+                                            IsEnabled="{Binding PeutAgir}" />
                                 </StackPanel>
                             </Border>
 
@@ -398,12 +400,14 @@
                                                         HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4">
                                                 <Button Classes="icon row-action modify"
                                                         ToolTip.Tip="Modifier la ligne"
+                                                        IsEnabled="{Binding $parent[UserControl].DataContext.PeutAgir}"
                                                         Command="{Binding $parent[UserControl].DataContext.ModifierDetailCommand}"
                                                         CommandParameter="{Binding}">
                                                     <PathIcon Data="{x:Static vm:Icones.Modifier}" Width="18" Height="18" />
                                                 </Button>
                                                 <Button Classes="icon row-action delete"
                                                         ToolTip.Tip="Supprimer la ligne"
+                                                        IsEnabled="{Binding $parent[UserControl].DataContext.PeutAgir}"
                                                         Command="{Binding $parent[UserControl].DataContext.SupprimerDetailCommand}"
                                                         CommandParameter="{Binding}">
                                                     <PathIcon Data="{x:Static vm:Icones.Supprimer}" Width="18" Height="18" />

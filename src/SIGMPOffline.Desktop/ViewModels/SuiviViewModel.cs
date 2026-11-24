@@ -13,13 +13,18 @@ namespace SIGMPOffline.Desktop.ViewModels;
 /// Module Suivi d'Exécution (cœur) : TEF, Ordre de Service, avenants, réceptions et clôture.
 /// Toutes les saisies passent par des fenêtres modales.
 /// </summary>
-public partial class SuiviViewModel : ViewModelBase, IPageViewModel
+public partial class SuiviViewModel : PageViewModelBase
 {
     private readonly ISuiviExecutionService _suivi;
     private readonly IMarcheService _marches;
     private readonly IDialogService _dialogues;
 
-    public SuiviViewModel(ISuiviExecutionService suivi, IMarcheService marches, IDialogService dialogues)
+    public SuiviViewModel(
+        ISuiviExecutionService suivi,
+        IMarcheService marches,
+        IDialogService dialogues,
+        ModeLectureService modeLecture)
+        : base(modeLecture)
     {
         _suivi = suivi ?? throw new ArgumentNullException(nameof(suivi));
         _marches = marches ?? throw new ArgumentNullException(nameof(marches));
@@ -27,7 +32,7 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
     }
 
     /// <inheritdoc />
-    public string Titre => "Suivi d'exécution";
+    public override string Titre => "Suivi d'exécution";
 
     /// <summary>Marchés disponibles.</summary>
     public ObservableCollection<Marche> Marches { get; } = new();
@@ -65,6 +70,7 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AUnMarche))]
     [NotifyPropertyChangedFor(nameof(PeutModifier))]
+    [NotifyPropertyChangedFor(nameof(PeutAgir))]
     [NotifyPropertyChangedFor(nameof(TitreDetailMarche))]
     private Marche? _marcheSelectionne;
 
@@ -74,9 +80,9 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PeutModifier))]
+    [NotifyPropertyChangedFor(nameof(PeutAgir))]
     private SituationMarche? _situation;
 
-    [ObservableProperty] private bool _estOccupe;
     [ObservableProperty] private string? _message;
     [ObservableProperty] private string? _erreur;
 
@@ -89,8 +95,10 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
     /// <summary>Vrai si un avenant est sélectionné.</summary>
     public bool AUnAvenant => AvenantSelectionne is not null;
 
-    /// <summary>Vrai si le marché sélectionné peut encore être modifié (non clôturé).</summary>
-    public bool PeutModifier => MarcheSelectionne is not null && Situation is { EstCloture: false };
+    /// <summary>Vrai si le marché sélectionné peut encore être modifié (non clôturé et hors mode lecture seule).</summary>
+    public override bool PeutModifier => base.PeutModifier
+        && MarcheSelectionne is not null
+        && Situation is { EstCloture: false };
 
     /// <summary>Nombre de marchés suivis.</summary>
     public int NombreMarches => Marches.Count;
@@ -108,7 +116,7 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
 
     /// <inheritdoc />
     [RelayCommand]
-    public async Task ChargerAsync()
+    public override async Task ChargerAsync()
     {
         try
         {
@@ -197,6 +205,11 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task EmettreOs()
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (MarcheSelectionne is null)
         {
             return;
@@ -219,6 +232,11 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task EnregistrerTef()
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (MarcheSelectionne is null)
         {
             return;
@@ -256,6 +274,11 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task Cloturer()
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (MarcheSelectionne is null)
         {
             return;
@@ -289,6 +312,11 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task AjouterAvenant()
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (MarcheSelectionne is null)
         {
             return;
@@ -309,6 +337,11 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task ModifierAvenant(Avenant? avenantSelectionne)
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (MarcheSelectionne is null)
         {
             return;
@@ -335,6 +368,11 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task SupprimerAvenant(Avenant? avenantSelectionne)
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (MarcheSelectionne is null)
         {
             return;
@@ -384,6 +422,11 @@ public partial class SuiviViewModel : ViewModelBase, IPageViewModel
 
     private async Task EnregistrerReceptionAsync(string titre, string libelle, bool definitive)
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (MarcheSelectionne is null)
         {
             return;

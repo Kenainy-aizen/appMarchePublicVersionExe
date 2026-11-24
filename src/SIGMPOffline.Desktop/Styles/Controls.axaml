@@ -230,6 +230,11 @@
         <Setter Property="Background" Value="{DynamicResource DangerSurfaceBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource DangerHoverBrush}" />
     </Style>
+    <Style Selector="Button.row-action:disabled /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource TextDisabledBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+    </Style>
 
     <!-- Bouton discret sur fond sombre (barre latérale). -->
     <Style Selector="Button.sidebar /template/ ContentPresenter#PART_ContentPresenter">

@@ -9,13 +9,18 @@ using SIGMPOffline.Services.Abstractions;
 namespace SIGMPOffline.Desktop.ViewModels;
 
 /// <summary>Module DAO &amp; Attribution : CRUD des dossiers, candidats et acheteurs.</summary>
-public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
+public partial class DossierDaoViewModel : PageViewModelBase
 {
     private readonly IDossierDaoService _dao;
     private readonly IPpmService _ppm;
     private readonly IDialogService _dialogues;
 
-    public DossierDaoViewModel(IDossierDaoService dao, IPpmService ppm, IDialogService dialogues)
+    public DossierDaoViewModel(
+        IDossierDaoService dao,
+        IPpmService ppm,
+        IDialogService dialogues,
+        ModeLectureService modeLecture)
+        : base(modeLecture)
     {
         _dao = dao ?? throw new ArgumentNullException(nameof(dao));
         _ppm = ppm ?? throw new ArgumentNullException(nameof(ppm));
@@ -34,7 +39,7 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     }
 
     /// <inheritdoc />
-    public string Titre => "DAO & Attribution";
+    public override string Titre => "DAO & Attribution";
 
     /// <summary>Dossiers d'appel d'offres.</summary>
     public ObservableCollection<DossierDao> Dossiers { get; } = new();
@@ -89,7 +94,6 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     /// <summary>Vrai quand l'écran « détail d'un dossier » est affiché à la place de la liste.</summary>
     [ObservableProperty] private bool _estEnVueDetail;
 
-    [ObservableProperty] private bool _estOccupe;
     [ObservableProperty] private string? _erreur;
     [ObservableProperty] private string? _message;
 
@@ -149,7 +153,7 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
 
     /// <inheritdoc />
     [RelayCommand]
-    public async Task ChargerAsync()
+    public override async Task ChargerAsync()
     {
         try
         {
@@ -229,6 +233,11 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task NouveauDossier()
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         var lignes = await ChargerLignesPpmAsync();
         if (lignes.Count == 0)
         {
@@ -256,6 +265,11 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task ModifierDossier(DossierDao? dossierSelectionne)
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         var dossierActuel = dossierSelectionne ?? DossierSelectionne;
         if (dossierActuel is null)
         {
@@ -281,6 +295,11 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task SupprimerDossier(DossierDao? dossierSelectionne)
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         var dossierActuel = dossierSelectionne ?? DossierSelectionne;
         if (dossierActuel is null)
         {
@@ -311,6 +330,11 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task AjouterCandidat()
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (DossierSelectionne is null)
         {
             return;
@@ -333,6 +357,11 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task ModifierCandidat(Candidat? candidatSelectionne)
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (DossierSelectionne is null)
         {
             return;
@@ -361,6 +390,11 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task SupprimerCandidat(Candidat? candidatSelectionne)
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (DossierSelectionne is null)
         {
             return;
@@ -393,6 +427,11 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task DesignerRetenu()
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (DossierSelectionne is null || CandidatSelectionne is null)
         {
             return;
@@ -412,6 +451,11 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task AjouterAcheteur()
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (DossierSelectionne is null)
         {
             return;
@@ -434,6 +478,11 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task ModifierAcheteur(AcheteurDao? acheteurSelectionne)
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (DossierSelectionne is null)
         {
             return;
@@ -462,6 +511,11 @@ public partial class DossierDaoViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task SupprimerAcheteur(AcheteurDao? acheteurSelectionne)
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (DossierSelectionne is null)
         {
             return;

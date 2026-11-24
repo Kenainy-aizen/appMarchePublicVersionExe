@@ -58,6 +58,14 @@ Fenêtre unique avec **menu latéral**, une page par module :
 5. **Suivi d'exécution** — liste des marchés suivis, ouverture du détail, OS, TEF, avenants, réceptions et clôture.
 6. **Sauvegarde** — export/restauration du fichier SQLite (clé USB).
 
+### Mode lecture seule
+
+Un interrupteur **Mode lecture seule** (menu latéral) bascule toute l'application
+en consultation : la navigation, la recherche, les filtres et le thème restent
+disponibles, mais **création, modification, suppression et restauration sont
+désactivées**. Un bandeau le rappelle en haut du contenu et chaque page désactive
+ses boutons d'écriture. Voir [docs/mode-lecture-seule.md](docs/mode-lecture-seule.md).
+
 ### Emplacement de la base
 
 Le fichier SQLite est stocké côté utilisateur :
@@ -136,6 +144,7 @@ dotnet ef database update --project src/SIGMPOffline.Data --startup-project src/
 - [Recherche et filtres de l'interface](docs/recherche-filtres.md)
 - [Suivi métier d'un marché](docs/suivi-execution.md)
 - [Tableau de bord métier](docs/tableau-de-bord.md)
+- [Mode lecture seule](docs/mode-lecture-seule.md)
 
 - [`docs/modele-donnees.md`](docs/modele-donnees.md) — schéma SQLite (tables,
   relations, index), énumérations, conventions de stockage et règles métier PPM.

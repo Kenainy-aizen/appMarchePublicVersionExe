@@ -26,6 +26,17 @@
                     </StackPanel>
                 </Border>
 
+                <!-- Mode lecture seule -->
+                <Border DockPanel.Dock="Bottom" Padding="16,10"
+                        BorderBrush="{DynamicResource SidebarDividerBrush}" BorderThickness="0,1,0,0">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Mode lecture seule" Classes="sidebar-meta" />
+                        <ToggleSwitch IsChecked="{Binding EstLectureSeule}"
+                                      OnContent="Activé"
+                                      OffContent="Désactivé" />
+                    </StackPanel>
+                </Border>
+
                 <!-- Pied de page -->
                 <Border DockPanel.Dock="Bottom" Padding="16,12"
                         BorderBrush="{DynamicResource SidebarDividerBrush}" BorderThickness="0,1,0,0">
@@ -87,10 +98,12 @@
                     </Border>
 
                     <Button Classes="icon" Command="{Binding NouvelleProvinceCommand}"
+                            IsEnabled="{Binding !EstLectureSeule}"
                             ToolTip.Tip="Nouvelle province">
                         <PathIcon Data="{x:Static vm:Icones.Ajouter}" Width="18" Height="18" />
                     </Button>
                     <Button Classes="icon" Command="{Binding ChangerMotDePasseCommand}"
+                            IsEnabled="{Binding !EstLectureSeule}"
                             ToolTip.Tip="Changer le mot de passe">
                         <PathIcon Data="{x:Static vm:Icones.Cadenas}" Width="18" Height="18" />
                     </Button>
@@ -108,7 +121,25 @@
 
         <!-- ============ Contenu de la page courante ============ -->
         <Border Background="{DynamicResource AppBackgroundBrush}">
-            <ContentControl Content="{Binding CurrentPage}" Margin="24" />
+            <DockPanel>
+                <!-- Bandeau du mode lecture seule -->
+                <Border DockPanel.Dock="Top" Margin="24,12,24,0"
+                        Background="{DynamicResource WarningSurfaceBrush}"
+                        BorderBrush="{DynamicResource WarningBorderBrush}"
+                        BorderThickness="1" CornerRadius="{DynamicResource RadiusPanel}"
+                        Padding="14,10"
+                        IsVisible="{Binding EstLectureSeule}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <PathIcon Data="{x:Static vm:Icones.Cadenas}" Width="18" Height="18"
+                                  Foreground="{DynamicResource WarningBrush}"
+                                  VerticalAlignment="Center" />
+                        <TextBlock Text="Mode lecture seule : consultation uniquement. Création, modification et suppression désactivées."
+                                   TextWrapping="Wrap" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+                <ContentControl Content="{Binding CurrentPage}" Margin="24" />
+            </DockPanel>
         </Border>
     </DockPanel>
 </UserControl>

@@ -10,13 +10,18 @@ using SIGMPOffline.Services.Abstractions;
 namespace SIGMPOffline.Desktop.ViewModels;
 
 /// <summary>Module Marché &amp; Bordereau : CRUD des marchés et de leurs éléments.</summary>
-public partial class MarcheViewModel : ViewModelBase, IPageViewModel
+public partial class MarcheViewModel : PageViewModelBase
 {
     private readonly IMarcheService _marches;
     private readonly IDossierDaoService _dao;
     private readonly IDialogService _dialogues;
 
-    public MarcheViewModel(IMarcheService marches, IDossierDaoService dao, IDialogService dialogues)
+    public MarcheViewModel(
+        IMarcheService marches,
+        IDossierDaoService dao,
+        IDialogService dialogues,
+        ModeLectureService modeLecture)
+        : base(modeLecture)
     {
         _marches = marches ?? throw new ArgumentNullException(nameof(marches));
         _dao = dao ?? throw new ArgumentNullException(nameof(dao));
@@ -33,7 +38,7 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
     }
 
     /// <inheritdoc />
-    public string Titre => "Marchés";
+    public override string Titre => "Marchés";
 
     /// <summary>Marchés formalisés.</summary>
     public ObservableCollection<Marche> Marches { get; } = new();
@@ -81,7 +86,6 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
     /// <summary>Vrai quand l'écran « détail d'un marché » est affiché à la place de la liste.</summary>
     [ObservableProperty] private bool _estEnVueDetail;
 
-    [ObservableProperty] private bool _estOccupe;
     [ObservableProperty] private string? _erreur;
     [ObservableProperty] private string? _message;
 
@@ -148,7 +152,7 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
 
     /// <inheritdoc />
     [RelayCommand]
-    public async Task ChargerAsync()
+    public override async Task ChargerAsync()
     {
         try
         {
@@ -228,6 +232,11 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task NouveauMarche()
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         var dossiers = await ChargerDossiersDisponiblesAsync();
         if (dossiers.Count == 0)
         {
@@ -257,6 +266,11 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task ModifierMarche(Marche? marcheSelectionnee)
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         var marcheActuel = marcheSelectionnee ?? MarcheSelectionne;
         if (marcheActuel is null)
         {
@@ -287,6 +301,11 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task SupprimerMarche(Marche? marcheSelectionnee)
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         var marcheActuel = marcheSelectionnee ?? MarcheSelectionne;
         if (marcheActuel is null)
         {
@@ -318,6 +337,11 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task AjouterElement()
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (MarcheSelectionne is null)
         {
             return;
@@ -341,6 +365,11 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task ModifierElement(ElementMarche? elementSelectionne)
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (MarcheSelectionne is null)
         {
             return;
@@ -370,6 +399,11 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task SupprimerElement(ElementMarche? elementSelectionne)
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (MarcheSelectionne is null)
         {
             return;
@@ -402,6 +436,11 @@ public partial class MarcheViewModel : ViewModelBase, IPageViewModel
     [RelayCommand]
     private async Task RecalculerMontants()
     {
+        if (!PeutModifier)
+        {
+            return;
+        }
+
         if (MarcheSelectionne is null)
         {
             return;

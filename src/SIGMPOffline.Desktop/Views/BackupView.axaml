@@ -59,7 +59,8 @@
                         <TextBox Text="{Binding FichierRestauration}"
                                  PlaceholderText="/media/usb/SIGMP/sigmp-backup-....db" />
                         <Button Grid.Column="1" Content="Parcourir…" Command="{Binding ParcourirFichierRestaurationCommand}" />
-                        <Button Grid.Column="2" Content="Restaurer" Command="{Binding RestaurerCommand}" />
+                        <Button Grid.Column="2" Content="Restaurer" Command="{Binding RestaurerCommand}"
+                                IsEnabled="{Binding PeutAgir}" />
                     </Grid>
                 </StackPanel>
             </Border>

@@ -133,7 +133,7 @@
                                            VerticalAlignment="Center" />
                                 <Button Grid.Column="1" Content="Nouveau marché"
                                         Command="{Binding NouveauMarcheCommand}" Classes="accent"
-                                        IsEnabled="{Binding !EstOccupe}" />
+                                        IsEnabled="{Binding PeutAgir}" />
                             </Grid>
 
                             <Border DockPanel.Dock="Top" Classes="empty-state"
@@ -201,12 +201,14 @@
                                                 </Button>
                                                 <Button Classes="icon row-action modify"
                                                         ToolTip.Tip="Modifier le marché"
+                                                        IsEnabled="{Binding $parent[UserControl].DataContext.PeutAgir}"
                                                         Command="{Binding $parent[UserControl].DataContext.ModifierMarcheCommand}"
                                                         CommandParameter="{Binding}">
                                                     <PathIcon Data="{x:Static vm:Icones.Modifier}" Width="18" Height="18" />
                                                 </Button>
                                                 <Button Classes="icon row-action delete"
                                                         ToolTip.Tip="Supprimer ce marché"
+                                                        IsEnabled="{Binding $parent[UserControl].DataContext.PeutAgir}"
                                                         Command="{Binding $parent[UserControl].DataContext.SupprimerMarcheCommand}"
                                                         CommandParameter="{Binding}">
                                                     <PathIcon Data="{x:Static vm:Icones.Supprimer}" Width="18" Height="18" />
@@ -240,16 +242,16 @@
                            MaxWidth="680" HorizontalAlignment="Right">
                     <Button Content="Modifier le marché"
                             Command="{Binding ModifierMarcheCommand}" Classes="ghost"
-                            IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,8" />
+                            IsEnabled="{Binding PeutAgir}" Margin="0,0,8,8" />
                     <Button Content="Supprimer ce marché"
                             Command="{Binding SupprimerMarcheCommand}" Classes="danger"
-                            IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,8" />
+                            IsEnabled="{Binding PeutAgir}" Margin="0,0,8,8" />
                     <Button Content="Recalculer les montants"
                             Command="{Binding RecalculerMontantsCommand}" Classes="ghost"
-                            IsEnabled="{Binding !EstOccupe}" Margin="0,0,8,8" />
+                            IsEnabled="{Binding PeutAgir}" Margin="0,0,8,8" />
                     <Button Content="Ajouter un élément"
                             Command="{Binding AjouterElementCommand}" Classes="accent"
-                            IsEnabled="{Binding !EstOccupe}" Margin="0,0,0,8" />
+                            IsEnabled="{Binding PeutAgir}" Margin="0,0,0,8" />
                 </WrapPanel>
             </Grid>
 
@@ -319,10 +321,24 @@
                                         Spacing="8" Margin="0,0,0,10">
                                 <Button Content="Ajouter un élément"
                                         Command="{Binding AjouterElementCommand}"
-                                        IsEnabled="{Binding AUnMarche}" Classes="accent" />
+                                        Classes="accent">
+                                    <Button.IsEnabled>
+                                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                            <Binding Path="PeutAgir" />
+                                            <Binding Path="AUnMarche" />
+                                        </MultiBinding>
+                                    </Button.IsEnabled>
+                                </Button>
                                 <Button Content="Recalculer les montants"
                                         Command="{Binding RecalculerMontantsCommand}"
-                                        IsEnabled="{Binding AUnMarche}" Classes="ghost" />
+                                        Classes="ghost">
+                                    <Button.IsEnabled>
+                                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                            <Binding Path="PeutAgir" />
+                                            <Binding Path="AUnMarche" />
+                                        </MultiBinding>
+                                    </Button.IsEnabled>
+                                </Button>
                             </StackPanel>
 
                             <Border DockPanel.Dock="Top" Classes="empty-state"
@@ -334,8 +350,14 @@
                                                Text="Ajoutez les articles, fournitures ou prestations du contrat." />
                                     <Button Content="Ajouter un élément" Classes="accent"
                                             HorizontalAlignment="Center"
-                                            Command="{Binding AjouterElementCommand}"
-                                            IsEnabled="{Binding AUnMarche}" />
+                                            Command="{Binding AjouterElementCommand}">
+                                        <Button.IsEnabled>
+                                            <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                <Binding Path="PeutAgir" />
+                                                <Binding Path="AUnMarche" />
+                                            </MultiBinding>
+                                        </Button.IsEnabled>
+                                    </Button>
                                 </StackPanel>
                             </Border>
 
@@ -387,6 +409,7 @@
                                                         HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4">
                                                 <Button Classes="icon row-action modify"
                                                         ToolTip.Tip="Modifier l'élément"
+                                                        IsEnabled="{Binding $parent[UserControl].DataContext.PeutAgir}"
                                                         Command="{Binding $parent[UserControl].DataContext.ModifierElementCommand}"
                                                         CommandParameter="{Binding}">
                                                     <PathIcon Data="{x:Static vm:Icones.Modifier}"
@@ -394,6 +417,7 @@
                                                 </Button>
                                                 <Button Classes="icon row-action delete"
                                                         ToolTip.Tip="Supprimer l'élément"
+                                                        IsEnabled="{Binding $parent[UserControl].DataContext.PeutAgir}"
                                                         Command="{Binding $parent[UserControl].DataContext.SupprimerElementCommand}"
                                                         CommandParameter="{Binding}">
                                                     <PathIcon Data="{x:Static vm:Icones.Supprimer}"

@@ -64,10 +64,44 @@ public class BackupViewModelTests
     }
 
     [Fact]
+    public async Task Restaurer_est_bloque_en_mode_lecture_seule()
+    {
+        var backup = new FakeBackup();
+        var dialogues = new FakeDialogues { ReponseConfirmation = true };
+        var mode = new ModeLectureService { EstActif = true };
+        var vm = new BackupViewModel(backup, dialogues, new FakePicker(), mode)
+        {
+            FichierRestauration = "/media/usb/sigmp-backup.db"
+        };
+
+        await vm.RestaurerCommand.ExecuteAsync(null);
+
+        Assert.False(vm.PeutModifier);
+        Assert.Equal(0, dialogues.Confirmations);
+        Assert.Null(backup.DernierFichierRestaure);
+    }
+
+    [Fact]
+    public void Le_mode_lecture_seule_notifie_les_pages()
+    {
+        var mode = new ModeLectureService();
+        var vm = new BackupViewModel(new FakeBackup(), new FakeDialogues(), new FakePicker(), mode);
+        var notifications = new List<string?>();
+        vm.PropertyChanged += (_, evenement) => notifications.Add(evenement.PropertyName);
+
+        mode.EstActif = true;
+
+        Assert.False(vm.PeutModifier);
+        Assert.False(vm.PeutAgir);
+        Assert.Contains(nameof(BackupViewModel.PeutModifier), notifications);
+        Assert.Contains(nameof(BackupViewModel.PeutAgir), notifications);
+    }
+
+    [Fact]
     public void Restaurer_sans_chemin_affiche_une_erreur()
     {
         var backup = new FakeBackup();
-        var vm = new BackupViewModel(backup, new FakeDialogues(), new FakePicker())
+        var vm = new BackupViewModel(backup, new FakeDialogues(), new FakePicker(), new ModeLectureService())
         {
             FichierRestauration = "   "
         };
@@ -83,7 +117,7 @@ public class BackupViewModelTests
     {
         var backup = new FakeBackup();
         var dialogues = new FakeDialogues { ReponseConfirmation = false };
-        var vm = new BackupViewModel(backup, dialogues, new FakePicker())
+        var vm = new BackupViewModel(backup, dialogues, new FakePicker(), new ModeLectureService())
         {
             FichierRestauration = "/media/usb/sigmp-backup.db"
         };
@@ -99,7 +133,7 @@ public class BackupViewModelTests
     {
         var backup = new FakeBackup();
         var dialogues = new FakeDialogues { ReponseConfirmation = true };
-        var vm = new BackupViewModel(backup, dialogues, new FakePicker())
+        var vm = new BackupViewModel(backup, dialogues, new FakePicker(), new ModeLectureService())
         {
             FichierRestauration = "/media/usb/sigmp-backup.db"
         };
@@ -114,7 +148,7 @@ public class BackupViewModelTests
     public async Task Sauvegarder_transmet_le_dossier_choisi()
     {
         var backup = new FakeBackup();
-        var vm = new BackupViewModel(backup, new FakeDialogues(), new FakePicker())
+        var vm = new BackupViewModel(backup, new FakeDialogues(), new FakePicker(), new ModeLectureService())
         {
             DossierDestination = "/media/usb/SIGMP"
         };
@@ -128,7 +162,7 @@ public class BackupViewModelTests
     public async Task Sauvegarder_sans_dossier_transmet_null()
     {
         var backup = new FakeBackup();
-        var vm = new BackupViewModel(backup, new FakeDialogues(), new FakePicker())
+        var vm = new BackupViewModel(backup, new FakeDialogues(), new FakePicker(), new ModeLectureService())
         {
             DossierDestination = "   "
         };
@@ -144,7 +178,7 @@ public class BackupViewModelTests
         var vm = new BackupViewModel(new FakeBackup(), new FakeDialogues(), new FakePicker
         {
             Dossier = "/media/usb/CLES"
-        });
+        }, new ModeLectureService());
 
         await vm.ParcourirDossierCommand.ExecuteAsync(null);
 
@@ -157,7 +191,7 @@ public class BackupViewModelTests
         var vm = new BackupViewModel(new FakeBackup(), new FakeDialogues(), new FakePicker
         {
             Fichier = "/media/usb/sigmp-backup.db"
-        });
+        }, new ModeLectureService());
 
         await vm.ParcourirFichierRestaurationCommand.ExecuteAsync(null);
 
