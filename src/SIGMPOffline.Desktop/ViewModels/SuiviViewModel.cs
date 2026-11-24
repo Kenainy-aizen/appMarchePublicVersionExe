@@ -74,6 +74,12 @@ public partial class SuiviViewModel : PageViewModelBase
     [NotifyPropertyChangedFor(nameof(TitreDetailMarche))]
     private Marche? _marcheSelectionne;
 
+    /// <summary>
+    /// Ligne sélectionnée dans la liste. Volontairement distincte de <see cref="MarcheSelectionne"/> :
+    /// la liste remet sa sélection à null à chaque rafraîchissement, ce qui ne doit pas vider le détail ouvert.
+    /// </summary>
+    [ObservableProperty] private Marche? _marcheListeSelectionne;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AUnAvenant))]
     private Avenant? _avenantSelectionne;
@@ -123,6 +129,10 @@ public partial class SuiviViewModel : PageViewModelBase
             EstOccupe = true;
             Erreur = null;
 
+            // Mémorise le marché ouvert en détail pour le restaurer après rechargement
+            // (retour depuis une autre page du menu, bouton « Actualiser »…).
+            var refConservee = EstEnVueDetail ? MarcheSelectionne?.RefMarche : null;
+
             var marches = await _marches.ListerAsync();
             var situations = await _suivi.ListerSituationsAsync();
             _situations.Clear();
@@ -136,7 +146,24 @@ public partial class SuiviViewModel : PageViewModelBase
                 Marches.Add(marche);
             }
 
-            MarcheSelectionne = Marches.FirstOrDefault();
+            if (refConservee is not null)
+            {
+                var restaure = Marches.FirstOrDefault(m =>
+                    string.Equals(m.RefMarche, refConservee, StringComparison.OrdinalIgnoreCase));
+
+                if (restaure is null)
+                {
+                    // Le marché n'existe plus : retour à la liste.
+                    EstEnVueDetail = false;
+                    MarcheSelectionne = null;
+                }
+                else
+                {
+                    MarcheSelectionne = restaure;
+                    await ActualiserAsync(restaure.RefMarche);
+                }
+            }
+
             NotifierCompteurs();
             OnPropertyChanged(nameof(MarchesFiltres));
         }
@@ -155,7 +182,7 @@ public partial class SuiviViewModel : PageViewModelBase
     [RelayCommand]
     private void OuvrirMarche(Marche? marcheChoisi)
     {
-        var marche = marcheChoisi ?? MarcheSelectionne;
+        var marche = marcheChoisi ?? MarcheListeSelectionne;
         if (marche is null) return;
 
         Erreur = null;
@@ -486,9 +513,16 @@ public partial class SuiviViewModel : PageViewModelBase
     {
         try
         {
-            Situation = await _suivi.ObtenirSituationAsync(refMarche);
-
+            var nouvelleSituation = await _suivi.ObtenirSituationAsync(refMarche);
             var marche = await _marches.ObtenirAsync(refMarche);
+
+            // Ignore le résultat si un autre marché a été sélectionné entre-temps.
+            if (!string.Equals(MarcheSelectionne?.RefMarche, refMarche, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            Situation = nouvelleSituation;
             Avenants.Clear();
             foreach (var avenant in marche.Avenants.OrderByDescending(a => a.DateAvenant))
             {
