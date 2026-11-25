@@ -23,7 +23,7 @@ public class DependencyInjectionTests
         // BuildServiceProvider active ValidateScopes et ValidateOnBuild : la
         // construction échouerait si un singleton dépendait d'un service Scoped.
         Assert.NotNull(provider.GetRequiredService<IAuthService>());
-        Assert.NotNull(provider.GetRequiredService<ShellViewModel>());
         Assert.NotNull(provider.GetRequiredService<DashboardViewModel>());
+        Assert.NotNull(provider.GetRequiredService<BackupViewModel>());
     }
 }
