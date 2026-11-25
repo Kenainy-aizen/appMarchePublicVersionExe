@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using SIGMPOffline.Data;
 using SIGMPOffline.Data.Database;
+using SIGMPOffline.Data.Repositories;
 using SIGMPOffline.Domain.Entities;
 using SIGMPOffline.Domain.Enums;
 
@@ -64,6 +65,50 @@ public class PersistenceTests
             .SqlQuery<long>($"SELECT \"MontantEstimatif\" AS \"Value\" FROM \"PPMDetail\"")
             .SingleAsync();
         Assert.Equal(123_456L, stored);
+    }
+
+    [Fact]
+    public async Task SaveChangesAsync_reste_utilisable_apres_un_doublon_de_cle()
+    {
+        var (context, connection) = await CreateContextAsync();
+        await using var _ = connection;
+        await using var unitOfWork = new UnitOfWork(context);
+
+        context.Provinces.Add(new Province
+        {
+            NomProvince = "Analamanga",
+            PasswordHash = "hash",
+            Salt = "sel",
+            DateCreation = new DateTime(2026, 1, 1)
+        });
+        await unitOfWork.SaveChangesAsync();
+
+        var doublon = new Province
+        {
+            NomProvince = "Analamanga",
+            PasswordHash = "hash",
+            Salt = "sel",
+            DateCreation = new DateTime(2026, 1, 2)
+        };
+        context.Provinces.Add(doublon);
+
+        await Assert.ThrowsAsync<DbUpdateException>(() => unitOfWork.SaveChangesAsync());
+
+        // L'entité refusée est détachée : le contexte n'est plus « empoisonné ».
+        Assert.Equal(EntityState.Detached, context.Entry(doublon).State);
+
+        context.Provinces.Add(new Province
+        {
+            NomProvince = "Vakinankaratra",
+            PasswordHash = "hash",
+            Salt = "sel",
+            DateCreation = new DateTime(2026, 1, 3)
+        });
+
+        var enregistres = await unitOfWork.SaveChangesAsync();
+
+        Assert.Equal(1, enregistres);
+        Assert.Equal(2, await context.Provinces.CountAsync());
     }
 
     [Fact]

@@ -6,25 +6,27 @@ using SIGMPOffline.Desktop.Services;
 using SIGMPOffline.Desktop.ViewModels.Dialogs;
 using SIGMPOffline.Domain.Entities;
 using SIGMPOffline.Services.Abstractions;
+using SIGMPOffline.Services.Scoping;
 
 namespace SIGMPOffline.Desktop.ViewModels;
 
 /// <summary>Module Marché &amp; Bordereau : CRUD des marchés et de leurs éléments.</summary>
 public partial class MarcheViewModel : PageViewModelBase
 {
-    private readonly IMarcheService _marches;
-    private readonly IDossierDaoService _dao;
+    private readonly IScopeRunner _scopeRunner;
     private readonly IDialogService _dialogues;
 
+    // Un seul chargement de bordereau à la fois : évite deux lectures concurrentes.
+    private readonly SemaphoreSlim _chargementBordereau = new(1, 1);
+    private bool _chargementBordereauSuspendu;
+
     public MarcheViewModel(
-        IMarcheService marches,
-        IDossierDaoService dao,
+        IScopeRunner scopeRunner,
         IDialogService dialogues,
         ModeLectureService modeLecture)
         : base(modeLecture)
     {
-        _marches = marches ?? throw new ArgumentNullException(nameof(marches));
-        _dao = dao ?? throw new ArgumentNullException(nameof(dao));
+        _scopeRunner = scopeRunner ?? throw new ArgumentNullException(nameof(scopeRunner));
         _dialogues = dialogues ?? throw new ArgumentNullException(nameof(dialogues));
 
         Marches.CollectionChanged += (_, _) => NotifierCompteursMarches();
@@ -168,21 +170,46 @@ public partial class MarcheViewModel : PageViewModelBase
             // On garde le marché sélectionné (s'il existe encore) après un rechargement.
             var refConservee = MarcheSelectionne?.RefMarche;
 
-            var marches = await _marches.ListerAvecBordereauAsync();
+            IReadOnlyList<Marche> marches;
+            await _chargementBordereau.WaitAsync();
+            try
+            {
+                marches = await _scopeRunner.ExecuterAsync<IMarcheService, IReadOnlyList<Marche>>(
+                    service => service.ListerAvecBordereauAsync());
+            }
+            finally
+            {
+                _chargementBordereau.Release();
+            }
+
             Marches.Clear();
             foreach (var marche in marches)
             {
                 Marches.Add(marche);
             }
 
-            MarcheSelectionne = refConservee is null
-                ? Marches.FirstOrDefault()
-                : Marches.FirstOrDefault(m => m.RefMarche == refConservee) ?? Marches.FirstOrDefault();
+            // Le setter déclenche normalement un chargement en tâche de fond : on le
+            // suspend ici pour charger le bordereau une seule fois, de façon attendue.
+            _chargementBordereauSuspendu = true;
+            try
+            {
+                MarcheSelectionne = refConservee is null
+                    ? Marches.FirstOrDefault()
+                    : Marches.FirstOrDefault(m => m.RefMarche == refConservee) ?? Marches.FirstOrDefault();
+            }
+            finally
+            {
+                _chargementBordereauSuspendu = false;
+            }
 
             if (MarcheSelectionne is null)
             {
                 // Plus de marché à afficher : retour à la liste.
                 EstEnVueDetail = false;
+            }
+            else
+            {
+                await ChargerElementsAsync(MarcheSelectionne.RefMarche);
             }
 
             NotifierCompteursMarches();
@@ -202,7 +229,7 @@ public partial class MarcheViewModel : PageViewModelBase
 
     /// <summary>« Ouvrir » : affiche le détail du marché choisi à la place de la liste.</summary>
     [RelayCommand]
-    private void OuvrirMarche(Marche? marcheChoisi)
+    private async Task OuvrirMarche(Marche? marcheChoisi)
     {
         var marche = marcheChoisi ?? MarcheListeSelectionne;
         if (marche is null)
@@ -213,15 +240,18 @@ public partial class MarcheViewModel : PageViewModelBase
         Erreur = null;
         Message = null;
 
-        var memeSelection = ReferenceEquals(MarcheSelectionne, marche);
-        MarcheSelectionne = marche;
-        EstEnVueDetail = true;
-
-        if (memeSelection)
+        _chargementBordereauSuspendu = true;
+        try
         {
-            // Pas de changement de sélection : on relit le bordereau pour être à jour.
-            _ = ChargerElementsAsync(marche.RefMarche);
+            MarcheSelectionne = marche;
         }
+        finally
+        {
+            _chargementBordereauSuspendu = false;
+        }
+
+        EstEnVueDetail = true;
+        await ChargerElementsAsync(marche.RefMarche);
     }
 
     /// <summary>« Retour aux marchés » : revient à la liste (rechargée pour mettre à jour les compteurs).</summary>
@@ -263,7 +293,8 @@ public partial class MarcheViewModel : PageViewModelBase
 
         var marche = dialogue.VersEntite();
         await ExecuterAsync(
-            () => _marches.CreerDepuisDossierAsync(marche),
+            () => _scopeRunner.ExecuterAsync<IMarcheService>(
+                service => service.CreerDepuisDossierAsync(marche)),
             $"Le marché « {marche.RefMarche} » a été créé.");
 
         await ChargerAsync();
@@ -298,7 +329,7 @@ public partial class MarcheViewModel : PageViewModelBase
 
         var marche = dialogue.VersEntite();
         await ExecuterAsync(
-            () => _marches.ModifierAsync(marche),
+            () => _scopeRunner.ExecuterAsync<IMarcheService>(service => service.ModifierAsync(marche)),
             "Le marché a été modifié.");
 
         await ChargerAsync();
@@ -330,7 +361,10 @@ public partial class MarcheViewModel : PageViewModelBase
             return;
         }
 
-        if (await ExecuterAsync(() => _marches.SupprimerAsync(reference), "Le marché a été supprimé."))
+        if (await ExecuterAsync(
+                () => _scopeRunner.ExecuterAsync<IMarcheService>(
+                    service => service.SupprimerAsync(reference)),
+                "Le marché a été supprimé."))
         {
             // Plus rien à afficher dans le détail : retour à la liste.
             EstEnVueDetail = false;
@@ -363,7 +397,8 @@ public partial class MarcheViewModel : PageViewModelBase
         var element = dialogue.VersEntite();
         var refMarche = MarcheSelectionne.RefMarche;
         await ExecuterAsync(
-            () => _marches.AjouterElementAsync(refMarche, element),
+            () => _scopeRunner.ExecuterAsync<IMarcheService>(
+                service => service.AjouterElementAsync(refMarche, element)),
             "L'élément a été ajouté au bordereau.");
 
         await ChargerElementsAsync(refMarche);
@@ -397,7 +432,8 @@ public partial class MarcheViewModel : PageViewModelBase
         var element = dialogue.VersEntite();
         var refMarche = MarcheSelectionne.RefMarche;
         await ExecuterAsync(
-            () => _marches.ModifierElementAsync(refMarche, element),
+            () => _scopeRunner.ExecuterAsync<IMarcheService>(
+                service => service.ModifierElementAsync(refMarche, element)),
             "L'élément a été modifié.");
 
         await ChargerElementsAsync(refMarche);
@@ -434,7 +470,8 @@ public partial class MarcheViewModel : PageViewModelBase
 
         var refMarche = MarcheSelectionne.RefMarche;
         await ExecuterAsync(
-            () => _marches.SupprimerElementAsync(refMarche, code),
+            () => _scopeRunner.ExecuterAsync<IMarcheService>(
+                service => service.SupprimerElementAsync(refMarche, code)),
             "L'élément a été supprimé.");
 
         await ChargerElementsAsync(refMarche);
@@ -455,7 +492,8 @@ public partial class MarcheViewModel : PageViewModelBase
 
         var refMarche = MarcheSelectionne.RefMarche;
         await ExecuterAsync(
-            () => _marches.RecalculerMontantsAsync(refMarche),
+            () => _scopeRunner.ExecuterAsync<IMarcheService>(
+                service => service.RecalculerMontantsAsync(refMarche)),
             "Les montants ont été recalculés à partir du bordereau (TVA 18 %).");
 
         await ChargerAsync();
@@ -469,7 +507,7 @@ public partial class MarcheViewModel : PageViewModelBase
         Elements.Clear();
         ElementSelectionne = null;
 
-        if (value is not null)
+        if (value is not null && !_chargementBordereauSuspendu)
         {
             _ = ChargerElementsAsync(value.RefMarche);
         }
@@ -477,9 +515,11 @@ public partial class MarcheViewModel : PageViewModelBase
 
     private async Task ChargerElementsAsync(string refMarche)
     {
+        await _chargementBordereau.WaitAsync();
         try
         {
-            var marche = await _marches.ObtenirAsync(refMarche);
+            var marche = await _scopeRunner.ExecuterAsync<IMarcheService, Marche>(
+                service => service.ObtenirAsync(refMarche));
             Elements.Clear();
             foreach (var element in marche.Elements)
             {
@@ -492,17 +532,26 @@ public partial class MarcheViewModel : PageViewModelBase
         {
             Erreur = ex.Message;
         }
+        finally
+        {
+            _chargementBordereau.Release();
+        }
     }
 
     /// <summary>Dossiers DAO qui ne sont pas encore rattachés à un marché.</summary>
     private async Task<IReadOnlyList<OptionDossier>> ChargerDossiersDisponiblesAsync()
     {
-        var dejaAssocies = (await _marches.ListerAsync())
+        var marches = await _scopeRunner.ExecuterAsync<IMarcheService, IReadOnlyList<Marche>>(
+            service => service.ListerAsync());
+        var dejaAssocies = marches
             .Select(m => m.RefDossier)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
+        var tousDossiers = await _scopeRunner.ExecuterAsync<IDossierDaoService, IReadOnlyList<DossierDao>>(
+            service => service.ListerAsync());
+
         var dossiers = new List<OptionDossier>();
-        foreach (var dossier in await _dao.ListerAsync())
+        foreach (var dossier in tousDossiers)
         {
             if (dejaAssocies.Contains(dossier.RefDossier))
             {
@@ -524,7 +573,8 @@ public partial class MarcheViewModel : PageViewModelBase
 
         foreach (var dossier in dossiers)
         {
-            var complet = await _dao.ObtenirAsync(dossier.RefDossier);
+            var complet = await _scopeRunner.ExecuterAsync<IDossierDaoService, DossierDao>(
+                service => service.ObtenirAsync(dossier.RefDossier));
             resultat[dossier.RefDossier] = complet.Acheteurs
                 .Select(a => new OptionTitulaire(a.NumStat, $"{a.RaisonSociale} ({a.NumStat})"))
                 .ToList();

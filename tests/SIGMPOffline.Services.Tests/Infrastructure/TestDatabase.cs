@@ -1,9 +1,11 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using SIGMPOffline.Data;
 using SIGMPOffline.Data.Database;
 using SIGMPOffline.Data.Repositories;
 using SIGMPOffline.Data.Repositories.Interfaces;
+using SIGMPOffline.Services.Scoping;
 
 namespace SIGMPOffline.Services.Tests.Infrastructure;
 
@@ -14,6 +16,7 @@ namespace SIGMPOffline.Services.Tests.Infrastructure;
 public sealed class TestDatabase : IAsyncDisposable
 {
     private readonly SqliteConnection _connection;
+    private readonly ServiceProvider _provider;
 
     private TestDatabase(SqliteConnection connection, AppDbContext context, ProvinceAccessor provinceAccessor)
     {
@@ -21,6 +24,16 @@ public sealed class TestDatabase : IAsyncDisposable
         Context = context;
         ProvinceAccessor = provinceAccessor;
         UnitOfWork = new UnitOfWork(context);
+
+        // Les services de test sont exposés en singletons : les scopes créés par le
+        // runner réutilisent donc le contexte et l'unité de travail de la base en mémoire.
+        var services = new ServiceCollection();
+        services.AddSingleton(context);
+        services.AddSingleton(UnitOfWork);
+        services.AddSingleton(provinceAccessor);
+        _provider = services.BuildServiceProvider();
+
+        ScopeRunner = new ScopeRunner(_provider.GetRequiredService<IServiceScopeFactory>());
     }
 
     /// <summary>Contexte EF Core de test.</summary>
@@ -34,6 +47,9 @@ public sealed class TestDatabase : IAsyncDisposable
     /// non filtré (comportement des tests mono-province existants).
     /// </summary>
     public ProvinceAccessor ProvinceAccessor { get; }
+
+    /// <summary>Exécuteur de scopes branché sur le contexte de test.</summary>
+    public IScopeRunner ScopeRunner { get; }
 
     /// <summary>Crée une base en mémoire prête à l'emploi.</summary>
     public static async Task<TestDatabase> CreateAsync()
@@ -55,6 +71,7 @@ public sealed class TestDatabase : IAsyncDisposable
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
+        _provider.Dispose();
         await Context.DisposeAsync();
         await _connection.DisposeAsync();
     }

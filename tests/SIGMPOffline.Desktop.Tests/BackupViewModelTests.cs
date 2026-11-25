@@ -1,4 +1,5 @@
 using SIGMPOffline.Desktop.Services;
+using SIGMPOffline.Desktop.Tests.Infrastructure;
 using SIGMPOffline.Desktop.ViewModels;
 using SIGMPOffline.Desktop.ViewModels.Dialogs;
 using SIGMPOffline.Services.Abstractions;
@@ -69,7 +70,7 @@ public class BackupViewModelTests
         var backup = new FakeBackup();
         var dialogues = new FakeDialogues { ReponseConfirmation = true };
         var mode = new ModeLectureService { EstActif = true };
-        var vm = new BackupViewModel(backup, dialogues, new FakePicker(), mode)
+        var vm = new BackupViewModel(RunnerDeTest.Creer<IBackupService>(backup), dialogues, new FakePicker(), mode)
         {
             FichierRestauration = "/media/usb/sigmp-backup.db"
         };
@@ -85,7 +86,7 @@ public class BackupViewModelTests
     public void Le_mode_lecture_seule_notifie_les_pages()
     {
         var mode = new ModeLectureService();
-        var vm = new BackupViewModel(new FakeBackup(), new FakeDialogues(), new FakePicker(), mode);
+        var vm = new BackupViewModel(RunnerDeTest.Creer<IBackupService>(new FakeBackup()), new FakeDialogues(), new FakePicker(), mode);
         var notifications = new List<string?>();
         vm.PropertyChanged += (_, evenement) => notifications.Add(evenement.PropertyName);
 
@@ -101,7 +102,7 @@ public class BackupViewModelTests
     public void Restaurer_sans_chemin_affiche_une_erreur()
     {
         var backup = new FakeBackup();
-        var vm = new BackupViewModel(backup, new FakeDialogues(), new FakePicker(), new ModeLectureService())
+        var vm = new BackupViewModel(RunnerDeTest.Creer<IBackupService>(backup), new FakeDialogues(), new FakePicker(), new ModeLectureService())
         {
             FichierRestauration = "   "
         };
@@ -117,7 +118,7 @@ public class BackupViewModelTests
     {
         var backup = new FakeBackup();
         var dialogues = new FakeDialogues { ReponseConfirmation = false };
-        var vm = new BackupViewModel(backup, dialogues, new FakePicker(), new ModeLectureService())
+        var vm = new BackupViewModel(RunnerDeTest.Creer<IBackupService>(backup), dialogues, new FakePicker(), new ModeLectureService())
         {
             FichierRestauration = "/media/usb/sigmp-backup.db"
         };
@@ -133,7 +134,7 @@ public class BackupViewModelTests
     {
         var backup = new FakeBackup();
         var dialogues = new FakeDialogues { ReponseConfirmation = true };
-        var vm = new BackupViewModel(backup, dialogues, new FakePicker(), new ModeLectureService())
+        var vm = new BackupViewModel(RunnerDeTest.Creer<IBackupService>(backup), dialogues, new FakePicker(), new ModeLectureService())
         {
             FichierRestauration = "/media/usb/sigmp-backup.db"
         };
@@ -148,7 +149,7 @@ public class BackupViewModelTests
     public async Task Sauvegarder_transmet_le_dossier_choisi()
     {
         var backup = new FakeBackup();
-        var vm = new BackupViewModel(backup, new FakeDialogues(), new FakePicker(), new ModeLectureService())
+        var vm = new BackupViewModel(RunnerDeTest.Creer<IBackupService>(backup), new FakeDialogues(), new FakePicker(), new ModeLectureService())
         {
             DossierDestination = "/media/usb/SIGMP"
         };
@@ -162,7 +163,7 @@ public class BackupViewModelTests
     public async Task Sauvegarder_sans_dossier_transmet_null()
     {
         var backup = new FakeBackup();
-        var vm = new BackupViewModel(backup, new FakeDialogues(), new FakePicker(), new ModeLectureService())
+        var vm = new BackupViewModel(RunnerDeTest.Creer<IBackupService>(backup), new FakeDialogues(), new FakePicker(), new ModeLectureService())
         {
             DossierDestination = "   "
         };
@@ -175,7 +176,7 @@ public class BackupViewModelTests
     [Fact]
     public async Task ParcourirDossier_renseigne_le_chemin_choisi()
     {
-        var vm = new BackupViewModel(new FakeBackup(), new FakeDialogues(), new FakePicker
+        var vm = new BackupViewModel(RunnerDeTest.Creer<IBackupService>(new FakeBackup()), new FakeDialogues(), new FakePicker
         {
             Dossier = "/media/usb/CLES"
         }, new ModeLectureService());
@@ -188,7 +189,7 @@ public class BackupViewModelTests
     [Fact]
     public async Task ParcourirFichierRestauration_renseigne_le_chemin_choisi()
     {
-        var vm = new BackupViewModel(new FakeBackup(), new FakeDialogues(), new FakePicker
+        var vm = new BackupViewModel(RunnerDeTest.Creer<IBackupService>(new FakeBackup()), new FakeDialogues(), new FakePicker
         {
             Fichier = "/media/usb/sigmp-backup.db"
         }, new ModeLectureService());

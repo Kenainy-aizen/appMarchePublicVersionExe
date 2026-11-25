@@ -1,3 +1,4 @@
+using SIGMPOffline.Desktop.Tests.Infrastructure;
 using SIGMPOffline.Desktop.ViewModels;
 using SIGMPOffline.Domain.Enums;
 using SIGMPOffline.Services.Abstractions;
@@ -11,7 +12,7 @@ public class DashboardViewModelTests
     [Fact]
     public async Task Charger_remplit_les_indicateurs_et_limite_les_apercus()
     {
-        var vm = new DashboardViewModel(new FakeDashboard());
+        var vm = new DashboardViewModel(RunnerDeTest.Creer<IDashboardService>(new FakeDashboard()));
 
         await vm.ChargerAsync();
 
@@ -35,7 +36,7 @@ public class DashboardViewModelTests
     [Fact]
     public async Task Les_boutons_voir_tout_affichent_toutes_les_lignes()
     {
-        var vm = new DashboardViewModel(new FakeDashboard());
+        var vm = new DashboardViewModel(RunnerDeTest.Creer<IDashboardService>(new FakeDashboard()));
         await vm.ChargerAsync();
 
         vm.BasculerAlertesCommand.Execute(null);
@@ -54,7 +55,7 @@ public class DashboardViewModelTests
     public async Task Les_filtres_alimentent_le_service_avec_la_periode_choisie()
     {
         var service = new FakeDashboard();
-        var vm = new DashboardViewModel(service);
+        var vm = new DashboardViewModel(RunnerDeTest.Creer<IDashboardService>(service));
         await vm.ChargerAsync();
 
         vm.PeriodeEcheances = "60 jours";
@@ -68,7 +69,7 @@ public class DashboardViewModelTests
     [Fact]
     public void Ouvrir_marche_demande_la_navigation_vers_le_suivi()
     {
-        var vm = new DashboardViewModel(new FakeDashboard());
+        var vm = new DashboardViewModel(RunnerDeTest.Creer<IDashboardService>(new FakeDashboard()));
         string? marcheDemandee = null;
         vm.MarcheDemandee += (_, refMarche) => marcheDemandee = refMarche;
 

@@ -6,6 +6,7 @@ using SIGMPOffline.Desktop.ViewModels.Dialogs;
 using SIGMPOffline.Domain.Entities;
 using SIGMPOffline.Services.Abstractions;
 using SIGMPOffline.Services.Models;
+using SIGMPOffline.Services.Scoping;
 
 namespace SIGMPOffline.Desktop.ViewModels;
 
@@ -15,19 +16,19 @@ namespace SIGMPOffline.Desktop.ViewModels;
 /// </summary>
 public partial class SuiviViewModel : PageViewModelBase
 {
-    private readonly ISuiviExecutionService _suivi;
-    private readonly IMarcheService _marches;
+    private readonly IScopeRunner _scopeRunner;
     private readonly IDialogService _dialogues;
 
+    // Un seul chargement de situation à la fois : évite deux lectures concurrentes.
+    private readonly SemaphoreSlim _chargementSituation = new(1, 1);
+
     public SuiviViewModel(
-        ISuiviExecutionService suivi,
-        IMarcheService marches,
+        IScopeRunner scopeRunner,
         IDialogService dialogues,
         ModeLectureService modeLecture)
         : base(modeLecture)
     {
-        _suivi = suivi ?? throw new ArgumentNullException(nameof(suivi));
-        _marches = marches ?? throw new ArgumentNullException(nameof(marches));
+        _scopeRunner = scopeRunner ?? throw new ArgumentNullException(nameof(scopeRunner));
         _dialogues = dialogues ?? throw new ArgumentNullException(nameof(dialogues));
     }
 
@@ -133,8 +134,21 @@ public partial class SuiviViewModel : PageViewModelBase
             // (retour depuis une autre page du menu, bouton « Actualiser »…).
             var refConservee = EstEnVueDetail ? MarcheSelectionne?.RefMarche : null;
 
-            var marches = await _marches.ListerAsync();
-            var situations = await _suivi.ListerSituationsAsync();
+            IReadOnlyList<Marche> marches;
+            IReadOnlyList<SituationMarche> situations;
+            await _chargementSituation.WaitAsync();
+            try
+            {
+                marches = await _scopeRunner.ExecuterAsync<IMarcheService, IReadOnlyList<Marche>>(
+                    service => service.ListerAsync());
+                situations = await _scopeRunner.ExecuterAsync<ISuiviExecutionService, IReadOnlyList<SituationMarche>>(
+                    service => service.ListerSituationsAsync());
+            }
+            finally
+            {
+                _chargementSituation.Release();
+            }
+
             _situations.Clear();
             foreach (var situation in situations)
             {
@@ -159,7 +173,7 @@ public partial class SuiviViewModel : PageViewModelBase
                 }
                 else
                 {
-                    // Un seul chargement à la fois : le DbContext est partagé et n'est pas thread-safe.
+                    // Un seul chargement à la fois : évite deux actualisations concurrentes de l'écran.
                     _actualisationParSelectionSuspendue = true;
                     try { MarcheSelectionne = restaure; }
                     finally { _actualisationParSelectionSuspendue = false; }
@@ -184,22 +198,28 @@ public partial class SuiviViewModel : PageViewModelBase
     // ---------- Navigation liste <-> détail ----------
 
     [RelayCommand]
-    private void OuvrirMarche(Marche? marcheChoisi)
+    private async Task OuvrirMarche(Marche? marcheChoisi)
     {
         var marche = marcheChoisi ?? MarcheListeSelectionne;
         if (marche is null) return;
 
         Erreur = null;
         Message = null;
-        var memeInstance = ReferenceEquals(MarcheSelectionne, marche);
-        MarcheSelectionne = marche;
-        EstEnVueDetail = true;
 
-        // Si la sélection a changé, OnMarcheSelectionneChanged lance déjà le chargement.
-        if (memeInstance)
+        // Le setter déclenche normalement un chargement en tâche de fond : on le
+        // suspend ici pour charger la situation une seule fois, de façon attendue.
+        _actualisationParSelectionSuspendue = true;
+        try
         {
-            _ = ActualiserAsync(marche.RefMarche);
+            MarcheSelectionne = marche;
         }
+        finally
+        {
+            _actualisationParSelectionSuspendue = false;
+        }
+
+        EstEnVueDetail = true;
+        await ActualiserAsync(marche.RefMarche);
     }
 
     /// <summary>
@@ -225,7 +245,7 @@ public partial class SuiviViewModel : PageViewModelBase
 
         RechercheSuivi = string.Empty;
         FiltreStatutSuivi = "Tous";
-        OuvrirMarche(marche);
+        await OuvrirMarche(marche);
     }
 
     [RelayCommand]
@@ -262,7 +282,8 @@ public partial class SuiviViewModel : PageViewModelBase
         }
 
         await ExecuterAsync(
-            () => _suivi.EmettreOrdreServiceAsync(MarcheSelectionne.RefMarche, dialogue.VersDate()),
+            () => _scopeRunner.ExecuterAsync<ISuiviExecutionService>(
+                service => service.EmettreOrdreServiceAsync(MarcheSelectionne.RefMarche, dialogue.VersDate())),
             "Ordre de service émis.");
     }
 
@@ -286,7 +307,8 @@ public partial class SuiviViewModel : PageViewModelBase
         }
 
         await ExecuterAsync(
-            () => _suivi.EnregistrerTefAsync(MarcheSelectionne.RefMarche, dialogue.VersRefTef()),
+            () => _scopeRunner.ExecuterAsync<ISuiviExecutionService>(
+                service => service.EnregistrerTefAsync(MarcheSelectionne.RefMarche, dialogue.VersRefTef())),
             "TEF enregistré.");
     }
 
@@ -340,7 +362,8 @@ public partial class SuiviViewModel : PageViewModelBase
         }
 
         await ExecuterAsync(
-            () => _suivi.CloturerAsync(MarcheSelectionne.RefMarche, dialogue.VersDate()),
+            () => _scopeRunner.ExecuterAsync<ISuiviExecutionService>(
+                service => service.CloturerAsync(MarcheSelectionne.RefMarche, dialogue.VersDate())),
             "Marché clôturé.");
     }
 
@@ -367,7 +390,8 @@ public partial class SuiviViewModel : PageViewModelBase
 
         var avenant = dialogue.VersEntite();
         await ExecuterAsync(
-            () => _suivi.AjouterAvenantAsync(MarcheSelectionne.RefMarche, avenant),
+            () => _scopeRunner.ExecuterAsync<ISuiviExecutionService>(
+                service => service.AjouterAvenantAsync(MarcheSelectionne.RefMarche, avenant)),
             "Avenant ajouté.");
     }
 
@@ -398,7 +422,8 @@ public partial class SuiviViewModel : PageViewModelBase
 
         var avenant = dialogue.VersEntite();
         await ExecuterAsync(
-            () => _suivi.ModifierAvenantAsync(MarcheSelectionne.RefMarche, avenant),
+            () => _scopeRunner.ExecuterAsync<ISuiviExecutionService>(
+                service => service.ModifierAvenantAsync(MarcheSelectionne.RefMarche, avenant)),
             "Avenant modifié.");
     }
 
@@ -432,7 +457,8 @@ public partial class SuiviViewModel : PageViewModelBase
         }
 
         await ExecuterAsync(
-            () => _suivi.SupprimerAvenantAsync(MarcheSelectionne.RefMarche, id),
+            () => _scopeRunner.ExecuterAsync<ISuiviExecutionService>(
+                service => service.SupprimerAvenantAsync(MarcheSelectionne.RefMarche, id)),
             "Avenant supprimé.");
     }
 
@@ -486,8 +512,10 @@ public partial class SuiviViewModel : PageViewModelBase
 
         await ExecuterAsync(
             () => definitive
-                ? _suivi.EnregistrerReceptionDefinitiveAsync(refMarche, date)
-                : _suivi.EnregistrerReceptionProvisoireAsync(refMarche, date),
+                ? _scopeRunner.ExecuterAsync<ISuiviExecutionService>(
+                    service => service.EnregistrerReceptionDefinitiveAsync(refMarche, date))
+                : _scopeRunner.ExecuterAsync<ISuiviExecutionService>(
+                    service => service.EnregistrerReceptionProvisoireAsync(refMarche, date)),
             definitive
                 ? "Réception définitive enregistrée."
                 : "Réception provisoire enregistrée.");
@@ -523,10 +551,13 @@ public partial class SuiviViewModel : PageViewModelBase
 
     private async Task ActualiserAsync(string refMarche)
     {
+        await _chargementSituation.WaitAsync();
         try
         {
-            var nouvelleSituation = await _suivi.ObtenirSituationAsync(refMarche);
-            var marche = await _marches.ObtenirAsync(refMarche);
+            var nouvelleSituation = await _scopeRunner.ExecuterAsync<ISuiviExecutionService, SituationMarche>(
+                service => service.ObtenirSituationAsync(refMarche));
+            var marche = await _scopeRunner.ExecuterAsync<IMarcheService, Marche>(
+                service => service.ObtenirAsync(refMarche));
 
             // Ignore le résultat si un autre marché a été sélectionné entre-temps.
             if (!string.Equals(MarcheSelectionne?.RefMarche, refMarche, StringComparison.OrdinalIgnoreCase))
@@ -546,6 +577,10 @@ public partial class SuiviViewModel : PageViewModelBase
         catch (Exception ex)
         {
             Erreur = ex.Message;
+        }
+        finally
+        {
+            _chargementSituation.Release();
         }
     }
 }

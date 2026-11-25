@@ -5,6 +5,7 @@ using SIGMPOffline.Desktop.Services;
 using SIGMPOffline.Desktop.ViewModels.Dialogs;
 using SIGMPOffline.Domain.Entities;
 using SIGMPOffline.Services.Abstractions;
+using SIGMPOffline.Services.Scoping;
 
 namespace SIGMPOffline.Desktop.ViewModels;
 
@@ -15,13 +16,17 @@ namespace SIGMPOffline.Desktop.ViewModels;
 /// </summary>
 public partial class PpmViewModel : PageViewModelBase
 {
-    private readonly IPpmService _ppm;
+    private readonly IScopeRunner _scopeRunner;
     private readonly IDialogService _dialogues;
 
-    public PpmViewModel(IPpmService ppm, IDialogService dialogues, ModeLectureService modeLecture)
+    // Un seul chargement de détail à la fois : évite deux lectures concurrentes.
+    private readonly SemaphoreSlim _chargementDetails = new(1, 1);
+    private bool _chargementDetailsSuspendu;
+
+    public PpmViewModel(IScopeRunner scopeRunner, IDialogService dialogues, ModeLectureService modeLecture)
         : base(modeLecture)
     {
-        _ppm = ppm ?? throw new ArgumentNullException(nameof(ppm));
+        _scopeRunner = scopeRunner ?? throw new ArgumentNullException(nameof(scopeRunner));
         _dialogues = dialogues ?? throw new ArgumentNullException(nameof(dialogues));
 
         Entetes.CollectionChanged += (_, _) =>
@@ -150,7 +155,18 @@ public partial class PpmViewModel : PageViewModelBase
             // On garde le plan sélectionné (s'il existe encore) après un rechargement.
             var numConserve = EnteteSelectionne?.NumPPM;
 
-            var entetes = await _ppm.ListerAsync();
+            IReadOnlyList<PpmEntete> entetes;
+            await _chargementDetails.WaitAsync();
+            try
+            {
+                entetes = await _scopeRunner.ExecuterAsync<IPpmService, IReadOnlyList<PpmEntete>>(
+                    service => service.ListerAsync());
+            }
+            finally
+            {
+                _chargementDetails.Release();
+            }
+
             Entetes.Clear();
             foreach (var entete in entetes)
             {
@@ -158,14 +174,28 @@ public partial class PpmViewModel : PageViewModelBase
             }
             OnPropertyChanged(nameof(ExercicesDisponibles));
 
-            EnteteSelectionne = numConserve is null
-                ? null
-                : Entetes.FirstOrDefault(e => e.NumPPM == numConserve);
+            // Le setter déclenche normalement un chargement en tâche de fond : on le
+            // suspend ici pour charger les lignes une seule fois, de façon attendue.
+            _chargementDetailsSuspendu = true;
+            try
+            {
+                EnteteSelectionne = numConserve is null
+                    ? null
+                    : Entetes.FirstOrDefault(e => e.NumPPM == numConserve);
+            }
+            finally
+            {
+                _chargementDetailsSuspendu = false;
+            }
 
             if (EnteteSelectionne is null)
             {
                 // Le plan affiché n'existe plus : retour à la liste.
                 EstEnVueDetail = false;
+            }
+            else
+            {
+                await ChargerDetailsAsync(EnteteSelectionne.NumPPM);
             }
 
             OnPropertyChanged(nameof(EntetesFiltres));
@@ -184,7 +214,7 @@ public partial class PpmViewModel : PageViewModelBase
 
     /// <summary>« Ouvrir » : affiche le détail du plan choisi à la place de la liste.</summary>
     [RelayCommand]
-    private void OuvrirPpm(PpmEntete? enteteChoisi)
+    private async Task OuvrirPpm(PpmEntete? enteteChoisi)
     {
         var entete = enteteChoisi ?? EnteteListeSelectionne;
         if (entete is null)
@@ -195,15 +225,18 @@ public partial class PpmViewModel : PageViewModelBase
         Erreur = null;
         Message = null;
 
-        var memeSelection = ReferenceEquals(EnteteSelectionne, entete);
-        EnteteSelectionne = entete;
-        EstEnVueDetail = true;
-
-        if (memeSelection)
+        _chargementDetailsSuspendu = true;
+        try
         {
-            // Pas de changement de sélection : on relit les lignes pour être à jour.
-            _ = ChargerDetailsAsync(entete.NumPPM);
+            EnteteSelectionne = entete;
         }
+        finally
+        {
+            _chargementDetailsSuspendu = false;
+        }
+
+        EstEnVueDetail = true;
+        await ChargerDetailsAsync(entete.NumPPM);
     }
 
     /// <summary>« Retour aux plans » : revient à la liste (rechargée pour mettre à jour totaux et dates).</summary>
@@ -234,7 +267,7 @@ public partial class PpmViewModel : PageViewModelBase
 
         var entete = dialogue.VersEntite();
         var cree = await ExecuterAsync(
-            () => _ppm.CreerAsync(entete),
+            () => _scopeRunner.ExecuterAsync<IPpmService>(service => service.CreerAsync(entete)),
             $"Le PPM « {entete.NumPPM} » a été créé.");
 
         if (cree)
@@ -265,7 +298,9 @@ public partial class PpmViewModel : PageViewModelBase
         }
 
         var entete = dialogue.VersEntite();
-        var modifie = await ExecuterAsync(() => _ppm.ModifierAsync(entete), "Le PPM a été modifié.");
+        var modifie = await ExecuterAsync(
+            () => _scopeRunner.ExecuterAsync<IPpmService>(service => service.ModifierAsync(entete)),
+            "Le PPM a été modifié.");
 
         if (modifie)
         {
@@ -299,7 +334,9 @@ public partial class PpmViewModel : PageViewModelBase
             return;
         }
 
-        var supprime = await ExecuterAsync(() => _ppm.SupprimerAsync(numPpm), "Le PPM a été supprimé.");
+        var supprime = await ExecuterAsync(
+            () => _scopeRunner.ExecuterAsync<IPpmService>(service => service.SupprimerAsync(numPpm)),
+            "Le PPM a été supprimé.");
         if (supprime)
         {
             // Plus rien à afficher dans le détail : retour à la liste.
@@ -333,7 +370,10 @@ public partial class PpmViewModel : PageViewModelBase
         }
 
         var numPpm = EnteteSelectionne.NumPPM;
-        if (await ExecuterAsync(() => _ppm.EnregistrerMiseAJourAsync(numPpm), "Mise à jour enregistrée."))
+        if (await ExecuterAsync(
+                () => _scopeRunner.ExecuterAsync<IPpmService>(
+                    service => service.EnregistrerMiseAJourAsync(numPpm)),
+                "Mise à jour enregistrée."))
         {
             await ChargerAsync();
         }
@@ -360,7 +400,10 @@ public partial class PpmViewModel : PageViewModelBase
 
         var numPpm = EnteteSelectionne.NumPPM;
         var detail = dialogue.VersEntite();
-        if (await ExecuterAsync(() => _ppm.AjouterDetailAsync(numPpm, detail), "La ligne a été ajoutée."))
+        if (await ExecuterAsync(
+                () => _scopeRunner.ExecuterAsync<IPpmService>(
+                    service => service.AjouterDetailAsync(numPpm, detail)),
+                "La ligne a été ajoutée."))
         {
             await ChargerAsync();
         }
@@ -393,7 +436,10 @@ public partial class PpmViewModel : PageViewModelBase
 
         var numPpm = EnteteSelectionne.NumPPM;
         var detail = dialogue.VersEntite();
-        if (await ExecuterAsync(() => _ppm.ModifierDetailAsync(numPpm, detail), "La ligne a été modifiée."))
+        if (await ExecuterAsync(
+                () => _scopeRunner.ExecuterAsync<IPpmService>(
+                    service => service.ModifierDetailAsync(numPpm, detail)),
+                "La ligne a été modifiée."))
         {
             await ChargerAsync();
         }
@@ -429,7 +475,10 @@ public partial class PpmViewModel : PageViewModelBase
             return;
         }
 
-        if (await ExecuterAsync(() => _ppm.SupprimerDetailAsync(numPpm, numDetail), "La ligne a été supprimée."))
+        if (await ExecuterAsync(
+                () => _scopeRunner.ExecuterAsync<IPpmService>(
+                    service => service.SupprimerDetailAsync(numPpm, numDetail)),
+                "La ligne a été supprimée."))
         {
             await ChargerAsync();
         }
@@ -442,7 +491,7 @@ public partial class PpmViewModel : PageViewModelBase
         Details.Clear();
         DetailSelectionne = null;
 
-        if (value is not null)
+        if (value is not null && !_chargementDetailsSuspendu)
         {
             _ = ChargerDetailsAsync(value.NumPPM);
         }
@@ -450,9 +499,11 @@ public partial class PpmViewModel : PageViewModelBase
 
     private async Task ChargerDetailsAsync(string numPpm)
     {
+        await _chargementDetails.WaitAsync();
         try
         {
-            var entete = await _ppm.ObtenirAsync(numPpm);
+            var entete = await _scopeRunner.ExecuterAsync<IPpmService, PpmEntete>(
+                service => service.ObtenirAsync(numPpm));
             Details.Clear();
             foreach (var detail in entete.Details.OrderBy(d => d.NumPPMDetail))
             {
@@ -464,6 +515,10 @@ public partial class PpmViewModel : PageViewModelBase
         catch (Exception ex)
         {
             Erreur = ex.Message;
+        }
+        finally
+        {
+            _chargementDetails.Release();
         }
     }
 

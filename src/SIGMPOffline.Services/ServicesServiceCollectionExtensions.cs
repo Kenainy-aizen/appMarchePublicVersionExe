@@ -6,6 +6,7 @@ using SIGMPOffline.Services.Dashboard;
 using SIGMPOffline.Services.Dao;
 using SIGMPOffline.Services.Marches;
 using SIGMPOffline.Services.Ppm;
+using SIGMPOffline.Services.Scoping;
 using SIGMPOffline.Services.Suivi;
 
 namespace SIGMPOffline.Services;
@@ -16,6 +17,9 @@ public static class ServicesServiceCollectionExtensions
     /// <summary>Enregistre les services des 6 modules fonctionnels.</summary>
     public static IServiceCollection AddSigmpServices(this IServiceCollection services)
     {
+        // Exécution des opérations Scoped depuis les singletons (ViewModels, AuthService).
+        services.AddSingleton<IScopeRunner, ScopeRunner>();
+
         services.AddScoped<IPpmService, PpmService>();
         services.AddScoped<IDossierDaoService, DossierDaoService>();
         services.AddScoped<IMarcheService, MarcheService>();

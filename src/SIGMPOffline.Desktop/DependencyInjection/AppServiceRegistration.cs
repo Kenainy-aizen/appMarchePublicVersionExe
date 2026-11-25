@@ -44,6 +44,11 @@ public static class AppServiceRegistration
         services.AddSingleton<SuiviViewModel>();
         services.AddSingleton<BackupViewModel>();
 
-        return services.BuildServiceProvider();
+        return services.BuildServiceProvider(new ServiceProviderOptions
+        {
+            // Détecte toute capture de service Scoped depuis un Singleton (ViewModels, AuthService).
+            ValidateScopes = true,
+            ValidateOnBuild = true
+        });
     }
 }

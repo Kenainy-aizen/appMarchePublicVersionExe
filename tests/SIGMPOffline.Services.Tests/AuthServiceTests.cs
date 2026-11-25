@@ -14,7 +14,7 @@ namespace SIGMPOffline.Services.Tests;
 public class AuthServiceTests
 {
     private static AuthService Creer(TestDatabase db)
-        => new(db.UnitOfWork, db.ProvinceAccessor, db.Context);
+        => new(db.ScopeRunner, db.ProvinceAccessor);
 
     [Fact]
     public async Task EstPremierLancementAsync_vrai_sur_base_vierge()

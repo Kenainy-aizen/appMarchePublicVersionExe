@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using SIGMPOffline.Data.Repositories.Impl;
 using SIGMPOffline.Data.Repositories.Interfaces;
@@ -40,8 +41,41 @@ public class UnitOfWork : IUnitOfWork
     public void DetacherTout() => _context.ChangeTracker.Clear();
 
     /// <inheritdoc />
-    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-        => _context.SaveChangesAsync(cancellationToken);
+    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex)
+        {
+            // Une écriture refusée (clé dupliquée, contrainte…) laisse sinon les entités
+            // fautives suivies en état Added : la moindre sauvegarde suivante échouerait
+            // à nouveau. On détache uniquement les entités dont la persistance a échoué,
+            // puis on relance l'exception d'origine sans la masquer.
+            DetacherEntreesEnEchec(ex);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Détache les entités dont la persistance a échoué afin que le contexte reste
+    /// utilisable pour les opérations suivantes.
+    /// </summary>
+    private void DetacherEntreesEnEchec(DbUpdateException exception)
+    {
+        var entrees = exception.Entries.Count > 0
+            ? exception.Entries.Select(entree => entree)
+            : _context.ChangeTracker.Entries().Where(entree => entree.State == EntityState.Added);
+
+        foreach (var entree in entrees.ToList())
+        {
+            if (entree.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+            {
+                entree.State = EntityState.Detached;
+            }
+        }
+    }
 
     /// <inheritdoc />
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
@@ -62,7 +96,7 @@ public class UnitOfWork : IUnitOfWork
             return;
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await SaveChangesAsync(cancellationToken);
         await _transaction.CommitAsync(cancellationToken);
         await _transaction.DisposeAsync();
         _transaction = null;

@@ -3,40 +3,36 @@ using Microsoft.EntityFrameworkCore;
 using SIGMPOffline.Data;
 using SIGMPOffline.Domain.Common;
 using SIGMPOffline.Services.Abstractions;
+using SIGMPOffline.Services.Scoping;
 
 namespace SIGMPOffline.Services.Backup;
 
 /// <inheritdoc />
+/// <remarks>
+/// Service Scoped utilisé par un ViewModel Singleton : chaque opération passe par
+/// <see cref="IScopeRunner"/> afin de ne jamais conserver un contexte EF Core.
+/// </remarks>
 public class BackupService : IBackupService
 {
     private const string BackupFilePrefix = "sigmp-backup";
 
-    private readonly AppDbContext _context;
+    private readonly IScopeRunner _scopeRunner;
 
-    public BackupService(AppDbContext context)
+    public BackupService(IScopeRunner scopeRunner)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _scopeRunner = scopeRunner ?? throw new ArgumentNullException(nameof(scopeRunner));
     }
 
     /// <inheritdoc />
     public string BaseDeDonneesPath
-    {
-        get
-        {
-            var connectionString = _context.Database.GetConnectionString()
-                ?? throw new DomainException("Chaîne de connexion SQLite introuvable.");
-
-            return new SqliteConnectionStringBuilder(connectionString).DataSource;
-        }
-    }
+        => _scopeRunner.Executer<AppDbContext, string>(CheminDeLaBase);
 
     /// <inheritdoc />
     public async Task<string> SauvegarderAsync(
         string? destinationDirectory = null,
         CancellationToken cancellationToken = default)
     {
-        var connectionString = _context.Database.GetConnectionString()
-            ?? throw new DomainException("Chaîne de connexion SQLite introuvable.");
+        var connectionString = _scopeRunner.Executer<AppDbContext, string>(CheminDeConnexion);
 
         var directory = string.IsNullOrWhiteSpace(destinationDirectory)
             ? DefaultBackupDirectory()
@@ -80,7 +76,8 @@ public class BackupService : IBackupService
         try
         {
             // Ferme la connexion du contexte et vide le pool avant d'écraser le fichier.
-            await _context.Database.CloseConnectionAsync();
+            await _scopeRunner.ExecuterAsync<AppDbContext>(
+                context => context.Database.CloseConnectionAsync());
             SqliteConnection.ClearAllPools();
 
             await Task.Run(() =>
@@ -103,6 +100,13 @@ public class BackupService : IBackupService
             throw new DomainException($"Échec de la restauration depuis « {sourceFilePath} ».", ex);
         }
     }
+
+    private static string CheminDeConnexion(AppDbContext context)
+        => context.Database.GetConnectionString()
+            ?? throw new DomainException("Chaîne de connexion SQLite introuvable.");
+
+    private static string CheminDeLaBase(AppDbContext context)
+        => new SqliteConnectionStringBuilder(CheminDeConnexion(context)).DataSource;
 
     private static string DefaultBackupDirectory()
     {

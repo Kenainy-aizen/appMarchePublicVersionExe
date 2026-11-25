@@ -5,25 +5,27 @@ using SIGMPOffline.Desktop.Services;
 using SIGMPOffline.Desktop.ViewModels.Dialogs;
 using SIGMPOffline.Domain.Entities;
 using SIGMPOffline.Services.Abstractions;
+using SIGMPOffline.Services.Scoping;
 
 namespace SIGMPOffline.Desktop.ViewModels;
 
 /// <summary>Module DAO &amp; Attribution : CRUD des dossiers, candidats et acheteurs.</summary>
 public partial class DossierDaoViewModel : PageViewModelBase
 {
-    private readonly IDossierDaoService _dao;
-    private readonly IPpmService _ppm;
+    private readonly IScopeRunner _scopeRunner;
     private readonly IDialogService _dialogues;
 
+    // Un seul chargement de détail à la fois : évite deux lectures concurrentes.
+    private readonly SemaphoreSlim _chargementDetails = new(1, 1);
+    private bool _chargementDetailsSuspendu;
+
     public DossierDaoViewModel(
-        IDossierDaoService dao,
-        IPpmService ppm,
+        IScopeRunner scopeRunner,
         IDialogService dialogues,
         ModeLectureService modeLecture)
         : base(modeLecture)
     {
-        _dao = dao ?? throw new ArgumentNullException(nameof(dao));
-        _ppm = ppm ?? throw new ArgumentNullException(nameof(ppm));
+        _scopeRunner = scopeRunner ?? throw new ArgumentNullException(nameof(scopeRunner));
         _dialogues = dialogues ?? throw new ArgumentNullException(nameof(dialogues));
 
         Dossiers.CollectionChanged += (_, _) => NotifierCompteursDossiers();
@@ -169,21 +171,46 @@ public partial class DossierDaoViewModel : PageViewModelBase
             // On garde le dossier sélectionné (s'il existe encore) après un rechargement.
             var refConserve = DossierSelectionne?.RefDossier;
 
-            var dossiers = await _dao.ListerAvecDetailsAsync();
+            IReadOnlyList<DossierDao> dossiers;
+            await _chargementDetails.WaitAsync();
+            try
+            {
+                dossiers = await _scopeRunner.ExecuterAsync<IDossierDaoService, IReadOnlyList<DossierDao>>(
+                    service => service.ListerAvecDetailsAsync());
+            }
+            finally
+            {
+                _chargementDetails.Release();
+            }
+
             Dossiers.Clear();
             foreach (var dossier in dossiers)
             {
                 Dossiers.Add(dossier);
             }
 
-            DossierSelectionne = refConserve is null
-                ? Dossiers.FirstOrDefault()
-                : Dossiers.FirstOrDefault(d => d.RefDossier == refConserve) ?? Dossiers.FirstOrDefault();
+            // Le setter déclenche normalement un chargement en tâche de fond : on le
+            // suspend ici pour charger les détails une seule fois, de façon attendue.
+            _chargementDetailsSuspendu = true;
+            try
+            {
+                DossierSelectionne = refConserve is null
+                    ? Dossiers.FirstOrDefault()
+                    : Dossiers.FirstOrDefault(d => d.RefDossier == refConserve) ?? Dossiers.FirstOrDefault();
+            }
+            finally
+            {
+                _chargementDetailsSuspendu = false;
+            }
 
             if (DossierSelectionne is null)
             {
                 // Plus de dossier à afficher : retour à la liste.
                 EstEnVueDetail = false;
+            }
+            else
+            {
+                await ChargerDetailsAsync(DossierSelectionne.RefDossier);
             }
 
             NotifierCompteursDossiers();
@@ -203,7 +230,7 @@ public partial class DossierDaoViewModel : PageViewModelBase
 
     /// <summary>« Ouvrir » : affiche le détail du dossier choisi à la place de la liste.</summary>
     [RelayCommand]
-    private void OuvrirDossier(DossierDao? dossierChoisi)
+    private async Task OuvrirDossier(DossierDao? dossierChoisi)
     {
         var dossier = dossierChoisi ?? DossierListeSelectionne;
         if (dossier is null)
@@ -214,15 +241,18 @@ public partial class DossierDaoViewModel : PageViewModelBase
         Erreur = null;
         Message = null;
 
-        var memeSelection = ReferenceEquals(DossierSelectionne, dossier);
-        DossierSelectionne = dossier;
-        EstEnVueDetail = true;
-
-        if (memeSelection)
+        _chargementDetailsSuspendu = true;
+        try
         {
-            // Pas de changement de sélection : on relit les détails pour être à jour.
-            _ = ChargerDetailsAsync(dossier.RefDossier);
+            DossierSelectionne = dossier;
         }
+        finally
+        {
+            _chargementDetailsSuspendu = false;
+        }
+
+        EstEnVueDetail = true;
+        await ChargerDetailsAsync(dossier.RefDossier);
     }
 
     /// <summary>« Retour aux dossiers » : revient à la liste (rechargée pour mettre à jour les compteurs).</summary>
@@ -262,7 +292,7 @@ public partial class DossierDaoViewModel : PageViewModelBase
 
         var dossier = dialogue.VersEntite();
         await ExecuterAsync(
-            () => _dao.CreerAsync(dossier),
+            () => _scopeRunner.ExecuterAsync<IDossierDaoService>(service => service.CreerAsync(dossier)),
             $"Le dossier « {dossier.RefDossier} » a été créé.");
 
         await ChargerAsync();
@@ -292,7 +322,7 @@ public partial class DossierDaoViewModel : PageViewModelBase
 
         var dossier = dialogue.VersEntite();
         await ExecuterAsync(
-            () => _dao.ModifierAsync(dossier),
+            () => _scopeRunner.ExecuterAsync<IDossierDaoService>(service => service.ModifierAsync(dossier)),
             "Le dossier a été modifié.");
 
         await ChargerAsync();
@@ -323,7 +353,10 @@ public partial class DossierDaoViewModel : PageViewModelBase
             return;
         }
 
-        if (await ExecuterAsync(() => _dao.SupprimerAsync(refDossier), "Le dossier a été supprimé."))
+        if (await ExecuterAsync(
+                () => _scopeRunner.ExecuterAsync<IDossierDaoService>(
+                    service => service.SupprimerAsync(refDossier)),
+                "Le dossier a été supprimé."))
         {
             // Plus rien à afficher dans le détail : retour à la liste.
             EstEnVueDetail = false;
@@ -355,7 +388,8 @@ public partial class DossierDaoViewModel : PageViewModelBase
 
         var candidat = dialogue.VersEntite();
         await ExecuterAsync(
-            () => _dao.AjouterCandidatAsync(DossierSelectionne.RefDossier, candidat),
+            () => _scopeRunner.ExecuterAsync<IDossierDaoService>(
+                service => service.AjouterCandidatAsync(DossierSelectionne.RefDossier, candidat)),
             "Le candidat a été ajouté.");
 
         await ChargerDetailsAsync(DossierSelectionne.RefDossier);
@@ -388,7 +422,8 @@ public partial class DossierDaoViewModel : PageViewModelBase
 
         var candidat = dialogue.VersEntite();
         await ExecuterAsync(
-            () => _dao.ModifierCandidatAsync(DossierSelectionne.RefDossier, candidat),
+            () => _scopeRunner.ExecuterAsync<IDossierDaoService>(
+                service => service.ModifierCandidatAsync(DossierSelectionne.RefDossier, candidat)),
             "Le candidat a été modifié.");
 
         await ChargerDetailsAsync(DossierSelectionne.RefDossier);
@@ -425,7 +460,8 @@ public partial class DossierDaoViewModel : PageViewModelBase
         }
 
         await ExecuterAsync(
-            () => _dao.SupprimerCandidatAsync(DossierSelectionne.RefDossier, id),
+            () => _scopeRunner.ExecuterAsync<IDossierDaoService>(
+                service => service.SupprimerCandidatAsync(DossierSelectionne.RefDossier, id)),
             "Le candidat a été supprimé.");
 
         await ChargerDetailsAsync(DossierSelectionne.RefDossier);
@@ -447,7 +483,8 @@ public partial class DossierDaoViewModel : PageViewModelBase
         var refDossier = DossierSelectionne.RefDossier;
         var id = CandidatSelectionne.Candidat.IdCandidat;
         await ExecuterAsync(
-            () => _dao.DesignerRetenuAsync(refDossier, id),
+            () => _scopeRunner.ExecuterAsync<IDossierDaoService>(
+                service => service.DesignerRetenuAsync(refDossier, id)),
             "Le candidat retenu a été mis à jour.");
 
         await ChargerDetailsAsync(refDossier);
@@ -476,7 +513,8 @@ public partial class DossierDaoViewModel : PageViewModelBase
 
         var acheteur = dialogue.VersEntite();
         await ExecuterAsync(
-            () => _dao.AjouterAcheteurAsync(DossierSelectionne.RefDossier, acheteur),
+            () => _scopeRunner.ExecuterAsync<IDossierDaoService>(
+                service => service.AjouterAcheteurAsync(DossierSelectionne.RefDossier, acheteur)),
             "L'acheteur a été ajouté.");
 
         await ChargerDetailsAsync(DossierSelectionne.RefDossier);
@@ -509,7 +547,8 @@ public partial class DossierDaoViewModel : PageViewModelBase
 
         var acheteur = dialogue.VersEntite();
         await ExecuterAsync(
-            () => _dao.ModifierAcheteurAsync(DossierSelectionne.RefDossier, acheteur),
+            () => _scopeRunner.ExecuterAsync<IDossierDaoService>(
+                service => service.ModifierAcheteurAsync(DossierSelectionne.RefDossier, acheteur)),
             "L'acheteur a été modifié.");
 
         await ChargerDetailsAsync(DossierSelectionne.RefDossier);
@@ -546,7 +585,8 @@ public partial class DossierDaoViewModel : PageViewModelBase
         }
 
         await ExecuterAsync(
-            () => _dao.SupprimerAcheteurAsync(DossierSelectionne.RefDossier, id),
+            () => _scopeRunner.ExecuterAsync<IDossierDaoService>(
+                service => service.SupprimerAcheteurAsync(DossierSelectionne.RefDossier, id)),
             "L'acheteur a été supprimé.");
 
         await ChargerDetailsAsync(DossierSelectionne.RefDossier);
@@ -555,23 +595,35 @@ public partial class DossierDaoViewModel : PageViewModelBase
     // ---------- Interne ----------
 
     partial void OnDossierSelectionneChanged(DossierDao? value)
-        => _ = ChargerDetailsAsync(value?.RefDossier);
-
-    private async Task ChargerDetailsAsync(string? refDossier)
     {
         Candidats.Clear();
         Acheteurs.Clear();
         CandidatSelectionne = null;
         AcheteurSelectionne = null;
 
-        if (refDossier is null)
+        if (!_chargementDetailsSuspendu)
         {
-            return;
+            _ = ChargerDetailsAsync(value?.RefDossier);
         }
+    }
 
+    private async Task ChargerDetailsAsync(string? refDossier)
+    {
+        await _chargementDetails.WaitAsync();
         try
         {
-            var dossier = await _dao.ObtenirAsync(refDossier);
+            Candidats.Clear();
+            Acheteurs.Clear();
+            CandidatSelectionne = null;
+            AcheteurSelectionne = null;
+
+            if (refDossier is null)
+            {
+                return;
+            }
+
+            var dossier = await _scopeRunner.ExecuterAsync<IDossierDaoService, DossierDao>(
+                service => service.ObtenirAsync(refDossier));
 
             foreach (var ligne in LignesDao.Numeroter(dossier.Candidats))
             {
@@ -590,14 +642,23 @@ public partial class DossierDaoViewModel : PageViewModelBase
         {
             Erreur = ex.Message;
         }
+        finally
+        {
+            _chargementDetails.Release();
+        }
     }
 
     private async Task<IReadOnlyList<OptionLignePpm>> ChargerLignesPpmAsync()
     {
         var lignes = new List<OptionLignePpm>();
-        foreach (var entete in await _ppm.ListerAsync())
+        var entetes = await _scopeRunner.ExecuterAsync<IPpmService, IReadOnlyList<PpmEntete>>(
+            service => service.ListerAsync());
+
+        foreach (var entete in entetes)
         {
-            var complet = await _ppm.ObtenirAsync(entete.NumPPM);
+            var complet = await _scopeRunner.ExecuterAsync<IPpmService, PpmEntete>(
+                service => service.ObtenirAsync(entete.NumPPM));
+
             foreach (var detail in complet.Details)
             {
                 lignes.Add(new OptionLignePpm(

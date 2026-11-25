@@ -2,24 +2,25 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SIGMPOffline.Desktop.Services;
 using SIGMPOffline.Services.Abstractions;
+using SIGMPOffline.Services.Scoping;
 
 namespace SIGMPOffline.Desktop.ViewModels;
 
 /// <summary>Module Utilitaire : sauvegarde / restauration du fichier SQLite.</summary>
 public partial class BackupViewModel : PageViewModelBase
 {
-    private readonly IBackupService _backup;
+    private readonly IScopeRunner _scopeRunner;
     private readonly IDialogService _dialogues;
     private readonly IFilePickerService _fichiers;
 
     public BackupViewModel(
-        IBackupService backup,
+        IScopeRunner scopeRunner,
         IDialogService dialogues,
         IFilePickerService fichiers,
         ModeLectureService modeLecture)
         : base(modeLecture)
     {
-        _backup = backup ?? throw new ArgumentNullException(nameof(backup));
+        _scopeRunner = scopeRunner ?? throw new ArgumentNullException(nameof(scopeRunner));
         _dialogues = dialogues ?? throw new ArgumentNullException(nameof(dialogues));
         _fichiers = fichiers ?? throw new ArgumentNullException(nameof(fichiers));
     }
@@ -28,7 +29,8 @@ public partial class BackupViewModel : PageViewModelBase
     public override string Titre => "Sauvegarde & Restauration";
 
     /// <summary>Chemin du fichier de base de données actif.</summary>
-    public string BaseDeDonneesPath => _backup.BaseDeDonneesPath;
+    public string BaseDeDonneesPath
+        => _scopeRunner.Executer<IBackupService, string>(service => service.BaseDeDonneesPath);
 
     /// <summary>Dossier de destination de la sauvegarde (clé USB). Vide = dossier par défaut.</summary>
     [ObservableProperty] private string? _dossierDestination;
@@ -78,8 +80,9 @@ public partial class BackupViewModel : PageViewModelBase
             Erreur = null;
             Message = null;
 
-            var chemin = await _backup.SauvegarderAsync(
-                string.IsNullOrWhiteSpace(DossierDestination) ? null : DossierDestination);
+            var chemin = await _scopeRunner.ExecuterAsync<IBackupService, string>(
+                service => service.SauvegarderAsync(
+                    string.IsNullOrWhiteSpace(DossierDestination) ? null : DossierDestination));
 
             Message = $"Sauvegarde créée : {chemin}";
             await _dialogues.InformerAsync("Sauvegarde réussie", $"La sauvegarde a été créée :\n{chemin}");
@@ -125,7 +128,8 @@ public partial class BackupViewModel : PageViewModelBase
             Erreur = null;
             Message = null;
 
-            await _backup.RestaurerAsync(FichierRestauration);
+            await _scopeRunner.ExecuterAsync<IBackupService>(
+                service => service.RestaurerAsync(FichierRestauration!));
 
             Message = "Restauration effectuée.";
             await _dialogues.InformerAsync(

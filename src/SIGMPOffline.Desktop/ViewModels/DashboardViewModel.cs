@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using SIGMPOffline.Domain.Enums;
 using SIGMPOffline.Services.Abstractions;
 using SIGMPOffline.Services.Models;
+using SIGMPOffline.Services.Scoping;
 
 namespace SIGMPOffline.Desktop.ViewModels;
 
@@ -14,12 +15,12 @@ public partial class DashboardViewModel : ViewModelBase, IPageViewModel
     private const int TailleApercu = 5;
     private static readonly CultureInfo CultureFrancaise = CultureInfo.GetCultureInfo("fr-FR");
 
-    private readonly IDashboardService _dashboard;
+    private readonly IScopeRunner _scopeRunner;
     private readonly SemaphoreSlim _chargement = new(1, 1);
     private bool _suspendreChargement;
 
-    public DashboardViewModel(IDashboardService dashboard)
-        => _dashboard = dashboard ?? throw new ArgumentNullException(nameof(dashboard));
+    public DashboardViewModel(IScopeRunner scopeRunner)
+        => _scopeRunner = scopeRunner ?? throw new ArgumentNullException(nameof(scopeRunner));
 
     /// <summary>Demande l'ouverture d'un marché dans le module Suivi d'exécution.</summary>
     public event EventHandler<string>? MarcheDemandee;
@@ -119,7 +120,8 @@ public partial class DashboardViewModel : ViewModelBase, IPageViewModel
             Erreur = null;
 
             var filtre = ConstruireFiltre();
-            var instantane = await _dashboard.ObtenirTableauDeBordAsync(filtre);
+            var instantane = await _scopeRunner.ExecuterAsync<IDashboardService, DashboardInstantane>(
+                service => service.ObtenirTableauDeBordAsync(filtre));
             var kpi = instantane.Kpi;
             TotalMarches = kpi.TotalMarches;
             MarchesEnCours = kpi.MarchesEnCours;

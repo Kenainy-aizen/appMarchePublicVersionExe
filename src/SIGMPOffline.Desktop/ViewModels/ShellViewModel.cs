@@ -287,7 +287,25 @@ public partial class ShellViewModel : ViewModelBase
         }
 
         CurrentPage = value.ViewModel;
-        _chargementPage = ChargerPageAsync(value.ViewModel);
+
+        // Les chargements de page sont enchaînés pour garder un ordre déterministe
+        // et éviter une rafale de requêtes lors d'une navigation rapide.
+        var precedent = _chargementPage;
+        _chargementPage = ChargerPageEnSerieAsync(precedent, value.ViewModel);
+    }
+
+    private static async Task ChargerPageEnSerieAsync(Task precedent, ViewModelBase viewModel)
+    {
+        try
+        {
+            await precedent;
+        }
+        catch
+        {
+            // L'erreur a déjà été exposée par la page concernée.
+        }
+
+        await ChargerPageAsync(viewModel);
     }
 
     private async Task OuvrirSuiviAsync(string refMarche)

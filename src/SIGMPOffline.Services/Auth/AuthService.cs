@@ -1,9 +1,11 @@
+using Microsoft.Extensions.DependencyInjection;
 using SIGMPOffline.Data;
 using SIGMPOffline.Data.Database;
 using SIGMPOffline.Data.Repositories.Interfaces;
 using SIGMPOffline.Domain.Common;
 using SIGMPOffline.Domain.Entities;
 using SIGMPOffline.Services.Abstractions;
+using SIGMPOffline.Services.Scoping;
 
 namespace SIGMPOffline.Services.Auth;
 
@@ -12,6 +14,8 @@ namespace SIGMPOffline.Services.Auth;
 /// L'état de session (province active) est conservé en mémoire et propagé à
 /// <see cref="IProvinceAccessor"/>, qui alimente les filtres de requête globaux
 /// d'EF Core chargés d'isoler les données de chaque province.
+/// Chaque accès à la base ouvre un scope court via <see cref="IScopeRunner"/> :
+/// aucun contexte EF Core n'est conservé entre deux opérations.
 /// </remarks>
 public class AuthService : IAuthService
 {
@@ -21,21 +25,16 @@ public class AuthService : IAuthService
     /// <summary>Longueur maximale du nom du responsable PRMP (alignée sur la base).</summary>
     public const int LongueurMaxNomProprietaire = 200;
 
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IScopeRunner _scopeRunner;
     private readonly IProvinceAccessor _provinceAccessor;
-    private readonly AppDbContext _context;
 
     private ConfigurationApp? _configuration;
     private Province? _provinceActive;
 
-    public AuthService(
-        IUnitOfWork unitOfWork,
-        IProvinceAccessor provinceAccessor,
-        AppDbContext context)
+    public AuthService(IScopeRunner scopeRunner, IProvinceAccessor provinceAccessor)
     {
-        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _scopeRunner = scopeRunner ?? throw new ArgumentNullException(nameof(scopeRunner));
         _provinceAccessor = provinceAccessor ?? throw new ArgumentNullException(nameof(provinceAccessor));
-        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
     /// <inheritdoc />
@@ -49,17 +48,18 @@ public class AuthService : IAuthService
 
     /// <inheritdoc />
     public async Task<bool> EstPremierLancementAsync(CancellationToken cancellationToken = default)
-    {
-        _configuration = await _unitOfWork.Configuration.GetConfigurationAsync(cancellationToken);
-
-        if (_configuration is null)
+        => await _scopeRunner.ExecuterAsync<IUnitOfWork, bool>(async unitOfWork =>
         {
-            return true;
-        }
+            _configuration = await unitOfWork.Configuration.GetConfigurationAsync(cancellationToken);
 
-        var provinces = await _unitOfWork.Provinces.CountAsync(cancellationToken: cancellationToken);
-        return provinces == 0;
-    }
+            if (_configuration is null)
+            {
+                return true;
+            }
+
+            var provinces = await unitOfWork.Provinces.CountAsync(cancellationToken: cancellationToken);
+            return provinces == 0;
+        });
 
     /// <inheritdoc />
     public async Task InitialiserAsync(
@@ -81,52 +81,60 @@ public class AuthService : IAuthService
 
         ValiderMotDePasse(motDePasse);
 
-        if (await _unitOfWork.Provinces.NomExisteAsync(nomProvince, null, cancellationToken))
+        await _scopeRunner.ExecuterAsync(async services =>
         {
-            throw new DomainException($"Une province nommée « {nomProvince} » existe déjà.");
-        }
+            var unitOfWork = services.GetRequiredService<IUnitOfWork>();
+            var context = services.GetRequiredService<AppDbContext>();
 
-        // 1) Configuration globale (propriétaire) — créée une seule fois.
-        var configuration = await _unitOfWork.Configuration.GetConfigurationAsync(cancellationToken);
-        if (configuration is null)
-        {
-            configuration = new ConfigurationApp
+            if (await unitOfWork.Provinces.NomExisteAsync(nomProvince, null, cancellationToken))
             {
-                NomProprietairePRMP = nomProprietaire.Trim(),
-                DateInstallation = DateTime.Now
+                throw new DomainException($"Une province nommée « {nomProvince} » existe déjà.");
+            }
+
+            // 1) Configuration globale (propriétaire) — créée une seule fois.
+            var configuration = await unitOfWork.Configuration.GetConfigurationAsync(cancellationToken);
+            if (configuration is null)
+            {
+                configuration = new ConfigurationApp
+                {
+                    NomProprietairePRMP = nomProprietaire.Trim(),
+                    DateInstallation = DateTime.Now
+                };
+                await unitOfWork.Configuration.AddAsync(configuration, cancellationToken);
+            }
+            else
+            {
+                configuration.NomProprietairePRMP = nomProprietaire.Trim();
+                unitOfWork.Configuration.Update(configuration);
+            }
+
+            // 2) Première province.
+            var (hash, sel) = PasswordHasher.Hacher(motDePasse);
+            var province = new Province
+            {
+                NomProvince = nomProvince,
+                PasswordHash = hash,
+                Salt = sel,
+                DateCreation = DateTime.Now
             };
-            await _unitOfWork.Configuration.AddAsync(configuration, cancellationToken);
-        }
-        else
-        {
-            configuration.NomProprietairePRMP = nomProprietaire.Trim();
-            _unitOfWork.Configuration.Update(configuration);
-        }
 
-        // 2) Première province.
-        var (hash, sel) = PasswordHasher.Hacher(motDePasse);
-        var province = new Province
-        {
-            NomProvince = nomProvince,
-            PasswordHash = hash,
-            Salt = sel,
-            DateCreation = DateTime.Now
-        };
+            await unitOfWork.Provinces.AddAsync(province, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        await _unitOfWork.Provinces.AddAsync(province, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+            // 3) Rattache les données éventuellement créées avant le multi-provinces.
+            await DbSeeder.AdopterDonneesSansProvinceAsync(context, province.IdProvince, cancellationToken);
 
-        // 3) Rattache les données éventuellement créées avant le multi-provinces.
-        await DbSeeder.AdopterDonneesSansProvinceAsync(_context, province.IdProvince, cancellationToken);
-
-        // 4) Ouvre directement la session sur la province créée et sème la démo.
-        OuvrirSession(configuration, province);
-        await DbSeeder.SeedAsync(_context, cancellationToken);
+            // 4) Ouvre directement la session sur la province créée et sème la démo.
+            OuvrirSession(configuration, province);
+            unitOfWork.DetacherTout();
+            await DbSeeder.SeedAsync(context, cancellationToken);
+        });
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<Province>> ListerProvincesAsync(CancellationToken cancellationToken = default)
-        => await _unitOfWork.Provinces.ListerAsync(cancellationToken);
+        => await _scopeRunner.ExecuterAsync<IUnitOfWork, IReadOnlyList<Province>>(
+            unitOfWork => unitOfWork.Provinces.ListerAsync(cancellationToken));
 
     /// <inheritdoc />
     public async Task<string> ModifierNomProprietaireAsync(
@@ -146,19 +154,24 @@ public class AuthService : IAuthService
                 $"Le nom du responsable PRMP ne peut pas dépasser {LongueurMaxNomProprietaire} caractères.");
         }
 
-        var configuration = _configuration
-            ?? await _unitOfWork.Configuration.GetConfigurationAsync(cancellationToken)
-            ?? throw new DomainException("La configuration de l'application est introuvable.");
+        _configuration = await _scopeRunner.ExecuterAsync<IUnitOfWork, ConfigurationApp>(
+            async unitOfWork =>
+            {
+                var configuration = _configuration
+                    ?? await unitOfWork.Configuration.GetConfigurationAsync(cancellationToken)
+                    ?? throw new DomainException("La configuration de l'application est introuvable.");
 
-        if (!string.Equals(configuration.NomProprietairePRMP, nom, StringComparison.Ordinal))
-        {
-            configuration.NomProprietairePRMP = nom;
-            _unitOfWork.Configuration.Update(configuration);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-        }
+                if (!string.Equals(configuration.NomProprietairePRMP, nom, StringComparison.Ordinal))
+                {
+                    configuration.NomProprietairePRMP = nom;
+                    unitOfWork.Configuration.Update(configuration);
+                    await unitOfWork.SaveChangesAsync(cancellationToken);
+                }
+
+                return configuration;
+            });
 
         // Conserve la configuration en mémoire pour l'en-tête du shell.
-        _configuration = configuration;
         return nom;
     }
 
@@ -176,24 +189,27 @@ public class AuthService : IAuthService
 
         ValiderMotDePasse(motDePasse);
 
-        if (await _unitOfWork.Provinces.NomExisteAsync(nomProvince, null, cancellationToken))
+        return await _scopeRunner.ExecuterAsync<IUnitOfWork, Province>(async unitOfWork =>
         {
-            throw new DomainException($"Une province nommée « {nomProvince} » existe déjà.");
-        }
+            if (await unitOfWork.Provinces.NomExisteAsync(nomProvince, null, cancellationToken))
+            {
+                throw new DomainException($"Une province nommée « {nomProvince} » existe déjà.");
+            }
 
-        var (hash, sel) = PasswordHasher.Hacher(motDePasse);
-        var province = new Province
-        {
-            NomProvince = nomProvince,
-            PasswordHash = hash,
-            Salt = sel,
-            DateCreation = DateTime.Now
-        };
+            var (hash, sel) = PasswordHasher.Hacher(motDePasse);
+            var province = new Province
+            {
+                NomProvince = nomProvince,
+                PasswordHash = hash,
+                Salt = sel,
+                DateCreation = DateTime.Now
+            };
 
-        await _unitOfWork.Provinces.AddAsync(province, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await unitOfWork.Provinces.AddAsync(province, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return province;
+            return province;
+        });
     }
 
     /// <inheritdoc />
@@ -201,20 +217,21 @@ public class AuthService : IAuthService
         int idProvince,
         string motDePasse,
         CancellationToken cancellationToken = default)
-    {
-        var province = await _unitOfWork.Provinces.GetByIdAsync(idProvince, cancellationToken)
-            ?? throw new DomainException("La province sélectionnée est introuvable.");
-
-        if (!PasswordHasher.Verifier(motDePasse ?? string.Empty, province.PasswordHash, province.Salt))
+        => await _scopeRunner.ExecuterAsync<IUnitOfWork, Province>(async unitOfWork =>
         {
-            throw new DomainException("Mot de passe incorrect.");
-        }
+            var province = await unitOfWork.Provinces.GetByIdAsync(idProvince, cancellationToken)
+                ?? throw new DomainException("La province sélectionnée est introuvable.");
 
-        _configuration ??= await _unitOfWork.Configuration.GetConfigurationAsync(cancellationToken);
-        OuvrirSession(_configuration, province);
+            if (!PasswordHasher.Verifier(motDePasse ?? string.Empty, province.PasswordHash, province.Salt))
+            {
+                throw new DomainException("Mot de passe incorrect.");
+            }
 
-        return province;
-    }
+            _configuration ??= await unitOfWork.Configuration.GetConfigurationAsync(cancellationToken);
+            OuvrirSession(_configuration, province);
+
+            return province;
+        });
 
     /// <inheritdoc />
     public async Task ChangerMotDePasseAsync(
@@ -222,45 +239,43 @@ public class AuthService : IAuthService
         string ancienMotDePasse,
         string nouveauMotDePasse,
         CancellationToken cancellationToken = default)
-    {
-        var province = await _unitOfWork.Provinces.GetByIdAsync(idProvince, cancellationToken)
-            ?? throw new DomainException("La province est introuvable.");
-
-        if (!PasswordHasher.Verifier(ancienMotDePasse ?? string.Empty, province.PasswordHash, province.Salt))
+        => await _scopeRunner.ExecuterAsync<IUnitOfWork>(async unitOfWork =>
         {
-            throw new DomainException("L'ancien mot de passe est incorrect.");
-        }
+            var province = await unitOfWork.Provinces.GetByIdAsync(idProvince, cancellationToken)
+                ?? throw new DomainException("La province est introuvable.");
 
-        ValiderMotDePasse(nouveauMotDePasse);
+            if (!PasswordHasher.Verifier(ancienMotDePasse ?? string.Empty, province.PasswordHash, province.Salt))
+            {
+                throw new DomainException("L'ancien mot de passe est incorrect.");
+            }
 
-        var (hash, sel) = PasswordHasher.Hacher(nouveauMotDePasse);
-        province.PasswordHash = hash;
-        province.Salt = sel;
+            ValiderMotDePasse(nouveauMotDePasse);
 
-        _unitOfWork.Provinces.Update(province);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-    }
+            var (hash, sel) = PasswordHasher.Hacher(nouveauMotDePasse);
+            province.PasswordHash = hash;
+            province.Salt = sel;
+
+            unitOfWork.Provinces.Update(province);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        });
 
     /// <inheritdoc />
     public Task DeconnecterAsync(CancellationToken cancellationToken = default)
     {
         _provinceActive = null;
         _provinceAccessor.DefinirProvince(null);
-        _unitOfWork.DetacherTout();
         return Task.CompletedTask;
     }
 
     /// <summary>
-    /// Active la province indiquée : met à jour l'état de session, le contexte
-    /// d'isolation et purge le suivi d'entités (changement de province).
+    /// Active la province indiquée : met à jour l'état de session et le contexte
+    /// d'isolation. Les entités suivies sont libérées avec le scope de l'opération.
     /// </summary>
     private void OuvrirSession(ConfigurationApp? configuration, Province province)
     {
         _configuration = configuration;
         _provinceActive = province;
 
-        // Purge les entités suivies avant de basculer : évite toute fuite entre provinces.
-        _unitOfWork.DetacherTout();
         _provinceAccessor.DefinirProvince(province.IdProvince);
     }
 
