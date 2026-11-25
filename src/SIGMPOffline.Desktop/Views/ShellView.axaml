@@ -31,9 +31,10 @@
                         BorderBrush="{DynamicResource SidebarDividerBrush}" BorderThickness="0,1,0,0">
                     <StackPanel Spacing="6">
                         <TextBlock Text="Mode lecture seule" Classes="sidebar-meta" />
-                        <ToggleSwitch IsChecked="{Binding EstLectureSeule}"
-                                      OnContent="Activé"
-                                      OffContent="Désactivé" />
+                    <ToggleSwitch IsChecked="{Binding EstLectureSeule}"
+                                  IsEnabled="{Binding PeutBasculerLectureSeule}"
+                                  OnContent="Activé"
+                                  OffContent="Désactivé" />
                     </StackPanel>
                 </Border>
 
@@ -112,7 +113,14 @@
                             ToolTip.Tip="Changer le mot de passe">
                         <PathIcon Data="{x:Static vm:Icones.Cadenas}" Width="18" Height="18" />
                     </Button>
+                    <Button Classes="icon" Command="{Binding ConfigurerAccesVisiteurCommand}"
+                            IsVisible="{Binding !EstVisiteur}"
+                            IsEnabled="{Binding !EstLectureSeule}"
+                            ToolTip.Tip="Configurer l'accès visiteur">
+                        <PathIcon Data="{x:Static vm:Icones.Utilisateur}" Width="18" Height="18" />
+                    </Button>
                     <Button Classes="icon" Command="{Binding ChangerProvinceCommand}"
+                            IsVisible="{Binding !EstVisiteur}"
                             ToolTip.Tip="Changer de province">
                         <PathIcon Data="{x:Static vm:Icones.Echange}" Width="18" Height="18" />
                     </Button>

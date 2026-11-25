@@ -35,6 +35,12 @@ public class MigrationTests
             Assert.Contains("Province", tables);
             Assert.Contains("ConfigurationApp", tables);
 
+            var colonnesProvince = await context.Database
+                .SqlQuery<string>($"SELECT name AS \"Value\" FROM pragma_table_info('Province')")
+                .ToListAsync();
+            Assert.Contains("VisitorPasswordHash", colonnesProvince);
+            Assert.Contains("VisitorSalt", colonnesProvince);
+
             // La clé d'isolation multi-provinces est présente sur les agrégats racines.
             foreach (var table in new[] { "PPMEntete", "DossierDAO", "Marche" })
             {

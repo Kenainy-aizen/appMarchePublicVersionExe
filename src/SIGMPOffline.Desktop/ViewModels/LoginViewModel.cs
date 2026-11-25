@@ -26,8 +26,29 @@ public partial class LoginViewModel : ViewModelBase
     [ObservableProperty] private Province? _provinceSelectionnee;
 
     [ObservableProperty] private string _motDePasse = string.Empty;
+    [ObservableProperty] private bool _estConnexionVisiteur;
     [ObservableProperty] private string? _erreur;
     [ObservableProperty] private bool _estOccupe;
+
+    /// <summary>Libellé du champ secret selon le type de compte choisi.</summary>
+    public string LibelleMotDePasse => EstConnexionVisiteur ? "Mot de passe visiteur" : "Mot de passe province";
+
+    /// <summary>Indication du champ secret selon le type de compte choisi.</summary>
+    public string PlaceholderMotDePasse => EstConnexionVisiteur
+        ? "Saisissez le mot de passe visiteur"
+        : "Saisissez le mot de passe de la province";
+
+    /// <summary>Libellé de l'action principale selon le type de compte.</summary>
+    public string LibelleConnexion => EstConnexionVisiteur ? "Accéder en visiteur" : "Se connecter";
+
+    partial void OnEstConnexionVisiteurChanged(bool value)
+    {
+        OnPropertyChanged(nameof(LibelleMotDePasse));
+        OnPropertyChanged(nameof(PlaceholderMotDePasse));
+        OnPropertyChanged(nameof(LibelleConnexion));
+        MotDePasse = string.Empty;
+        Erreur = null;
+    }
 
     /// <summary>Le champ mot de passe doit-il être signalé comme invalide ?</summary>
     public bool MotDePasseInvalide => Erreur is not null;
@@ -51,6 +72,7 @@ public partial class LoginViewModel : ViewModelBase
     {
         Erreur = null;
         MotDePasse = string.Empty;
+        EstConnexionVisiteur = false;
 
         try
         {
@@ -92,7 +114,14 @@ public partial class LoginViewModel : ViewModelBase
         {
             EstOccupe = true;
 
-            await _auth.ConnecterAsync(ProvinceSelectionnee.IdProvince, MotDePasse);
+            if (EstConnexionVisiteur)
+            {
+                await _auth.ConnecterVisiteurAsync(ProvinceSelectionnee.IdProvince, MotDePasse);
+            }
+            else
+            {
+                await _auth.ConnecterAsync(ProvinceSelectionnee.IdProvince, MotDePasse);
+            }
 
             MotDePasse = string.Empty;
             Connecte?.Invoke(this, EventArgs.Empty);

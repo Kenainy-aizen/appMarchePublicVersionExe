@@ -19,6 +19,12 @@ public partial class ShellViewModel : ViewModelBase
     private readonly IAuthService _auth;
     private readonly IDialogService _dialogues;
     private readonly ModeLectureService _modeLecture;
+    private readonly DashboardViewModel _dashboard;
+    private readonly PpmViewModel _ppm;
+    private readonly DossierDaoViewModel _dao;
+    private readonly MarcheViewModel _marches;
+    private readonly SuiviViewModel _suivi;
+    private readonly BackupViewModel _backup;
     private Task _chargementPage = Task.CompletedTask;
 
     [ObservableProperty] private NavigationItem _selectedItem;
@@ -30,6 +36,11 @@ public partial class ShellViewModel : ViewModelBase
     /// <summary>Indique si le mode lecture seule est actif.</summary>
     [ObservableProperty] private bool _estLectureSeule;
 
+    /// <summary>Indique si la session courante utilise le compte visiteur.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PeutBasculerLectureSeule))]
+    private bool _estVisiteur;
+
     /// <summary>Nom du responsable PRMP / propriétaire (affiché dans l'en-tête).</summary>
     [ObservableProperty] private string _nomProprietaire = string.Empty;
 
@@ -40,7 +51,10 @@ public partial class ShellViewModel : ViewModelBase
     public event EventHandler? DeconnexionDemandee;
 
     /// <summary>Entrées du menu latéral (un module par page).</summary>
-    public IReadOnlyList<NavigationItem> NavigationItems { get; }
+    public IReadOnlyList<NavigationItem> NavigationItems { get; private set; }
+
+    /// <summary>Le visiteur ne peut pas désactiver son mode de consultation.</summary>
+    public bool PeutBasculerLectureSeule => !EstVisiteur;
 
     public ShellViewModel(
         IAuthService auth,
@@ -56,16 +70,14 @@ public partial class ShellViewModel : ViewModelBase
         _auth = auth ?? throw new ArgumentNullException(nameof(auth));
         _dialogues = dialogues ?? throw new ArgumentNullException(nameof(dialogues));
         _modeLecture = modeLecture ?? throw new ArgumentNullException(nameof(modeLecture));
+        _dashboard = dashboard ?? throw new ArgumentNullException(nameof(dashboard));
+        _ppm = ppm ?? throw new ArgumentNullException(nameof(ppm));
+        _dao = dao ?? throw new ArgumentNullException(nameof(dao));
+        _marches = marches ?? throw new ArgumentNullException(nameof(marches));
+        _suivi = suivi ?? throw new ArgumentNullException(nameof(suivi));
+        _backup = backup ?? throw new ArgumentNullException(nameof(backup));
 
-        NavigationItems = new List<NavigationItem>
-        {
-            new("Tableau de bord", Icones.TableauDeBord, dashboard),
-            new("Plan de passation (PPM)", Icones.Ppm, ppm),
-            new("DAO & Attribution", Icones.Dao, dao),
-            new("Marchés", Icones.Marche, marches),
-            new("Suivi d'exécution", Icones.Suivi, suivi),
-            new("Sauvegarde", Icones.Sauvegarde, backup)
-        };
+        NavigationItems = CreerNavigationItems(estVisiteur: false, _dashboard, _ppm, _dao, _marches, _suivi, _backup);
 
         _selectedItem = NavigationItems[0];
         _currentPage = _selectedItem.ViewModel;
@@ -101,6 +113,11 @@ public partial class ShellViewModel : ViewModelBase
     {
         NomProprietaire = _auth.Configuration?.NomProprietairePRMP ?? string.Empty;
         NomProvince = _auth.ProvinceActive?.NomProvince ?? string.Empty;
+        EstVisiteur = _auth.EstVisiteur;
+        EstLectureSeule = EstVisiteur;
+        NavigationItems = CreerNavigationItems(
+            EstVisiteur, _dashboard, _ppm, _dao, _marches, _suivi, _backup);
+        OnPropertyChanged(nameof(NavigationItems));
 
         var cible = NavigationItems[0];
         if (ReferenceEquals(SelectedItem, cible))
@@ -155,6 +172,40 @@ public partial class ShellViewModel : ViewModelBase
         catch (Exception ex)
         {
             await _dialogues.InformerAsync("Création impossible", ex.Message);
+        }
+    }
+
+    /// <summary>Crée, remplace ou révoque le mot de passe du compte visiteur de la province active.</summary>
+    [RelayCommand]
+    private async Task ConfigurerAccesVisiteur()
+    {
+        if (EstVisiteur || EstLectureSeule || _auth.ProvinceActive is not { } province)
+        {
+            return;
+        }
+
+        var dialogue = new AccesVisiteurDialogViewModel(
+            province.NomProvince,
+            accesConfigure: !string.IsNullOrEmpty(province.VisitorPasswordHash));
+        if (!await _dialogues.AfficherAsync(dialogue))
+        {
+            return;
+        }
+
+        try
+        {
+            await _auth.ConfigurerAccesVisiteurAsync(
+                dialogue.DesactiverAcces ? null : dialogue.NouveauMotDePasse);
+            await _dialogues.InformerAsync(
+                "Accès visiteur mis à jour",
+                dialogue.DesactiverAcces
+                    ? $"L'accès visiteur à « {province.NomProvince} » a été désactivé."
+                    : $"L'accès visiteur à « {province.NomProvince} » est prêt. "
+                    + "À la connexion, choisissez « Compte visiteur » et utilisez le mot de passe défini.");
+        }
+        catch (Exception ex)
+        {
+            await _dialogues.InformerAsync("Modification impossible", ex.Message);
         }
     }
 
@@ -222,6 +273,11 @@ public partial class ShellViewModel : ViewModelBase
     [RelayCommand]
     private async Task ChangerProvince()
     {
+        if (EstVisiteur)
+        {
+            return;
+        }
+
         IReadOnlyList<Province> provinces;
         try
         {
@@ -277,6 +333,32 @@ public partial class ShellViewModel : ViewModelBase
     partial void OnEstLectureSeuleChanged(bool value)
     {
         _modeLecture.EstActif = value;
+    }
+
+    private static IReadOnlyList<NavigationItem> CreerNavigationItems(
+        bool estVisiteur,
+        DashboardViewModel dashboard,
+        PpmViewModel ppm,
+        DossierDaoViewModel dao,
+        MarcheViewModel marches,
+        SuiviViewModel suivi,
+        BackupViewModel backup)
+    {
+        var items = new List<NavigationItem>
+        {
+            new("Tableau de bord", Icones.TableauDeBord, dashboard),
+            new("Plan de passation (PPM)", Icones.Ppm, ppm),
+            new("DAO & Attribution", Icones.Dao, dao),
+            new("Marchés", Icones.Marche, marches),
+            new("Suivi d'exécution", Icones.Suivi, suivi)
+        };
+
+        if (!estVisiteur)
+        {
+            items.Add(new NavigationItem("Sauvegarde", Icones.Sauvegarde, backup));
+        }
+
+        return items;
     }
 
     partial void OnSelectedItemChanged(NavigationItem value)

@@ -64,6 +64,11 @@
                         <!-- Formulaire -->
                         <StackPanel Spacing="15">
 
+                            <ToggleSwitch IsChecked="{Binding EstConnexionVisiteur}"
+                                          OnContent="Compte visiteur"
+                                          OffContent="Compte responsable"
+                                          AutomationProperties.Name="Type de compte" />
+
                             <StackPanel Spacing="7">
                                 <TextBlock Classes="field-label" Text="Province" />
                                 <ComboBox Classes="auth-input"
@@ -80,11 +85,14 @@
                             </StackPanel>
 
                             <StackPanel Spacing="7">
-                                <TextBlock Classes="field-label" Text="Mot de passe" />
+                                <TextBlock Classes="field-label" Text="{Binding LibelleMotDePasse}" />
                                 <ctrl:PasswordField Text="{Binding MotDePasse, Mode=TwoWay}"
-                                                    PlaceholderText="Saisissez le mot de passe de la province"
-                                                    NomAccessible="Mot de passe de la province"
+                                                    PlaceholderText="{Binding PlaceholderMotDePasse}"
+                                                    NomAccessible="{Binding LibelleMotDePasse}"
                                                     EstInvalide="{Binding MotDePasseInvalide}" />
+                                <TextBlock Classes="auth-help"
+                                           IsVisible="{Binding EstConnexionVisiteur}"
+                                           Text="Le compte visiteur permet uniquement la consultation de cette province." />
                                 <TextBlock Classes="auth-help">
                                     <Run FontWeight="SemiBold" Text="Mot de passe oublié ?" />
                                     <Run Text=" Contactez le responsable PRMP pour le réinitialiser." />
@@ -106,7 +114,7 @@
                                           Width="15" Height="15"
                                           IsVisible="{Binding EstOccupe}"
                                           Foreground="{DynamicResource TextOnAccentBrush}" />
-                                <TextBlock Text="Se connecter"
+                                 <TextBlock Text="{Binding LibelleConnexion}"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource TextOnAccentBrush}" />
                             </StackPanel>

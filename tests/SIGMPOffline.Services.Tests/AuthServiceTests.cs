@@ -67,6 +67,69 @@ public class AuthServiceTests
     }
 
     [Fact]
+    public async Task Acces_visiteur_est_propre_a_la_province_et_ouvre_une_session_visiteur()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        var auth = Creer(db);
+        await auth.InitialiserAsync("PRMP", "Province A", "secret-admin");
+        var province = auth.ProvinceActive!;
+
+        await auth.ConfigurerAccesVisiteurAsync("secret-visiteur");
+        Assert.NotEqual("secret-visiteur", province.VisitorPasswordHash);
+        Assert.NotNull(province.VisitorSalt);
+
+        await auth.DeconnecterAsync();
+        await Assert.ThrowsAsync<DomainException>(
+            () => auth.ConnecterVisiteurAsync(province.IdProvince, "mauvais"));
+
+        var connectee = await auth.ConnecterVisiteurAsync(province.IdProvince, "secret-visiteur");
+        Assert.Equal(province.IdProvince, connectee.IdProvince);
+        Assert.True(auth.EstAuthentifie);
+        Assert.True(auth.EstVisiteur);
+        Assert.Equal(province.IdProvince, db.ProvinceAccessor.IdProvince);
+    }
+
+    [Fact]
+    public async Task Visiteur_ne_peut_pas_configurer_son_acces_et_le_responsable_peut_le_revoquer()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        var auth = Creer(db);
+        await auth.InitialiserAsync("PRMP", "Province A", "secret-admin");
+        var idProvince = auth.ProvinceActive!.IdProvince;
+
+        await auth.ConfigurerAccesVisiteurAsync("secret-visiteur");
+        await auth.DeconnecterAsync();
+        await auth.ConnecterVisiteurAsync(idProvince, "secret-visiteur");
+
+        await Assert.ThrowsAsync<DomainException>(
+            () => auth.ConfigurerAccesVisiteurAsync("autre-secret"));
+
+        await auth.DeconnecterAsync();
+        await auth.ConnecterAsync(idProvince, "secret-admin");
+        Assert.False(auth.EstVisiteur);
+
+        await auth.ConfigurerAccesVisiteurAsync(null);
+        await auth.DeconnecterAsync();
+        await Assert.ThrowsAsync<DomainException>(
+            () => auth.ConnecterVisiteurAsync(idProvince, "secret-visiteur"));
+    }
+
+    [Fact]
+    public async Task Connexion_visiteur_est_refusee_si_aucun_acces_n_est_configure()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        var auth = Creer(db);
+        await auth.InitialiserAsync("PRMP", "Province A", "secret-admin");
+        var idProvince = auth.ProvinceActive!.IdProvince;
+        await auth.DeconnecterAsync();
+
+        await Assert.ThrowsAsync<DomainException>(
+            () => auth.ConnecterVisiteurAsync(idProvince, "secret-visiteur"));
+        Assert.False(auth.EstAuthentifie);
+        Assert.False(auth.EstVisiteur);
+    }
+
+    [Fact]
     public async Task InitialiserAsync_adopte_les_donnees_existantes_sans_province()
     {
         await using var db = await TestDatabase.CreateAsync();

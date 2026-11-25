@@ -418,6 +418,14 @@ namespace SIGMPOffline.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("VisitorPasswordHash")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("VisitorSalt")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
                     b.HasKey("IdProvince");
 
                     b.HasIndex("NomProvince")
@@ -552,6 +560,17 @@ namespace SIGMPOffline.Data.Migrations
                     b.Navigation("Titulaire");
                 });
 
+            modelBuilder.Entity("SIGMPOffline.Domain.Entities.PpmBeneficiaire", b =>
+                {
+                    b.HasOne("SIGMPOffline.Domain.Entities.PpmDetail", "Detail")
+                        .WithMany("Beneficiaires")
+                        .HasForeignKey("NumPPMDetail")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Detail");
+                });
+
             modelBuilder.Entity("SIGMPOffline.Domain.Entities.PpmDetail", b =>
                 {
                     b.HasOne("SIGMPOffline.Domain.Entities.PpmEntete", "Entete")
@@ -600,17 +619,6 @@ namespace SIGMPOffline.Data.Migrations
                     b.Navigation("Elements");
 
                     b.Navigation("Suivi");
-                });
-
-            modelBuilder.Entity("SIGMPOffline.Domain.Entities.PpmBeneficiaire", b =>
-                {
-                    b.HasOne("SIGMPOffline.Domain.Entities.PpmDetail", "Detail")
-                        .WithMany("Beneficiaires")
-                        .HasForeignKey("NumPPMDetail")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Detail");
                 });
 
             modelBuilder.Entity("SIGMPOffline.Domain.Entities.PpmDetail", b =>

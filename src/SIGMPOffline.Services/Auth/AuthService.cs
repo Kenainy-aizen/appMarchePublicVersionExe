@@ -30,6 +30,7 @@ public class AuthService : IAuthService
 
     private ConfigurationApp? _configuration;
     private Province? _provinceActive;
+    private bool _estVisiteur;
 
     public AuthService(IScopeRunner scopeRunner, IProvinceAccessor provinceAccessor)
     {
@@ -42,6 +43,9 @@ public class AuthService : IAuthService
 
     /// <inheritdoc />
     public Province? ProvinceActive => _provinceActive;
+
+    /// <inheritdoc />
+    public bool EstVisiteur => _estVisiteur;
 
     /// <inheritdoc />
     public ConfigurationApp? Configuration => _configuration;
@@ -234,6 +238,65 @@ public class AuthService : IAuthService
         });
 
     /// <inheritdoc />
+    public async Task<Province> ConnecterVisiteurAsync(
+        int idProvince,
+        string motDePasse,
+        CancellationToken cancellationToken = default)
+        => await _scopeRunner.ExecuterAsync<IUnitOfWork, Province>(async unitOfWork =>
+        {
+            var province = await unitOfWork.Provinces.GetByIdAsync(idProvince, cancellationToken)
+                ?? throw new DomainException("La province sélectionnée est introuvable.");
+
+            if (string.IsNullOrEmpty(province.VisitorPasswordHash)
+                || string.IsNullOrEmpty(province.VisitorSalt)
+                || !PasswordHasher.Verifier(motDePasse ?? string.Empty, province.VisitorPasswordHash, province.VisitorSalt))
+            {
+                throw new DomainException("Accès visiteur indisponible ou mot de passe incorrect.");
+            }
+
+            _configuration ??= await unitOfWork.Configuration.GetConfigurationAsync(cancellationToken);
+            OuvrirSession(_configuration, province, estVisiteur: true);
+
+            return province;
+        });
+
+    /// <inheritdoc />
+    public async Task ConfigurerAccesVisiteurAsync(
+        string? nouveauMotDePasse,
+        CancellationToken cancellationToken = default)
+    {
+        var provinceActive = _provinceActive;
+        if (provinceActive is null || _estVisiteur)
+        {
+            throw new DomainException("Seul le responsable connecté peut gérer l'accès visiteur.");
+        }
+
+        var desactiver = string.IsNullOrWhiteSpace(nouveauMotDePasse);
+        if (!desactiver)
+        {
+            ValiderMotDePasse(nouveauMotDePasse!);
+        }
+
+        var informations = desactiver
+            ? ((string Hash, string Salt)?)null
+            : PasswordHasher.Hacher(nouveauMotDePasse!);
+
+        await _scopeRunner.ExecuterAsync<IUnitOfWork>(async unitOfWork =>
+        {
+            var province = await unitOfWork.Provinces.GetByIdAsync(provinceActive.IdProvince, cancellationToken)
+                ?? throw new DomainException("La province active est introuvable.");
+
+            province.VisitorPasswordHash = informations?.Hash;
+            province.VisitorSalt = informations?.Salt;
+            unitOfWork.Provinces.Update(province);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        });
+
+        provinceActive.VisitorPasswordHash = informations?.Hash;
+        provinceActive.VisitorSalt = informations?.Salt;
+    }
+
+    /// <inheritdoc />
     public async Task ChangerMotDePasseAsync(
         int idProvince,
         string ancienMotDePasse,
@@ -263,6 +326,7 @@ public class AuthService : IAuthService
     public Task DeconnecterAsync(CancellationToken cancellationToken = default)
     {
         _provinceActive = null;
+        _estVisiteur = false;
         _provinceAccessor.DefinirProvince(null);
         return Task.CompletedTask;
     }
@@ -271,10 +335,11 @@ public class AuthService : IAuthService
     /// Active la province indiquée : met à jour l'état de session et le contexte
     /// d'isolation. Les entités suivies sont libérées avec le scope de l'opération.
     /// </summary>
-    private void OuvrirSession(ConfigurationApp? configuration, Province province)
+    private void OuvrirSession(ConfigurationApp? configuration, Province province, bool estVisiteur = false)
     {
         _configuration = configuration;
         _provinceActive = province;
+        _estVisiteur = estVisiteur;
 
         _provinceAccessor.DefinirProvince(province.IdProvince);
     }
