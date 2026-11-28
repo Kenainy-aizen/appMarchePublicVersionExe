@@ -299,10 +299,33 @@
                         </Border>
                     </Grid>
 
+                    <Border Classes="panel">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                            <TextBox PlaceholderText="Rechercher une ligne (n°, objet, nature, financement, responsable, montant…)"
+                                     Text="{Binding RechercheDetail, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button Grid.Column="1" Content="Réinitialiser" Classes="ghost"
+                                    Command="{Binding ReinitialiserRechercheDetailCommand}" />
+                        </Grid>
+                    </Border>
+
                     <Border Classes="card">
                         <DockPanel>
-                            <TextBlock DockPanel.Dock="Top" Classes="section-title"
-                                       Text="Lignes de passation" Margin="0,0,0,10" />
+                            <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+                                <TextBlock Classes="section-title" Text="Lignes de passation" />
+                                <TextBlock Grid.Column="1" Classes="legende" VerticalAlignment="Center"
+                                           Text="{Binding NombreLignesFiltrees, StringFormat='{}{0} ligne(s) affichée(s)'}" />
+                            </Grid>
+
+                            <Border DockPanel.Dock="Top" Classes="empty-state"
+                                    IsVisible="{Binding AucunResultatDetail}">
+                                <StackPanel Spacing="10" HorizontalAlignment="Center">
+                                    <TextBlock Text="Aucune ligne ne correspond à votre recherche."
+                                               FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                    <Button Content="Effacer la recherche" Classes="ghost"
+                                            HorizontalAlignment="Center"
+                                            Command="{Binding ReinitialiserRechercheDetailCommand}" />
+                                </StackPanel>
+                            </Border>
 
                             <Border DockPanel.Dock="Top" Classes="empty-state"
                                     IsVisible="{Binding !NombreLignesAffiche}">
@@ -341,7 +364,7 @@
                                 </Grid>
                             </Border>
 
-                            <ListBox ItemsSource="{Binding Details}" SelectedItem="{Binding DetailSelectionne}">
+                            <ListBox ItemsSource="{Binding DetailsFiltres}" SelectedItem="{Binding DetailSelectionne}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="ent:PpmDetail">
                                         <Grid ColumnDefinitions="150,*,150,190,150,88" ColumnSpacing="8"

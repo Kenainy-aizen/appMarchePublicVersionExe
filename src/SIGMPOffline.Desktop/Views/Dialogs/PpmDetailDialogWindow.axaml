@@ -3,11 +3,11 @@
         xmlns:dlg="using:SIGMPOffline.Desktop.ViewModels.Dialogs"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="680" d:DesignHeight="720"
+        mc:Ignorable="d" d:DesignWidth="920" d:DesignHeight="880"
         x:Class="SIGMPOffline.Desktop.Views.Dialogs.PpmDetailDialogWindow"
         x:DataType="dlg:PpmDetailDialogViewModel"
         Title="{Binding Titre}"
-        Width="680" SizeToContent="Height" MaxHeight="740"
+        Width="920" SizeToContent="Height" MaxHeight="880"
         CanResize="False" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
 

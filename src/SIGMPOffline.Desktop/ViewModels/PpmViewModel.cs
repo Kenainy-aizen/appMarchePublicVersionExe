@@ -41,6 +41,9 @@ public partial class PpmViewModel : PageViewModelBase
             OnPropertyChanged(nameof(NombreLignesAffiche));
             OnPropertyChanged(nameof(MontantTotalPlan));
             OnPropertyChanged(nameof(MontantTotalAffiche));
+            OnPropertyChanged(nameof(DetailsFiltres));
+            OnPropertyChanged(nameof(NombreLignesFiltrees));
+            OnPropertyChanged(nameof(AucunResultatDetail));
         };
     }
 
@@ -55,6 +58,9 @@ public partial class PpmViewModel : PageViewModelBase
 
     [ObservableProperty] private string _recherchePpm = string.Empty;
     [ObservableProperty] private string _exerciceFiltre = "Tous";
+
+    /// <summary>Recherche appliquée aux lignes du plan ouvert.</summary>
+    [ObservableProperty] private string _rechercheDetail = string.Empty;
 
     /// <summary>Plans correspondant à la recherche et à l'exercice sélectionné.</summary>
     public IEnumerable<PpmEntete> EntetesFiltres => Entetes.Where(entete =>
@@ -71,12 +77,22 @@ public partial class PpmViewModel : PageViewModelBase
     partial void OnRecherchePpmChanged(string value) => OnPropertyChanged(nameof(EntetesFiltres));
     partial void OnExerciceFiltreChanged(string value) => OnPropertyChanged(nameof(EntetesFiltres));
 
+    partial void OnRechercheDetailChanged(string value)
+    {
+        OnPropertyChanged(nameof(DetailsFiltres));
+        OnPropertyChanged(nameof(NombreLignesFiltrees));
+        OnPropertyChanged(nameof(AucunResultatDetail));
+    }
+
     [RelayCommand]
     private void ReinitialiserFiltres()
     {
         RecherchePpm = string.Empty;
         ExerciceFiltre = "Tous";
     }
+
+    [RelayCommand]
+    private void ReinitialiserRechercheDetail() => RechercheDetail = string.Empty;
 
     /// <summary>
     /// Ligne sélectionnée dans la liste. Volontairement distincte de l'élément ouvert en détail :
@@ -122,6 +138,24 @@ public partial class PpmViewModel : PageViewModelBase
 
     /// <summary>Montant total formaté en Ariary.</summary>
     public string MontantTotalAffiche => $"{MontantTotalPlan:N0} Ar";
+
+    /// <summary>Lignes du plan correspondant à la recherche du détail.</summary>
+    public IReadOnlyList<PpmDetail> DetailsFiltres
+    {
+        get
+        {
+            var recherche = RechercheDetail.Trim();
+            return recherche.Length == 0
+                ? Details.ToArray()
+                : Details.Where(detail => Correspond(detail, recherche)).ToArray();
+        }
+    }
+
+    /// <summary>Nombre de lignes affichées après filtrage.</summary>
+    public int NombreLignesFiltrees => DetailsFiltres.Count;
+
+    /// <summary>Vrai si le plan contient des lignes mais qu'aucune ne correspond à la recherche.</summary>
+    public bool AucunResultatDetail => Details.Count > 0 && DetailsFiltres.Count == 0;
 
     /// <summary>Titre complet du plan sélectionné.</summary>
     public string TitreDetailPpm
@@ -224,6 +258,7 @@ public partial class PpmViewModel : PageViewModelBase
 
         Erreur = null;
         Message = null;
+        RechercheDetail = string.Empty;
 
         _chargementDetailsSuspendu = true;
         try
@@ -521,6 +556,25 @@ public partial class PpmViewModel : PageViewModelBase
             _chargementDetails.Release();
         }
     }
+
+    /// <summary>Une ligne correspond-elle à la recherche (tous les champs affichés sont parcourus) ?</summary>
+    private static bool Correspond(PpmDetail detail, string recherche)
+        => Contient(detail.NumPPMDetail, recherche)
+            || Contient(detail.ObjetProjet, recherche)
+            || Contient(Libelles.Pour(detail.NatureMarche), recherche)
+            || Contient(Libelles.Pour(detail.ModePassation), recherche)
+            || Contient(detail.SourceFinancement, recherche)
+            || Contient(detail.Comptes, recherche)
+            || Contient(detail.ResponsableProcedure, recherche)
+            || Contient(detail.ServicesBeneficiairesResume, recherche)
+            || Contient(detail.MontantEstimatif.ToString("N0"), recherche)
+            || Contient(detail.MontantEstimatif.ToString("0"), recherche)
+            || Contient(detail.DateLancementPrevue?.ToString("dd/MM/yyyy"), recherche)
+            || Contient(detail.DateOuverturePlisPrevue?.ToString("dd/MM/yyyy"), recherche)
+            || Contient(detail.DateAttributionPrevue?.ToString("dd/MM/yyyy"), recherche);
+
+    private static bool Contient(string? valeur, string recherche)
+        => valeur is not null && valeur.Contains(recherche, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Exécute une action, affiche le message de succès ou l'erreur. Retourne <c>true</c> si elle a réussi.</summary>
     private async Task<bool> ExecuterAsync(Func<Task> action, string messageSucces)
