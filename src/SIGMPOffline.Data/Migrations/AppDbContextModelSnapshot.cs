@@ -275,6 +275,24 @@ namespace SIGMPOffline.Data.Migrations
                     b.ToTable("Marche", (string)null);
                 });
 
+            modelBuilder.Entity("SIGMPOffline.Domain.Entities.PermissionProvince", b =>
+                {
+                    b.Property<int>("IdUtilisateur")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("IdProvince")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("PeutModifier")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("IdUtilisateur", "IdProvince");
+
+                    b.HasIndex("IdProvince");
+
+                    b.ToTable("PermissionProvince", (string)null);
+                });
+
             modelBuilder.Entity("SIGMPOffline.Domain.Entities.PpmBeneficiaire", b =>
                 {
                     b.Property<int>("Id")
@@ -408,24 +426,6 @@ namespace SIGMPOffline.Data.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Salt")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("VisitorPasswordHash")
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("VisitorSalt")
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
                     b.HasKey("IdProvince");
 
                     b.HasIndex("NomProvince")
@@ -470,6 +470,45 @@ namespace SIGMPOffline.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("SuiviExecution", (string)null);
+                });
+
+            modelBuilder.Entity("SIGMPOffline.Domain.Entities.Utilisateur", b =>
+                {
+                    b.Property<int>("IdUtilisateur")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DateCreation")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("EstActif")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("EstAdministrateur")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NomUtilisateur")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Salt")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("IdUtilisateur");
+
+                    b.HasIndex("NomUtilisateur")
+                        .IsUnique();
+
+                    b.ToTable("Utilisateur", (string)null);
                 });
 
             modelBuilder.Entity("SIGMPOffline.Domain.Entities.AcheteurDao", b =>
@@ -560,6 +599,25 @@ namespace SIGMPOffline.Data.Migrations
                     b.Navigation("Titulaire");
                 });
 
+            modelBuilder.Entity("SIGMPOffline.Domain.Entities.PermissionProvince", b =>
+                {
+                    b.HasOne("SIGMPOffline.Domain.Entities.Province", "Province")
+                        .WithMany("PermissionsUtilisateurs")
+                        .HasForeignKey("IdProvince")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SIGMPOffline.Domain.Entities.Utilisateur", "Utilisateur")
+                        .WithMany("PermissionsProvinces")
+                        .HasForeignKey("IdUtilisateur")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Province");
+
+                    b.Navigation("Utilisateur");
+                });
+
             modelBuilder.Entity("SIGMPOffline.Domain.Entities.PpmBeneficiaire", b =>
                 {
                     b.HasOne("SIGMPOffline.Domain.Entities.PpmDetail", "Detail")
@@ -631,6 +689,16 @@ namespace SIGMPOffline.Data.Migrations
             modelBuilder.Entity("SIGMPOffline.Domain.Entities.PpmEntete", b =>
                 {
                     b.Navigation("Details");
+                });
+
+            modelBuilder.Entity("SIGMPOffline.Domain.Entities.Province", b =>
+                {
+                    b.Navigation("PermissionsUtilisateurs");
+                });
+
+            modelBuilder.Entity("SIGMPOffline.Domain.Entities.Utilisateur", b =>
+                {
+                    b.Navigation("PermissionsProvinces");
                 });
 #pragma warning restore 612, 618
         }

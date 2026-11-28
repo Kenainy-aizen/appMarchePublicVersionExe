@@ -7,7 +7,7 @@ namespace SIGMPOffline.Desktop.ViewModels;
 
 /// <summary>
 /// Assistant de première configuration : enregistre le responsable PRMP
-/// (propriétaire) et crée la première province avec son mot de passe.
+/// comme administrateur et crée la première province.
 /// </summary>
 public partial class SetupViewModel : ViewModelBase
 {
@@ -78,7 +78,7 @@ public partial class SetupViewModel : ViewModelBase
         OnPropertyChanged(nameof(MotsDePasseConcordent));
     }
 
-    /// <summary>Valide la saisie et crée la configuration + la première province.</summary>
+    /// <summary>Valide la saisie et crée le compte admin PRMP + la première province.</summary>
     [RelayCommand]
     private async Task Terminer()
     {

@@ -2,7 +2,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:dlg="using:SIGMPOffline.Desktop.ViewModels.Dialogs"
         xmlns:vm="using:SIGMPOffline.Desktop.ViewModels"
-        xmlns:ctrl="using:SIGMPOffline.Desktop.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="420"
@@ -26,7 +25,7 @@
             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                 <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
                 <TextBlock Classes="auth-subtitle"
-                           Text="La nouvelle province disposera de ses propres données, isolées des autres provinces." />
+                            Text="La nouvelle province disposera de ses propres données, isolées des autres provinces. L'administrateur PRMP pourra attribuer ses accès aux comptes." />
             </StackPanel>
         </Grid>
 
@@ -54,42 +53,6 @@
                                  AutomationProperties.Name="Nom de la province" />
                     </Grid>
                 </Border>
-            </StackPanel>
-
-            <StackPanel Spacing="7">
-                <TextBlock Classes="field-label">
-                    Mot de passe
-                    <Run Foreground="{DynamicResource DangerBrush}">*</Run>
-                </TextBlock>
-                <ctrl:PasswordField Text="{Binding MotDePasse, Mode=TwoWay}"
-                                    PlaceholderText="Saisissez un mot de passe"
-                                    NomAccessible="Mot de passe de la nouvelle province"
-                                    EstInvalide="{Binding MotDePasseInvalide}" />
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                    <TextBlock Classes="auth-help"
-                               Text="{Binding LongueurMinMotDePasse, StringFormat='{}{0} caractères minimum'}" />
-                    <PathIcon Data="{x:Static vm:Icones.Validation}"
-                              Width="12" Height="12"
-                              VerticalAlignment="Center"
-                              Foreground="{DynamicResource SuccessBrush}"
-                              IsVisible="{Binding MotDePasseSuffisant}" />
-                </StackPanel>
-            </StackPanel>
-
-            <StackPanel Spacing="7">
-                <TextBlock Classes="field-label" Text="Confirmation" />
-                <ctrl:PasswordField Text="{Binding Confirmation, Mode=TwoWay}"
-                                    PlaceholderText="Ressaisissez le mot de passe"
-                                    NomAccessible="Confirmation du mot de passe"
-                                    EstInvalide="{Binding ConfirmationInvalide}" />
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                    <TextBlock Classes="auth-help" Text="Les mots de passe doivent être identiques" />
-                    <PathIcon Data="{x:Static vm:Icones.Validation}"
-                              Width="12" Height="12"
-                              VerticalAlignment="Center"
-                              Foreground="{DynamicResource SuccessBrush}"
-                              IsVisible="{Binding MotsDePasseConcordent}" />
-                </StackPanel>
             </StackPanel>
 
         </StackPanel>

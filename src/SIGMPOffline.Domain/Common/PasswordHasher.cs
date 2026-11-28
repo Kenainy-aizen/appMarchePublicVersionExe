@@ -4,8 +4,8 @@ namespace SIGMPOffline.Domain.Common;
 
 /// <summary>
 /// Hachage et vérification de mots de passe via <b>PBKDF2</b> (HMAC-SHA-256).
-/// Le sel est aléatoire et stocké séparément du condensat (colonnes <c>Salt</c>
-/// et <c>PasswordHash</c>), conformément au modèle de données.
+/// Le sel est aléatoire et stocké séparément du condensat dans le compte utilisateur
+/// (colonnes <c>Salt</c> et <c>PasswordHash</c>).
 /// </summary>
 public static class PasswordHasher
 {

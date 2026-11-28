@@ -10,23 +10,7 @@ public class DialoguesProvinceTests
     [Fact]
     public void Province_refuse_un_nom_vide()
     {
-        var vm = new ProvinceDialogViewModel { NomProvince = "  ", MotDePasse = "secret", Confirmation = "secret" };
-        Assert.False(Valider(vm));
-        Assert.NotNull(vm.Erreur);
-    }
-
-    [Fact]
-    public void Province_refuse_un_mot_de_passe_trop_court()
-    {
-        var vm = new ProvinceDialogViewModel { NomProvince = "Province B", MotDePasse = "ab", Confirmation = "ab" };
-        Assert.False(Valider(vm));
-        Assert.NotNull(vm.Erreur);
-    }
-
-    [Fact]
-    public void Province_refuse_une_confirmation_differente()
-    {
-        var vm = new ProvinceDialogViewModel { NomProvince = "Province B", MotDePasse = "secret", Confirmation = "secre" };
+        var vm = new ProvinceDialogViewModel { NomProvince = "  " };
         Assert.False(Valider(vm));
         Assert.NotNull(vm.Erreur);
     }
@@ -34,15 +18,16 @@ public class DialoguesProvinceTests
     [Fact]
     public void Province_accepte_une_saisie_valide()
     {
-        var vm = new ProvinceDialogViewModel { NomProvince = "Province B", MotDePasse = "secret", Confirmation = "secret" };
+        var vm = new ProvinceDialogViewModel { NomProvince = " Province B " };
         Assert.True(Valider(vm));
+        Assert.Equal("Province B", vm.NomProvince);
         Assert.Null(vm.Erreur);
     }
 
     [Fact]
     public void MotDePasse_exige_l_ancien_mot_de_passe()
     {
-        var vm = new MotDePasseDialogViewModel("Province A")
+        var vm = new MotDePasseDialogViewModel("Agent")
         {
             AncienMotDePasse = string.Empty,
             NouveauMotDePasse = "nouveau",
@@ -51,13 +36,13 @@ public class DialoguesProvinceTests
 
         Assert.False(Valider(vm));
         Assert.NotNull(vm.Erreur);
-        Assert.Equal("Province A", vm.NomProvince);
+        Assert.Equal("Agent", vm.NomUtilisateur);
     }
 
     [Fact]
     public void MotDePasse_accepte_une_saisie_valide()
     {
-        var vm = new MotDePasseDialogViewModel("Province A")
+        var vm = new MotDePasseDialogViewModel("Agent")
         {
             AncienMotDePasse = "ancien",
             NouveauMotDePasse = "nouveau",
@@ -83,10 +68,9 @@ public class DialoguesProvinceTests
     }
 
     [Fact]
-    public void ChangerProvince_exige_un_mot_de_passe()
+    public void ChangerProvince_refuse_une_liste_vide()
     {
-        var provinces = new List<Province> { new() { IdProvince = 1, NomProvince = "Province A" } };
-        var vm = new ChangerProvinceDialogViewModel(provinces, null) { MotDePasse = string.Empty };
+        var vm = new ChangerProvinceDialogViewModel(Array.Empty<Province>(), null);
 
         Assert.False(Valider(vm));
         Assert.NotNull(vm.Erreur);
@@ -96,7 +80,7 @@ public class DialoguesProvinceTests
     public void ChangerProvince_accepte_une_saisie_valide()
     {
         var provinces = new List<Province> { new() { IdProvince = 1, NomProvince = "Province A" } };
-        var vm = new ChangerProvinceDialogViewModel(provinces, null) { MotDePasse = "secret" };
+        var vm = new ChangerProvinceDialogViewModel(provinces, null);
 
         Assert.True(Valider(vm));
         Assert.Equal(1, vm.IdProvinceChoisi);

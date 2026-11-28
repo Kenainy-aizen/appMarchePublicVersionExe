@@ -15,10 +15,6 @@ public class ProvinceConfiguration : IEntityTypeConfiguration<Province>
 
         builder.Property(x => x.IdProvince).ValueGeneratedOnAdd();
         builder.Property(x => x.NomProvince).HasMaxLength(150).IsRequired();
-        builder.Property(x => x.PasswordHash).HasMaxLength(200).IsRequired();
-        builder.Property(x => x.Salt).HasMaxLength(100).IsRequired();
-        builder.Property(x => x.VisitorPasswordHash).HasMaxLength(200);
-        builder.Property(x => x.VisitorSalt).HasMaxLength(100);
         builder.Property(x => x.DateCreation).IsRequired();
 
         // Le nom de la province est unique.

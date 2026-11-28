@@ -25,35 +25,31 @@ public partial class LoginViewModel : ViewModelBase
     /// <summary>Province sélectionnée.</summary>
     [ObservableProperty] private Province? _provinceSelectionnee;
 
+    [ObservableProperty] private string _nomUtilisateur = string.Empty;
     [ObservableProperty] private string _motDePasse = string.Empty;
-    [ObservableProperty] private bool _estConnexionVisiteur;
     [ObservableProperty] private string? _erreur;
     [ObservableProperty] private bool _estOccupe;
-
-    /// <summary>Libellé du champ secret selon le type de compte choisi.</summary>
-    public string LibelleMotDePasse => EstConnexionVisiteur ? "Mot de passe visiteur" : "Mot de passe province";
-
-    /// <summary>Indication du champ secret selon le type de compte choisi.</summary>
-    public string PlaceholderMotDePasse => EstConnexionVisiteur
-        ? "Saisissez le mot de passe visiteur"
-        : "Saisissez le mot de passe de la province";
-
-    /// <summary>Libellé de l'action principale selon le type de compte.</summary>
-    public string LibelleConnexion => EstConnexionVisiteur ? "Accéder en visiteur" : "Se connecter";
-
-    partial void OnEstConnexionVisiteurChanged(bool value)
-    {
-        OnPropertyChanged(nameof(LibelleMotDePasse));
-        OnPropertyChanged(nameof(PlaceholderMotDePasse));
-        OnPropertyChanged(nameof(LibelleConnexion));
-        MotDePasse = string.Empty;
-        Erreur = null;
-    }
 
     /// <summary>Le champ mot de passe doit-il être signalé comme invalide ?</summary>
     public bool MotDePasseInvalide => Erreur is not null;
 
     partial void OnErreurChanged(string? value) => OnPropertyChanged(nameof(MotDePasseInvalide));
+
+    partial void OnNomUtilisateurChanged(string value)
+    {
+        if (Erreur is not null)
+        {
+            Erreur = null;
+        }
+    }
+
+    partial void OnProvinceSelectionneeChanged(Province? value)
+    {
+        if (Erreur is not null)
+        {
+            Erreur = null;
+        }
+    }
 
     partial void OnMotDePasseChanged(string value)
     {
@@ -72,7 +68,7 @@ public partial class LoginViewModel : ViewModelBase
     {
         Erreur = null;
         MotDePasse = string.Empty;
-        EstConnexionVisiteur = false;
+        NomUtilisateur = string.Empty;
 
         try
         {
@@ -87,7 +83,7 @@ public partial class LoginViewModel : ViewModelBase
         OnPropertyChanged(nameof(NomProprietaire));
     }
 
-    /// <summary>Vérifie le mot de passe de la province choisie et ouvre la session.</summary>
+    /// <summary>Vérifie le compte et son droit sur la province choisie.</summary>
     [RelayCommand]
     private async Task SeConnecter()
     {
@@ -104,9 +100,15 @@ public partial class LoginViewModel : ViewModelBase
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(NomUtilisateur))
+        {
+            Erreur = "Saisissez votre nom d'utilisateur.";
+            return;
+        }
+
         if (string.IsNullOrEmpty(MotDePasse))
         {
-            Erreur = "Saisissez le mot de passe de la province.";
+            Erreur = "Saisissez votre mot de passe.";
             return;
         }
 
@@ -114,14 +116,7 @@ public partial class LoginViewModel : ViewModelBase
         {
             EstOccupe = true;
 
-            if (EstConnexionVisiteur)
-            {
-                await _auth.ConnecterVisiteurAsync(ProvinceSelectionnee.IdProvince, MotDePasse);
-            }
-            else
-            {
-                await _auth.ConnecterAsync(ProvinceSelectionnee.IdProvince, MotDePasse);
-            }
+            await _auth.ConnecterAsync(NomUtilisateur, MotDePasse, ProvinceSelectionnee.IdProvince);
 
             MotDePasse = string.Empty;
             Connecte?.Invoke(this, EventArgs.Empty);

@@ -3,17 +3,17 @@ using SIGMPOffline.Services.Auth;
 
 namespace SIGMPOffline.Desktop.ViewModels.Dialogs;
 
-/// <summary>Formulaire de changement du mot de passe d'une province.</summary>
+/// <summary>Formulaire de changement du mot de passe du compte connecté.</summary>
 public partial class MotDePasseDialogViewModel : DialogViewModelBase
 {
-    /// <summary>Crée le formulaire pour la province indiquée.</summary>
-    public MotDePasseDialogViewModel(string nomProvince)
+    /// <summary>Crée le formulaire pour le compte indiqué.</summary>
+    public MotDePasseDialogViewModel(string nomUtilisateur)
     {
-        NomProvince = nomProvince;
+        NomUtilisateur = nomUtilisateur;
     }
 
-    /// <summary>Province dont on change le mot de passe.</summary>
-    public string NomProvince { get; }
+    /// <summary>Compte dont on change le mot de passe.</summary>
+    public string NomUtilisateur { get; }
 
     [ObservableProperty] private string _ancienMotDePasse = string.Empty;
     [ObservableProperty] private string _nouveauMotDePasse = string.Empty;

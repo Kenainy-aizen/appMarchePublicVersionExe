@@ -99,28 +99,20 @@
                     </Border>
 
                     <Button Classes="icon" Command="{Binding ModifierNomPrmpCommand}"
-                            IsEnabled="{Binding !EstLectureSeule}"
+                            IsEnabled="{Binding PeutGererComptes}"
                             ToolTip.Tip="Modifier le nom de la PRMP">
                         <PathIcon Data="{x:Static vm:Icones.Modifier}" Width="18" Height="18" />
                     </Button>
                     <Button Classes="icon" Command="{Binding NouvelleProvinceCommand}"
-                            IsEnabled="{Binding !EstLectureSeule}"
+                            IsEnabled="{Binding PeutGererComptes}"
                             ToolTip.Tip="Nouvelle province">
                         <PathIcon Data="{x:Static vm:Icones.Ajouter}" Width="18" Height="18" />
                     </Button>
                     <Button Classes="icon" Command="{Binding ChangerMotDePasseCommand}"
-                            IsEnabled="{Binding !EstLectureSeule}"
                             ToolTip.Tip="Changer le mot de passe">
                         <PathIcon Data="{x:Static vm:Icones.Cadenas}" Width="18" Height="18" />
                     </Button>
-                    <Button Classes="icon" Command="{Binding ConfigurerAccesVisiteurCommand}"
-                            IsVisible="{Binding !EstVisiteur}"
-                            IsEnabled="{Binding !EstLectureSeule}"
-                            ToolTip.Tip="Configurer l'accès visiteur">
-                        <PathIcon Data="{x:Static vm:Icones.Utilisateur}" Width="18" Height="18" />
-                    </Button>
                     <Button Classes="icon" Command="{Binding ChangerProvinceCommand}"
-                            IsVisible="{Binding !EstVisiteur}"
                             ToolTip.Tip="Changer de province">
                         <PathIcon Data="{x:Static vm:Icones.Echange}" Width="18" Height="18" />
                     </Button>

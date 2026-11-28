@@ -44,8 +44,8 @@
                         <!-- Titre -->
                         <StackPanel Spacing="7">
                             <TextBlock Classes="auth-title" Text="Connexion" />
-                            <TextBlock Classes="auth-subtitle"
-                                       Text="Sélectionnez votre province puis saisissez son mot de passe pour ouvrir votre espace de travail." />
+                        <TextBlock Classes="auth-subtitle"
+                                   Text="Saisissez votre nom d'utilisateur et votre mot de passe, puis choisissez une province autorisée." />
                         </StackPanel>
 
                         <!-- Message d'erreur -->
@@ -64,10 +64,25 @@
                         <!-- Formulaire -->
                         <StackPanel Spacing="15">
 
-                            <ToggleSwitch IsChecked="{Binding EstConnexionVisiteur}"
-                                          OnContent="Compte visiteur"
-                                          OffContent="Compte responsable"
-                                          AutomationProperties.Name="Type de compte" />
+                            <StackPanel Spacing="7">
+                                <TextBlock Classes="field-label" Text="Nom d'utilisateur" />
+                                <TextBox Classes="auth-input"
+                                         Text="{Binding NomUtilisateur}"
+                                         PlaceholderText="Saisissez votre nom d'utilisateur"
+                                         AutomationProperties.Name="Nom d'utilisateur" />
+                            </StackPanel>
+
+                            <StackPanel Spacing="7">
+                                <TextBlock Classes="field-label" Text="Mot de passe" />
+                                <ctrl:PasswordField Text="{Binding MotDePasse, Mode=TwoWay}"
+                                                    PlaceholderText="Saisissez votre mot de passe"
+                                                    NomAccessible="Mot de passe"
+                                                    EstInvalide="{Binding MotDePasseInvalide}" />
+                                <TextBlock Classes="auth-help">
+                                    <Run FontWeight="SemiBold" Text="Mot de passe oublié ?" />
+                                    <Run Text=" Contactez le responsable PRMP pour le réinitialiser." />
+                                </TextBlock>
+                            </StackPanel>
 
                             <StackPanel Spacing="7">
                                 <TextBlock Classes="field-label" Text="Province" />
@@ -75,28 +90,13 @@
                                           ItemsSource="{Binding Provinces}"
                                           SelectedItem="{Binding ProvinceSelectionnee}"
                                           HorizontalAlignment="Stretch"
-                                          AutomationProperties.Name="Province à gérer">
+                                          AutomationProperties.Name="Province autorisée">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate x:DataType="dom:Province">
                                             <TextBlock Text="{Binding NomProvince}" />
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
-                            </StackPanel>
-
-                            <StackPanel Spacing="7">
-                                <TextBlock Classes="field-label" Text="{Binding LibelleMotDePasse}" />
-                                <ctrl:PasswordField Text="{Binding MotDePasse, Mode=TwoWay}"
-                                                    PlaceholderText="{Binding PlaceholderMotDePasse}"
-                                                    NomAccessible="{Binding LibelleMotDePasse}"
-                                                    EstInvalide="{Binding MotDePasseInvalide}" />
-                                <TextBlock Classes="auth-help"
-                                           IsVisible="{Binding EstConnexionVisiteur}"
-                                           Text="Le compte visiteur permet uniquement la consultation de cette province." />
-                                <TextBlock Classes="auth-help">
-                                    <Run FontWeight="SemiBold" Text="Mot de passe oublié ?" />
-                                    <Run Text=" Contactez le responsable PRMP pour le réinitialiser." />
-                                </TextBlock>
                             </StackPanel>
 
                         </StackPanel>
@@ -114,7 +114,7 @@
                                           Width="15" Height="15"
                                           IsVisible="{Binding EstOccupe}"
                                           Foreground="{DynamicResource TextOnAccentBrush}" />
-                                 <TextBlock Text="{Binding LibelleConnexion}"
+                                 <TextBlock Text="Se connecter"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource TextOnAccentBrush}" />
                             </StackPanel>

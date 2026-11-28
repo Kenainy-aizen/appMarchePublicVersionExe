@@ -1,10 +1,6 @@
 namespace SIGMPOffline.Domain.Entities;
 
-/// <summary>
-/// Province gérée par l'application. Chaque province possède son propre mot de passe
-/// et voit ses données isolées des autres provinces.
-/// Table : <c>Province</c>.
-/// </summary>
+/// <summary>Province dont l'accès est attribué aux comptes utilisateurs.</summary>
 public class Province
 {
     /// <summary>Identifiant (clé primaire, auto-incrémenté).</summary>
@@ -13,18 +9,9 @@ public class Province
     /// <summary>Nom de la province (unique).</summary>
     public string NomProvince { get; set; } = string.Empty;
 
-    /// <summary>Condensat du mot de passe (PBKDF2, Base64).</summary>
-    public string PasswordHash { get; set; } = string.Empty;
-
-    /// <summary>Sel du mot de passe (Base64).</summary>
-    public string Salt { get; set; } = string.Empty;
-
-    /// <summary>Condensat du mot de passe du compte visiteur, ou <c>null</c> si désactivé.</summary>
-    public string? VisitorPasswordHash { get; set; }
-
-    /// <summary>Sel du mot de passe visiteur (Base64).</summary>
-    public string? VisitorSalt { get; set; }
-
     /// <summary>Date de création de la province.</summary>
     public DateTime DateCreation { get; set; }
+
+    /// <summary>Comptes auxquels cette province est attribuée.</summary>
+    public ICollection<PermissionProvince> PermissionsUtilisateurs { get; set; } = new List<PermissionProvince>();
 }

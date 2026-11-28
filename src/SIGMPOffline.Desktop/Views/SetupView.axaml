@@ -44,7 +44,7 @@
                         <StackPanel Spacing="6">
                             <TextBlock Classes="auth-title" Text="Première configuration" />
                             <TextBlock Classes="auth-subtitle"
-                                       Text="Cette étape n'est réalisée qu'une seule fois. Renseignez le responsable PRMP puis créez la première province et son mot de passe." />
+                                       Text="Cette étape n'est réalisée qu'une seule fois. Le nom du responsable PRMP servira d'identifiant au compte administrateur. Créez ensuite la première province." />
                         </StackPanel>
 
                         <!-- Étape 1 : responsable -->
@@ -110,12 +110,12 @@
 
                             <StackPanel Spacing="7">
                                 <TextBlock Classes="field-label">
-                                    Mot de passe de la province
+                                    Mot de passe administrateur
                                     <Run Foreground="{DynamicResource DangerBrush}">*</Run>
                                 </TextBlock>
                                 <ctrl:PasswordField Text="{Binding MotDePasse, Mode=TwoWay}"
                                                     PlaceholderText="Saisissez un mot de passe"
-                                                    NomAccessible="Mot de passe de la province"
+                                                    NomAccessible="Mot de passe administrateur"
                                                     EstInvalide="{Binding MotDePasseInvalide}" />
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <TextBlock Classes="auth-help"

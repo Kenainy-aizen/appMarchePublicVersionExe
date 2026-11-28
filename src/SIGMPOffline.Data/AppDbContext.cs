@@ -54,6 +54,12 @@ public class AppDbContext : DbContext
     /// <summary>Provinces gérées par l'application.</summary>
     public DbSet<Province> Provinces => Set<Province>();
 
+    /// <summary>Comptes utilisateurs et rôles.</summary>
+    public DbSet<Utilisateur> Utilisateurs => Set<Utilisateur>();
+
+    /// <summary>Autorisations des comptes sur les provinces.</summary>
+    public DbSet<PermissionProvince> PermissionsProvinces => Set<PermissionProvince>();
+
     /// <summary>Configuration globale de l'application (une seule ligne).</summary>
     public DbSet<ConfigurationApp> Configurations => Set<ConfigurationApp>();
 

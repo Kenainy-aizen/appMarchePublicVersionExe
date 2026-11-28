@@ -77,8 +77,6 @@ public class PersistenceTests
         context.Provinces.Add(new Province
         {
             NomProvince = "Analamanga",
-            PasswordHash = "hash",
-            Salt = "sel",
             DateCreation = new DateTime(2026, 1, 1)
         });
         await unitOfWork.SaveChangesAsync();
@@ -86,8 +84,6 @@ public class PersistenceTests
         var doublon = new Province
         {
             NomProvince = "Analamanga",
-            PasswordHash = "hash",
-            Salt = "sel",
             DateCreation = new DateTime(2026, 1, 2)
         };
         context.Provinces.Add(doublon);
@@ -100,8 +96,6 @@ public class PersistenceTests
         context.Provinces.Add(new Province
         {
             NomProvince = "Vakinankaratra",
-            PasswordHash = "hash",
-            Salt = "sel",
             DateCreation = new DateTime(2026, 1, 3)
         });
 

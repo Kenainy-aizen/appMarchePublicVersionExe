@@ -26,11 +26,11 @@
             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                 <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
                 <TextBlock Classes="auth-subtitle"
-                           Text="Saisissez l'ancien mot de passe puis choisissez le nouveau." />
+                            Text="Saisissez votre ancien mot de passe puis choisissez le nouveau." />
             </StackPanel>
         </Grid>
 
-        <!-- Province concernée -->
+        <!-- Compte concerné -->
         <Border Classes="info">
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                 <PathIcon Grid.Column="0"
@@ -39,8 +39,8 @@
                           VerticalAlignment="Center"
                           Foreground="{DynamicResource InfoBrush}" />
                 <StackPanel Grid.Column="1" Spacing="1">
-                    <TextBlock Classes="auth-caption" Text="Province concernée" />
-                    <TextBlock Classes="auth-meta" Text="{Binding NomProvince}" />
+                    <TextBlock Classes="auth-caption" Text="Compte concerné" />
+                    <TextBlock Classes="auth-meta" Text="{Binding NomUtilisateur}" />
                 </StackPanel>
             </Grid>
         </Border>

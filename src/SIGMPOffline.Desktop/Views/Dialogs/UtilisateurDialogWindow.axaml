@@ -1,0 +1,94 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dlg="using:SIGMPOffline.Desktop.ViewModels.Dialogs"
+        xmlns:vm="using:SIGMPOffline.Desktop.ViewModels"
+        xmlns:ctrl="using:SIGMPOffline.Desktop.Controls"
+        x:Class="SIGMPOffline.Desktop.Views.Dialogs.UtilisateurDialogWindow"
+        x:DataType="dlg:UtilisateurDialogViewModel"
+        Title="{Binding Titre}"
+        Width="620" Height="720"
+        Background="{DynamicResource AppBackgroundBrush}"
+        CanResize="True" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid RowDefinitions="*,Auto">
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="24" Spacing="16">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <Border Classes="auth-dialog-icon">
+                        <PathIcon Data="{x:Static vm:Icones.Utilisateur}"
+                                  Width="18" Height="18"
+                                  Foreground="{DynamicResource AccentBrush}" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
+                        <TextBlock Classes="dialog-title" Text="{Binding Titre}" />
+                        <TextBlock Classes="auth-subtitle"
+                                   Text="Choisissez les provinces accessibles et le niveau de droit pour chacune." />
+                    </StackPanel>
+                </Grid>
+
+                <StackPanel Spacing="6">
+                    <TextBlock Classes="field-label" Text="Nom d'utilisateur" />
+                    <TextBox Classes="auth-input"
+                             Text="{Binding NomUtilisateur}"
+                             PlaceholderText="Ex. Jean Rakoto"
+                             AutomationProperties.Name="Nom d'utilisateur" />
+                </StackPanel>
+
+                <StackPanel Spacing="10">
+                    <StackPanel Spacing="6">
+                        <TextBlock Classes="field-label" Text="{Binding LibelleMotDePasse}" />
+                        <ctrl:PasswordField Text="{Binding MotDePasse, Mode=TwoWay}"
+                                            PlaceholderText="Saisissez le mot de passe"
+                                            NomAccessible="Mot de passe utilisateur"
+                                            EstInvalide="{Binding MotDePasseInvalide}" />
+                        <TextBlock Classes="auth-help" Text="{Binding AideMotDePasse}" />
+                    </StackPanel>
+                    <StackPanel Spacing="6" IsVisible="{Binding AfficherConfirmationMotDePasse}">
+                        <TextBlock Classes="field-label" Text="Confirmation du mot de passe" />
+                        <ctrl:PasswordField Text="{Binding Confirmation, Mode=TwoWay}"
+                                            PlaceholderText="Ressaisissez le mot de passe"
+                                            NomAccessible="Confirmation du mot de passe"
+                                            EstInvalide="{Binding ConfirmationInvalide}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <Border Classes="divider" />
+                <TextBlock Classes="section-title" Text="ACCÈS PAR PROVINCE" />
+                <ItemsControl ItemsSource="{Binding Droits}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="dlg:DroitProvinceOptionViewModel">
+                            <Border Classes="card" Margin="0,0,0,8" Padding="12">
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+                                    <CheckBox Content="{Binding NomProvince}"
+                                              IsChecked="{Binding EstAutorise}"
+                                              VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="Consulter" VerticalAlignment="Center" />
+                                    <CheckBox Grid.Column="2" Content="Modifier"
+                                              IsChecked="{Binding PeutModifier}"
+                                              IsEnabled="{Binding EstAutorise}"
+                                              VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <Border Classes="error"
+                        IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Grid.Row="1" Padding="20,12"
+                Background="{DynamicResource SurfaceBrush}"
+                BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="Annuler" Classes="ghost" Command="{Binding AnnulerCommand}" IsCancel="True" />
+                <Button Content="{Binding TitreAction}" Classes="accent"
+                        Command="{Binding ValiderCommand}" IsDefault="True" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

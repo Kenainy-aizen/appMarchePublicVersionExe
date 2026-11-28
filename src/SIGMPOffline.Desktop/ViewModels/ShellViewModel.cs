@@ -25,6 +25,7 @@ public partial class ShellViewModel : ViewModelBase
     private readonly MarcheViewModel _marches;
     private readonly SuiviViewModel _suivi;
     private readonly BackupViewModel _backup;
+    private readonly GestionComptesViewModel _gestionComptes;
     private Task _chargementPage = Task.CompletedTask;
 
     [ObservableProperty] private NavigationItem _selectedItem;
@@ -34,12 +35,14 @@ public partial class ShellViewModel : ViewModelBase
     [ObservableProperty] private bool _estThemeSombre;
 
     /// <summary>Indique si le mode lecture seule est actif.</summary>
-    [ObservableProperty] private bool _estLectureSeule;
-
-    /// <summary>Indique si la session courante utilise le compte visiteur.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(PeutBasculerLectureSeule))]
-    private bool _estVisiteur;
+    [NotifyPropertyChangedFor(nameof(PeutGererComptes))]
+    private bool _estLectureSeule;
+
+    /// <summary>Indique si le compte courant est l'administrateur PRMP.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PeutGererComptes))]
+    private bool _estAdministrateur;
 
     /// <summary>Nom du responsable PRMP / propriétaire (affiché dans l'en-tête).</summary>
     [ObservableProperty] private string _nomProprietaire = string.Empty;
@@ -47,14 +50,19 @@ public partial class ShellViewModel : ViewModelBase
     /// <summary>Nom de la province actuellement gérée.</summary>
     [ObservableProperty] private string _nomProvince = string.Empty;
 
+    /// <summary>Identifiant de l'utilisateur connecté.</summary>
+    [ObservableProperty] private string _nomUtilisateur = string.Empty;
+
     /// <summary>Demande le retour à l'écran de connexion (déconnexion).</summary>
     public event EventHandler? DeconnexionDemandee;
 
     /// <summary>Entrées du menu latéral (un module par page).</summary>
     public IReadOnlyList<NavigationItem> NavigationItems { get; private set; }
 
-    /// <summary>Le visiteur ne peut pas désactiver son mode de consultation.</summary>
-    public bool PeutBasculerLectureSeule => !EstVisiteur;
+    /// <summary>Les comptes en lecture seule ne peuvent pas déverrouiller les écritures.</summary>
+    public bool PeutBasculerLectureSeule => _auth.PeutModifier;
+
+    public bool PeutGererComptes => EstAdministrateur && !EstLectureSeule;
 
     public ShellViewModel(
         IAuthService auth,
@@ -65,7 +73,8 @@ public partial class ShellViewModel : ViewModelBase
         DossierDaoViewModel dao,
         MarcheViewModel marches,
         SuiviViewModel suivi,
-        BackupViewModel backup)
+        BackupViewModel backup,
+        GestionComptesViewModel gestionComptes)
     {
         _auth = auth ?? throw new ArgumentNullException(nameof(auth));
         _dialogues = dialogues ?? throw new ArgumentNullException(nameof(dialogues));
@@ -76,8 +85,10 @@ public partial class ShellViewModel : ViewModelBase
         _marches = marches ?? throw new ArgumentNullException(nameof(marches));
         _suivi = suivi ?? throw new ArgumentNullException(nameof(suivi));
         _backup = backup ?? throw new ArgumentNullException(nameof(backup));
+        _gestionComptes = gestionComptes ?? throw new ArgumentNullException(nameof(gestionComptes));
 
-        NavigationItems = CreerNavigationItems(estVisiteur: false, _dashboard, _ppm, _dao, _marches, _suivi, _backup);
+        NavigationItems = CreerNavigationItems(
+            estAdministrateur: false, _dashboard, _ppm, _dao, _marches, _suivi, _backup, _gestionComptes);
 
         _selectedItem = NavigationItems[0];
         _currentPage = _selectedItem.ViewModel;
@@ -113,11 +124,14 @@ public partial class ShellViewModel : ViewModelBase
     {
         NomProprietaire = _auth.Configuration?.NomProprietairePRMP ?? string.Empty;
         NomProvince = _auth.ProvinceActive?.NomProvince ?? string.Empty;
-        EstVisiteur = _auth.EstVisiteur;
-        EstLectureSeule = EstVisiteur;
+        NomUtilisateur = _auth.UtilisateurActif?.NomUtilisateur ?? string.Empty;
+        EstAdministrateur = _auth.EstAdministrateur;
+        EstLectureSeule = !_auth.PeutModifier;
         NavigationItems = CreerNavigationItems(
-            EstVisiteur, _dashboard, _ppm, _dao, _marches, _suivi, _backup);
+            EstAdministrateur, _dashboard, _ppm, _dao, _marches, _suivi, _backup, _gestionComptes);
         OnPropertyChanged(nameof(NavigationItems));
+        OnPropertyChanged(nameof(PeutBasculerLectureSeule));
+        OnPropertyChanged(nameof(PeutGererComptes));
 
         var cible = NavigationItems[0];
         if (ReferenceEquals(SelectedItem, cible))
@@ -146,11 +160,11 @@ public partial class ShellViewModel : ViewModelBase
         EstThemeSombre = versSombre;
     }
 
-    /// <summary>Crée une nouvelle province avec son propre mot de passe.</summary>
+    /// <summary>Crée une nouvelle province, réservée à l'administrateur PRMP.</summary>
     [RelayCommand]
     private async Task NouvelleProvince()
     {
-        if (EstLectureSeule)
+        if (!EstAdministrateur || EstLectureSeule)
         {
             return;
         }
@@ -163,11 +177,11 @@ public partial class ShellViewModel : ViewModelBase
 
         try
         {
-            var province = await _auth.CreerProvinceAsync(dialogue.NomProvince, dialogue.MotDePasse);
+            var province = await _auth.CreerProvinceAsync(dialogue.NomProvince);
             await _dialogues.InformerAsync(
                 "Province créée",
                 $"La province « {province.NomProvince} » a bien été créée.\n\n"
-                + "Pour y accéder, utilisez « Changer de province » et saisissez son mot de passe.");
+                + "Vous pouvez maintenant attribuer son accès aux comptes dans « Comptes & permissions ».");
         }
         catch (Exception ex)
         {
@@ -175,56 +189,17 @@ public partial class ShellViewModel : ViewModelBase
         }
     }
 
-    /// <summary>Crée, remplace ou révoque le mot de passe du compte visiteur de la province active.</summary>
-    [RelayCommand]
-    private async Task ConfigurerAccesVisiteur()
-    {
-        if (EstVisiteur || EstLectureSeule || _auth.ProvinceActive is not { } province)
-        {
-            return;
-        }
-
-        var dialogue = new AccesVisiteurDialogViewModel(
-            province.NomProvince,
-            accesConfigure: !string.IsNullOrEmpty(province.VisitorPasswordHash));
-        if (!await _dialogues.AfficherAsync(dialogue))
-        {
-            return;
-        }
-
-        try
-        {
-            await _auth.ConfigurerAccesVisiteurAsync(
-                dialogue.DesactiverAcces ? null : dialogue.NouveauMotDePasse);
-            await _dialogues.InformerAsync(
-                "Accès visiteur mis à jour",
-                dialogue.DesactiverAcces
-                    ? $"L'accès visiteur à « {province.NomProvince} » a été désactivé."
-                    : $"L'accès visiteur à « {province.NomProvince} » est prêt. "
-                    + "À la connexion, choisissez « Compte visiteur » et utilisez le mot de passe défini.");
-        }
-        catch (Exception ex)
-        {
-            await _dialogues.InformerAsync("Modification impossible", ex.Message);
-        }
-    }
-
-    /// <summary>Change le mot de passe de la province courante.</summary>
+    /// <summary>Change le mot de passe du compte actuellement connecté.</summary>
     [RelayCommand]
     private async Task ChangerMotDePasse()
     {
-        if (EstLectureSeule)
+        var utilisateur = _auth.UtilisateurActif;
+        if (utilisateur is null)
         {
             return;
         }
 
-        var province = _auth.ProvinceActive;
-        if (province is null)
-        {
-            return;
-        }
-
-        var dialogue = new MotDePasseDialogViewModel(province.NomProvince);
+        var dialogue = new MotDePasseDialogViewModel(utilisateur.NomUtilisateur);
         if (!await _dialogues.AfficherAsync(dialogue))
         {
             return;
@@ -232,8 +207,7 @@ public partial class ShellViewModel : ViewModelBase
 
         try
         {
-            await _auth.ChangerMotDePasseAsync(
-                province.IdProvince, dialogue.AncienMotDePasse, dialogue.NouveauMotDePasse);
+            await _auth.ChangerMotDePasseAsync(dialogue.AncienMotDePasse, dialogue.NouveauMotDePasse);
             await _dialogues.InformerAsync("Mot de passe modifié", "Le nouveau mot de passe a été enregistré.");
         }
         catch (Exception ex)
@@ -246,7 +220,7 @@ public partial class ShellViewModel : ViewModelBase
     [RelayCommand]
     private async Task ModifierNomPrmp()
     {
-        if (EstLectureSeule)
+        if (!EstAdministrateur || EstLectureSeule)
         {
             return;
         }
@@ -269,19 +243,14 @@ public partial class ShellViewModel : ViewModelBase
         }
     }
 
-    /// <summary>Bascule vers une autre province en saisissant son mot de passe.</summary>
+    /// <summary>Bascule vers une autre province autorisée au compte.</summary>
     [RelayCommand]
     private async Task ChangerProvince()
     {
-        if (EstVisiteur)
-        {
-            return;
-        }
-
         IReadOnlyList<Province> provinces;
         try
         {
-            provinces = await _auth.ListerProvincesAsync();
+            provinces = await _auth.ListerProvincesAutoriseesAsync();
         }
         catch (Exception ex)
         {
@@ -293,7 +262,7 @@ public partial class ShellViewModel : ViewModelBase
         {
             await _dialogues.InformerAsync(
                 "Aucune province",
-                "Aucune province n'est disponible. Créez-en une avec « Nouvelle province ».");
+                "Aucune province n'est attribuée à ce compte. Contactez l'administrateur PRMP.");
             return;
         }
 
@@ -305,7 +274,7 @@ public partial class ShellViewModel : ViewModelBase
 
         try
         {
-            await _auth.ConnecterAsync(dialogue.IdProvinceChoisi, dialogue.MotDePasse);
+            await _auth.ChangerProvinceAsync(dialogue.IdProvinceChoisi);
             await ActiverAsync();
             await _dialogues.InformerAsync(
                 "Province changée", $"Vous êtes maintenant connecté à « {_auth.ProvinceActive?.NomProvince} ».");
@@ -336,13 +305,14 @@ public partial class ShellViewModel : ViewModelBase
     }
 
     private static IReadOnlyList<NavigationItem> CreerNavigationItems(
-        bool estVisiteur,
+        bool estAdministrateur,
         DashboardViewModel dashboard,
         PpmViewModel ppm,
         DossierDaoViewModel dao,
         MarcheViewModel marches,
         SuiviViewModel suivi,
-        BackupViewModel backup)
+        BackupViewModel backup,
+        GestionComptesViewModel gestionComptes)
     {
         var items = new List<NavigationItem>
         {
@@ -353,8 +323,9 @@ public partial class ShellViewModel : ViewModelBase
             new("Suivi d'exécution", Icones.Suivi, suivi)
         };
 
-        if (!estVisiteur)
+        if (estAdministrateur)
         {
+            items.Add(new NavigationItem("Comptes & permissions", Icones.Utilisateur, gestionComptes));
             items.Add(new NavigationItem("Sauvegarde", Icones.Sauvegarde, backup));
         }
 

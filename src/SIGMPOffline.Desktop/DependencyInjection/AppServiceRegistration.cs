@@ -43,6 +43,7 @@ public static class AppServiceRegistration
         services.AddSingleton<MarcheViewModel>();
         services.AddSingleton<SuiviViewModel>();
         services.AddSingleton<BackupViewModel>();
+        services.AddSingleton<GestionComptesViewModel>();
 
         return services.BuildServiceProvider(new ServiceProviderOptions
         {

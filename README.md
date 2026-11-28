@@ -56,15 +56,31 @@ Fenêtre unique avec **menu latéral**, une page par module :
 3. **DAO & Attribution** — liste des dossiers avec compteurs, ouverture du détail, candidats et acheteurs DAO numérotés.
 4. **Marchés** — liste des marchés avec compteurs, ouverture du détail et éléments du bordereau.
 5. **Suivi d'exécution** — liste des marchés suivis, ouverture du détail, OS, TEF, avenants, réceptions et clôture.
-6. **Sauvegarde** — export/restauration du fichier SQLite (clé USB).
+6. **Sauvegarde (administrateur PRMP)** — export/restauration du fichier SQLite (clé USB).
 
 ### Mode lecture seule
 
-Un interrupteur **Mode lecture seule** (menu latéral) bascule toute l'application
-en consultation : la navigation, la recherche, les filtres et le thème restent
-disponibles, mais **création, modification, suppression et restauration sont
-désactivées**. Un bandeau le rappelle en haut du contenu et chaque page désactive
-ses boutons d'écriture. Voir [docs/mode-lecture-seule.md](docs/mode-lecture-seule.md).
+Les droits du compte déterminent le mode de départ pour la province choisie.
+Un compte autorisé en consultation seule ne peut pas déverrouiller les écritures ;
+un compte autorisé à modifier peut aussi activer le mode lecture seule manuellement.
+La navigation, la recherche, les filtres et le thème restent disponibles en
+consultation, mais **création, modification et suppression sont désactivées**.
+Voir [docs/mode-lecture-seule.md](docs/mode-lecture-seule.md).
+
+### Comptes et permissions
+
+La connexion demande un **nom d'utilisateur**, un **mot de passe** et une
+**province**. Au premier lancement, le nom du responsable PRMP devient
+l'identifiant du compte administrateur. L'administrateur peut créer, modifier
+ou supprimer les autres comptes et leur attribuer une ou plusieurs provinces,
+avec un droit **consultation seule** ou **modification** pour chacune.
+
+Lors de la mise à niveau d'une base existante, le compte administrateur reprend
+le nom PRMP configuré et le mot de passe de la première province créée. Les anciens
+accès par province sont conservés comme comptes `Province-<id>` avec modification
+autorisée sur leur province ; les anciens accès visiteurs sont convertis en comptes
+`Visiteur-<id>` en consultation seule. L'administrateur peut renommer ou réattribuer
+ces comptes dans **Comptes & permissions**.
 
 ### Nom de la PRMP
 
@@ -72,6 +88,7 @@ Le nom du responsable PRMP, saisi au premier lancement, est affiché dans
 l'en-tête. Le bouton crayon voisin permet de le modifier à tout moment ; la
 nouvelle valeur est enregistrée dans la configuration globale de l'application
 (et non dans une province). La modification est désactivée en mode lecture seule.
+Cette valeur sert également d'identifiant au compte administrateur PRMP.
 
 ### Emplacement de la base
 

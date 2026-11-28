@@ -1,0 +1,94 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SIGMPOffline.Desktop.ViewModels"
+             xmlns:ent="using:SIGMPOffline.Domain.Entities"
+             x:Class="SIGMPOffline.Desktop.Views.GestionComptesView"
+             x:DataType="vm:GestionComptesViewModel">
+    <Grid RowDefinitions="Auto,Auto,*" RowSpacing="14">
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+            <StackPanel Spacing="4">
+                <TextBlock Classes="page-title" Text="Comptes &amp; permissions" />
+                <TextBlock Classes="auth-subtitle"
+                           Text="Créez les comptes et définissez, province par province, s'ils peuvent consulter ou modifier les données." />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <Button Content="Actualiser" Command="{Binding ChargerCommand}" />
+                <Button Content="Nouveau compte" Classes="accent"
+                        Command="{Binding CreerCompteCommand}"
+                        IsEnabled="{Binding PeutModifier}" />
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1" Classes="error"
+                IsVisible="{Binding Erreur, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
+        </Border>
+
+        <Grid Grid.Row="2" ColumnDefinitions="300,*" ColumnSpacing="14">
+            <Border Classes="card" Padding="0">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Classes="section-title"
+                               Margin="14,12" Text="COMPTES UTILISATEURS" />
+                    <ListBox ItemsSource="{Binding Utilisateurs}"
+                             SelectedItem="{Binding CompteSelectionne}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="ent:Utilisateur">
+                                <StackPanel Spacing="3" Margin="4">
+                                    <TextBlock Text="{Binding NomUtilisateur}" FontWeight="SemiBold" />
+                                    <TextBlock Text="Administrateur PRMP" Classes="auth-caption"
+                                               IsVisible="{Binding EstAdministrateur}" />
+                                    <TextBlock Text="Compte utilisateur" Classes="auth-caption"
+                                               IsVisible="{Binding !EstAdministrateur}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <Border Grid.Column="1" Classes="card" Padding="18"
+                    IsVisible="{Binding CompteSelectionne, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <StackPanel Spacing="3">
+                                <TextBlock Classes="section-title" Text="DÉTAILS DU COMPTE" />
+                                <TextBlock Classes="dialog-title" Text="{Binding CompteSelectionne.NomUtilisateur}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                <Button Content="Modifier" Command="{Binding ModifierCompteCommand}"
+                                        IsEnabled="{Binding CompteSelectionneEstModifiable}" />
+                                <Button Content="Supprimer" Classes="danger"
+                                        Command="{Binding SupprimerCompteCommand}"
+                                        IsEnabled="{Binding CompteSelectionneEstModifiable}" />
+                            </StackPanel>
+                        </Grid>
+                        <Border Classes="divider" />
+                        <TextBlock Classes="field-label" Text="Provinces accessibles" />
+                    </StackPanel>
+
+                    <Border Classes="empty-state" Margin="0,12,0,0"
+                            IsVisible="{Binding CompteSelectionneEstAdministrateur}">
+                        <TextBlock Text="Ce compte administrateur accède à toutes les provinces."
+                                   TextWrapping="Wrap" />
+                    </Border>
+
+                    <ItemsControl ItemsSource="{Binding DroitsCompteSelectionne}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="ent:PermissionProvince">
+                                <Border Classes="info" Margin="0,0,0,8" Padding="12">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                        <TextBlock Text="{Binding Province.NomProvince}"
+                                                   FontWeight="SemiBold" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="{Binding LibelleDroit}"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

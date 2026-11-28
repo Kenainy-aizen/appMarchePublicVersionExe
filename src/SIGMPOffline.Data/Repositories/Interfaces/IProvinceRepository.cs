@@ -2,7 +2,7 @@ using SIGMPOffline.Domain.Entities;
 
 namespace SIGMPOffline.Data.Repositories.Interfaces;
 
-/// <summary>Accès aux provinces (et à leurs mots de passe).</summary>
+/// <summary>Accès aux provinces gérées par l'application.</summary>
 public interface IProvinceRepository : IRepository<Province>
 {
     /// <summary>Liste les provinces triées par nom.</summary>

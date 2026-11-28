@@ -2,9 +2,10 @@
 
 ## Objectif
 
-Le mode **lecture seule** laisse l'application entièrement consultable — navigation,
-recherche, filtres, thème, tableau de bord et sauvegarde — mais **désactive toute
-écriture** : création, modification, suppression et restauration.
+Le mode **lecture seule** laisse les pages autorisées consultables — navigation,
+recherche, filtres et tableau de bord — mais désactive les modifications des données.
+Les comptes sans droit de modification sont verrouillés dans ce mode. Les comptes
+autorisés à modifier peuvent activer le mode manuellement.
 
 Il s'active depuis le menu latéral, sous le bloc **« Mode lecture seule »**
 (`ToggleSwitch`), et s'applique immédiatement à toutes les pages.
@@ -17,10 +18,10 @@ Il s'active depuis le menu latéral, sous le bloc **« Mode lecture seule »**
   Désigner, Émettre, Clôturer, Restaurer…) sont **désactivés**.
 - Les actions encore visibles sur les lignes (icônes Modifier / Supprimer) sont
   également désactivées.
-- Les commandes de configuration (`Nouvelle province`, `Changer le mot de passe`)
-  sont bloquées.
-- La **sauvegarde** reste possible (elle ne modifie pas les données), mais la
-  **restauration** est bloquée (elle remplacerait la base).
+- La création de province et la gestion des comptes sont réservées à
+  l'administrateur PRMP ; le changement du mot de passe du compte reste possible.
+- La sauvegarde et la restauration sont réservées à l'administrateur PRMP. La
+  restauration est bloquée en mode lecture seule.
 - Aucune donnée n'est écrite, mise à jour ou supprimée tant que le mode est actif.
 
 ## Architecture

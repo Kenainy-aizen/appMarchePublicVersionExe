@@ -2,87 +2,74 @@ using SIGMPOffline.Domain.Entities;
 
 namespace SIGMPOffline.Services.Abstractions;
 
-/// <summary>
-/// Authentification et gestion <b>multi-provinces</b> : détection du premier
-/// lancement, configuration initiale, connexion, création de provinces et
-/// changement de mot de passe.
-/// </summary>
+/// <summary>Authentification des utilisateurs et gestion des droits par province.</summary>
 public interface IAuthService
 {
-    /// <summary>Indique si une province est actuellement ouverte (session active).</summary>
     bool EstAuthentifie { get; }
-
-    /// <summary>Province actuellement ouverte, ou <c>null</c> si aucune session.</summary>
+    bool EstAdministrateur { get; }
+    bool PeutModifier { get; }
     Province? ProvinceActive { get; }
-
-    /// <summary>Indique que la session courante est un accès visiteur en lecture seule.</summary>
-    bool EstVisiteur { get; }
-
-    /// <summary>Configuration globale (propriétaire), ou <c>null</c> avant la première configuration.</summary>
+    Utilisateur? UtilisateurActif { get; }
     ConfigurationApp? Configuration { get; }
 
-    /// <summary>Indique si l'application n'a pas encore été configurée (premier lancement).</summary>
     Task<bool> EstPremierLancementAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Effectue la configuration initiale : enregistre le propriétaire PRMP et crée
-    /// la première province (qui devient la province active).
-    /// </summary>
+    /// <summary>Crée la configuration initiale et le compte admin PRMP.</summary>
     Task InitialiserAsync(
         string nomProprietaire,
         string nomProvince,
         string motDePasse,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Liste les provinces disponibles pour la connexion, triées par nom.</summary>
+    /// <summary>Liste les provinces proposées à l'écran de connexion.</summary>
     Task<IReadOnlyList<Province>> ListerProvincesAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Modifie le nom du responsable PRMP (propriétaire de l'application) affiché
-    /// dans l'en-tête. Retourne le nom enregistré, sans espaces superflus.
-    /// </summary>
+    /// <summary>Liste les provinces auxquelles le compte connecté a accès.</summary>
+    Task<IReadOnlyList<Province>> ListerProvincesAutoriseesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Liste les comptes et leurs droits. Réservé à l'administrateur PRMP.</summary>
+    Task<IReadOnlyList<Utilisateur>> ListerUtilisateursAsync(CancellationToken cancellationToken = default);
+
     Task<string> ModifierNomProprietaireAsync(
         string nomProprietaire,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Crée une nouvelle province avec son propre mot de passe.</summary>
-    Task<Province> CreerProvinceAsync(
-        string nomProvince,
-        string motDePasse,
-        CancellationToken cancellationToken = default);
+    /// <summary>Crée une province sans mot de passe dédié.</summary>
+    Task<Province> CreerProvinceAsync(string nomProvince, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Ouvre la session sur la province indiquée après vérification du mot de passe.
-    /// Lève une exception de domaine si le mot de passe est incorrect.
-    /// </summary>
+    /// <summary>Authentifie un compte et vérifie son droit sur la province demandée.</summary>
     Task<Province> ConnecterAsync(
-        int idProvince,
+        string nomUtilisateur,
         string motDePasse,
+        int idProvince,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Ouvre un accès visiteur à la province après vérification de son mot de passe dédié.</summary>
-    Task<Province> ConnecterVisiteurAsync(
-        int idProvince,
+    /// <summary>Change la province active sans redemander les identifiants.</summary>
+    Task<Province> ChangerProvinceAsync(int idProvince, CancellationToken cancellationToken = default);
+
+    /// <summary>Crée un compte non administrateur avec ses droits par province.</summary>
+    Task<Utilisateur> CreerUtilisateurAsync(
+        string nomUtilisateur,
         string motDePasse,
+        IReadOnlyDictionary<int, bool> droitsParProvince,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Définit ou désactive le mot de passe visiteur de la province active.
-    /// Réservé à une session responsable, jamais à une session visiteur.
-    /// </summary>
-    Task ConfigurerAccesVisiteurAsync(
+    /// <summary>Modifie le mot de passe (si fourni) et les droits d'un compte non administrateur.</summary>
+    Task ModifierUtilisateurAsync(
+        int idUtilisateur,
+        string nomUtilisateur,
         string? nouveauMotDePasse,
+        IReadOnlyDictionary<int, bool> droitsParProvince,
         CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Change le mot de passe d'une province. L'ancien mot de passe est exigé.
-    /// </summary>
+    /// <summary>Supprime un compte non administrateur.</summary>
+    Task SupprimerUtilisateurAsync(int idUtilisateur, CancellationToken cancellationToken = default);
+
+    /// <summary>Change le mot de passe du compte actuellement connecté.</summary>
     Task ChangerMotDePasseAsync(
-        int idProvince,
         string ancienMotDePasse,
         string nouveauMotDePasse,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Ferme la session en cours (plus aucune province active).</summary>
     Task DeconnecterAsync(CancellationToken cancellationToken = default);
 }
