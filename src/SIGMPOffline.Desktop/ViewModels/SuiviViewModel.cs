@@ -537,6 +537,7 @@ public partial class SuiviViewModel : PageViewModelBase
             await action();
             await ActualiserAsync(MarcheSelectionne.RefMarche);
             Message = messageSucces;
+            await _dialogues.InformerAsync("Opération réussie", messageSucces);
         }
         catch (Exception ex)
         {

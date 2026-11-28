@@ -147,6 +147,9 @@ public partial class GestionComptesViewModel : PageViewModelBase
         try
         {
             await _auth.SupprimerUtilisateurAsync(compte.IdUtilisateur);
+            await _dialogues.InformerAsync(
+                "Compte supprimé",
+                $"Le compte « {compte.NomUtilisateur} » a été supprimé.");
             await ChargerAsync();
         }
         catch (Exception ex)

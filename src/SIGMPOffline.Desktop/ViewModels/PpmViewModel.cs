@@ -533,6 +533,7 @@ public partial class PpmViewModel : PageViewModelBase
 
             await action();
             Message = messageSucces;
+            await _dialogues.InformerAsync("Opération réussie", messageSucces);
             return true;
         }
         catch (Exception ex)
