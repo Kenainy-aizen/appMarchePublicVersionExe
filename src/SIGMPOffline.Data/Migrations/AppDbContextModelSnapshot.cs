@@ -224,6 +224,59 @@ namespace SIGMPOffline.Data.Migrations
                     b.ToTable("ElementMarche", (string)null);
                 });
 
+            modelBuilder.Entity("SIGMPOffline.Domain.Entities.HistoriqueEvenement", b =>
+                {
+                    b.Property<long>("IdHistorique")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DateEvenement")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Detail")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("IdProvince")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("IdUtilisateur")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NomProvince")
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NomUtilisateur")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ReferenceEntite")
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TypeEntite")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("IdHistorique");
+
+                    b.HasIndex("DateEvenement");
+
+                    b.HasIndex("IdProvince");
+
+                    b.HasIndex("IdUtilisateur");
+
+                    b.ToTable("HistoriqueEvenement", (string)null);
+                });
+
             modelBuilder.Entity("SIGMPOffline.Domain.Entities.Marche", b =>
                 {
                     b.Property<string>("RefMarche")

@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using SIGMPOffline.Data.Database;
 using SIGMPOffline.Domain.Common;
 using SIGMPOffline.Domain.Entities;
 
@@ -17,11 +19,16 @@ namespace SIGMPOffline.Data;
 public class AppDbContext : DbContext
 {
     private readonly IProvinceAccessor _provinceAccessor;
+    private readonly IUtilisateurAccessor? _utilisateurAccessor;
 
-    public AppDbContext(DbContextOptions<AppDbContext> options, IProvinceAccessor provinceAccessor)
+    public AppDbContext(
+        DbContextOptions<AppDbContext> options,
+        IProvinceAccessor provinceAccessor,
+        IUtilisateurAccessor? utilisateurAccessor = null)
         : base(options)
     {
         _provinceAccessor = provinceAccessor ?? throw new ArgumentNullException(nameof(provinceAccessor));
+        _utilisateurAccessor = utilisateurAccessor;
     }
 
     /// <summary>En-têtes de PPM.</summary>
@@ -59,6 +66,9 @@ public class AppDbContext : DbContext
 
     /// <summary>Autorisations des comptes sur les provinces.</summary>
     public DbSet<PermissionProvince> PermissionsProvinces => Set<PermissionProvince>();
+
+    /// <summary>Historique des opérations et événements d'authentification.</summary>
+    public DbSet<HistoriqueEvenement> HistoriqueEvenements => Set<HistoriqueEvenement>();
 
     /// <summary>Configuration globale de l'application (une seule ligne).</summary>
     public DbSet<ConfigurationApp> Configurations => Set<ConfigurationApp>();
@@ -104,17 +114,204 @@ public class AppDbContext : DbContext
 
     /// <inheritdoc />
     public override int SaveChanges()
+        => SaveChanges(acceptAllChangesOnSuccess: true);
+
+    /// <inheritdoc />
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
         EstampillerProvince();
-        return base.SaveChanges();
+        var changements = CapturerChangementsJournalisables();
+        if (changements.Count == 0)
+        {
+            return base.SaveChanges(acceptAllChangesOnSuccess);
+        }
+
+        var transactionPropre = Database.CurrentTransaction is null
+            ? Database.BeginTransaction()
+            : null;
+
+        try
+        {
+            var nombreEcritures = base.SaveChanges(acceptAllChangesOnSuccess: false);
+            foreach (var changement in changements)
+            {
+                var evenement = CreerEvenement(changement);
+                Database.ExecuteSqlInterpolated($"""
+                    INSERT INTO "HistoriqueEvenement"
+                        ("DateEvenement", "IdUtilisateur", "NomUtilisateur", "IdProvince", "NomProvince",
+                         "Action", "TypeEntite", "ReferenceEntite", "Detail")
+                    VALUES ({evenement.DateEvenement}, {evenement.IdUtilisateur}, {evenement.NomUtilisateur},
+                            {evenement.IdProvince}, {evenement.NomProvince}, {evenement.Action},
+                            {evenement.TypeEntite}, {evenement.ReferenceEntite}, {evenement.Detail});
+                    """);
+            }
+
+            if (acceptAllChangesOnSuccess)
+            {
+                ChangeTracker.AcceptAllChanges();
+            }
+
+            transactionPropre?.Commit();
+            return nombreEcritures + changements.Count;
+        }
+        catch
+        {
+            transactionPropre?.Rollback();
+            throw;
+        }
+        finally
+        {
+            transactionPropre?.Dispose();
+        }
     }
 
     /// <inheritdoc />
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        => SaveChangesAsync(acceptAllChangesOnSuccess: true, cancellationToken);
+
+    /// <inheritdoc />
+    public override async Task<int> SaveChangesAsync(
+        bool acceptAllChangesOnSuccess,
+        CancellationToken cancellationToken = default)
     {
         EstampillerProvince();
-        return base.SaveChangesAsync(cancellationToken);
+        var changements = CapturerChangementsJournalisables();
+        if (changements.Count == 0)
+        {
+            return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        }
+
+        var transactionPropre = Database.CurrentTransaction is null
+            ? await Database.BeginTransactionAsync(cancellationToken)
+            : null;
+
+        try
+        {
+            var nombreEcritures = await base.SaveChangesAsync(
+                acceptAllChangesOnSuccess: false, cancellationToken);
+            foreach (var changement in changements)
+            {
+                var evenement = CreerEvenement(changement);
+                await Database.ExecuteSqlInterpolatedAsync($"""
+                    INSERT INTO "HistoriqueEvenement"
+                        ("DateEvenement", "IdUtilisateur", "NomUtilisateur", "IdProvince", "NomProvince",
+                         "Action", "TypeEntite", "ReferenceEntite", "Detail")
+                    VALUES ({evenement.DateEvenement}, {evenement.IdUtilisateur}, {evenement.NomUtilisateur},
+                            {evenement.IdProvince}, {evenement.NomProvince}, {evenement.Action},
+                            {evenement.TypeEntite}, {evenement.ReferenceEntite}, {evenement.Detail});
+                    """, cancellationToken);
+            }
+
+            if (acceptAllChangesOnSuccess)
+            {
+                ChangeTracker.AcceptAllChanges();
+            }
+
+            if (transactionPropre is not null)
+            {
+                await transactionPropre.CommitAsync(cancellationToken);
+            }
+
+            return nombreEcritures + changements.Count;
+        }
+        catch
+        {
+            if (transactionPropre is not null)
+            {
+                await transactionPropre.RollbackAsync(cancellationToken);
+            }
+
+            throw;
+        }
+        finally
+        {
+            if (transactionPropre is not null)
+            {
+                await transactionPropre.DisposeAsync();
+            }
+        }
     }
+
+    private List<ChangementJournalisable> CapturerChangementsJournalisables()
+    {
+        if (_utilisateurAccessor?.IdUtilisateur is null)
+        {
+            return new List<ChangementJournalisable>();
+        }
+
+        ChangeTracker.DetectChanges();
+        return ChangeTracker.Entries()
+            .Where(entree => entree.Entity is not HistoriqueEvenement
+                && entree.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+            .Select(entree => new ChangementJournalisable(
+                entree,
+                entree.State switch
+                {
+                    EntityState.Added => "Création",
+                    EntityState.Modified => "Modification",
+                    EntityState.Deleted => "Suppression",
+                    _ => string.Empty
+                }))
+            .ToList();
+    }
+
+    private HistoriqueEvenement CreerEvenement(ChangementJournalisable changement)
+    {
+        var entree = changement.Entree;
+        var cles = entree.Metadata.FindPrimaryKey()?.Properties
+            .Select(propriete => $"{propriete.Name}={entree.Property(propriete.Name).CurrentValue ?? "?"}")
+            ?? Enumerable.Empty<string>();
+
+        var idProvince = LireIdProvince(entree) ?? _provinceAccessor.IdProvince;
+        var champsModifies = changement.Action == "Modification"
+            ? string.Join(", ", entree.Properties
+                .Where(propriete => propriete.IsModified
+                    && propriete.Metadata.Name is not ("PasswordHash" or "Salt"))
+                .Select(propriete => propriete.Metadata.Name))
+            : null;
+        var identifiantsModifies = changement.Action == "Modification"
+            && entree.Entity is Utilisateur
+            && entree.Properties.Any(propriete => propriete.IsModified
+                && propriete.Metadata.Name is "PasswordHash" or "Salt");
+
+        return new HistoriqueEvenement
+        {
+            DateEvenement = DateTime.Now,
+            IdUtilisateur = _utilisateurAccessor!.IdUtilisateur,
+            NomUtilisateur = Tronquer(_utilisateurAccessor.NomUtilisateur, 200) ?? "Utilisateur inconnu",
+            IdProvince = idProvince,
+            NomProvince = Tronquer(LireNomProvince(entree) ?? _utilisateurAccessor.NomProvince, 150),
+            Action = Tronquer(changement.Action, 80) ?? string.Empty,
+            TypeEntite = Tronquer(entree.Metadata.ClrType.Name, 120) ?? string.Empty,
+            ReferenceEntite = Tronquer(string.Join(" ; ", cles), 300),
+            Detail = Tronquer(identifiantsModifies
+                ? "Mot de passe modifié (valeur masquée)"
+                : string.IsNullOrWhiteSpace(champsModifies) ? null : $"Champs : {champsModifies}", 1000)
+        };
+    }
+
+    /// <summary>Évite qu'une valeur inattendue ne déborde la colonne du journal.</summary>
+    internal static string? Tronquer(string? valeur, int longueur)
+        => valeur is null ? null : valeur.Length <= longueur ? valeur : valeur[..longueur];
+
+    private static int? LireIdProvince(EntityEntry entree)
+    {
+        var propriete = entree.Metadata.FindProperty(nameof(Province.IdProvince))
+            ?? entree.Metadata.FindProperty(nameof(PermissionProvince.IdProvince));
+        return propriete?.Name is { } nom && entree.Property(nom).CurrentValue is int valeur
+            ? valeur
+            : null;
+    }
+
+    private static string? LireNomProvince(EntityEntry entree)
+        => entree.Entity switch
+        {
+            Province province => province.NomProvince,
+            PermissionProvince { Province: not null } permission => permission.Province.NomProvince,
+            _ => null
+        };
+
+    private sealed record ChangementJournalisable(EntityEntry Entree, string Action);
 
     /// <summary>Rattache automatiquement les nouvelles entités à la province active.</summary>
     private void EstampillerProvince()

@@ -30,6 +30,11 @@ public interface IAuthService
     /// <summary>Liste les comptes et leurs droits. Réservé à l'administrateur PRMP.</summary>
     Task<IReadOnlyList<Utilisateur>> ListerUtilisateursAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>Liste les événements récents. Réservé à l'administrateur PRMP.</summary>
+    Task<IReadOnlyList<HistoriqueEvenement>> ListerHistoriqueAsync(
+        int limite = 500,
+        CancellationToken cancellationToken = default);
+
     Task<string> ModifierNomProprietaireAsync(
         string nomProprietaire,
         CancellationToken cancellationToken = default);

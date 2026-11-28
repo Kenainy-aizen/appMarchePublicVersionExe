@@ -61,6 +61,23 @@
                     </Grid>
                 </Border>
 
+                <!-- Raccourci PRMP placé juste au-dessus du réglage du thème. -->
+                <Button DockPanel.Dock="Bottom"
+                        Classes="sidebar"
+                        Classes.actif="{Binding GestionComptesEstSelectionnee}"
+                        Margin="10,4" Padding="12,9"
+                        HorizontalContentAlignment="Stretch"
+                        IsVisible="{Binding EstAdministrateur}"
+                        IsEnabled="{Binding EstAdministrateur}"
+                        Command="{Binding OuvrirGestionComptesCommand}"
+                        AutomationProperties.Name="Comptes et permissions">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <PathIcon Data="{x:Static vm:Icones.Utilisateur}"
+                                  Width="18" Height="18" VerticalAlignment="Center" />
+                        <TextBlock Text="Comptes &amp; permissions" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
                 <!-- Navigation -->
                 <ListBox Classes="nav"
                          ItemsSource="{Binding NavigationItems}"

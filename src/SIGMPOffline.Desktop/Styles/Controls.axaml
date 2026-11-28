@@ -247,6 +247,10 @@
         <Setter Property="Background" Value="{DynamicResource SidebarHoverBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource SidebarTextActiveBrush}" />
     </Style>
+    <Style Selector="Button.sidebar.actif /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SidebarActiveBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource SidebarTextActiveBrush}" />
+    </Style>
     <Style Selector="Button.sidebar:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource SidebarActiveBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource SidebarTextActiveBrush}" />

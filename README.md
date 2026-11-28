@@ -82,6 +82,13 @@ autorisée sur leur province ; les anciens accès visiteurs sont convertis en co
 `Visiteur-<id>` en consultation seule. L'administrateur peut renommer ou réattribuer
 ces comptes dans **Comptes & permissions**.
 
+L'onglet **Historique** de **Comptes & permissions** (réservé à l'administrateur)
+consigne les connexions réussies ou échouées, les changements de province et
+déconnexions, ainsi que **toutes les créations, modifications et suppressions**
+métier. Chaque ligne indique la date, **l'utilisateur qui a agi**, la province,
+l'action, le type d'entité et la référence concernée. Les mots de passe et leurs
+hachages ne sont jamais journalisés.
+
 ### Nom de la PRMP
 
 Le nom du responsable PRMP, saisi au premier lancement, est affiché dans

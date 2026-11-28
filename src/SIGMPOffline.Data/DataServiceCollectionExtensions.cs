@@ -31,11 +31,12 @@ public static class DataServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>Enregistre les repositories, l'unité de travail et le contexte de province.</summary>
+    /// <summary>Enregistre les repositories, l'unité de travail et les états de session partagés.</summary>
     public static IServiceCollection AddSigmpRepositories(this IServiceCollection services)
     {
         // La province active est un état partagé par toute l'application (singleton).
         services.AddSingleton<IProvinceAccessor, ProvinceAccessor>();
+        services.AddSingleton<IUtilisateurAccessor, UtilisateurAccessor>();
 
         services.AddScoped<IPpmRepository, PpmRepository>();
         services.AddScoped<IDossierDaoRepository, DossierDaoRepository>();

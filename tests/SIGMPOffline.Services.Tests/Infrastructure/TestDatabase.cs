@@ -18,11 +18,16 @@ public sealed class TestDatabase : IAsyncDisposable
     private readonly SqliteConnection _connection;
     private readonly ServiceProvider _provider;
 
-    private TestDatabase(SqliteConnection connection, AppDbContext context, ProvinceAccessor provinceAccessor)
+    private TestDatabase(
+        SqliteConnection connection,
+        AppDbContext context,
+        ProvinceAccessor provinceAccessor,
+        UtilisateurAccessor utilisateurAccessor)
     {
         _connection = connection;
         Context = context;
         ProvinceAccessor = provinceAccessor;
+        UtilisateurAccessor = utilisateurAccessor;
         UnitOfWork = new UnitOfWork(context);
 
         // Les services de test sont exposés en singletons : les scopes créés par le
@@ -31,6 +36,7 @@ public sealed class TestDatabase : IAsyncDisposable
         services.AddSingleton(context);
         services.AddSingleton(UnitOfWork);
         services.AddSingleton(provinceAccessor);
+        services.AddSingleton<IUtilisateurAccessor>(utilisateurAccessor);
         _provider = services.BuildServiceProvider();
 
         ScopeRunner = new ScopeRunner(_provider.GetRequiredService<IServiceScopeFactory>());
@@ -48,6 +54,9 @@ public sealed class TestDatabase : IAsyncDisposable
     /// </summary>
     public ProvinceAccessor ProvinceAccessor { get; }
 
+    /// <summary>Compte actif utilisé pour attribuer les écritures au bon auteur.</summary>
+    public UtilisateurAccessor UtilisateurAccessor { get; }
+
     /// <summary>Exécuteur de scopes branché sur le contexte de test.</summary>
     public IScopeRunner ScopeRunner { get; }
 
@@ -62,10 +71,11 @@ public sealed class TestDatabase : IAsyncDisposable
             .Options;
 
         var provinceAccessor = new ProvinceAccessor();
-        var context = new AppDbContext(options, provinceAccessor);
+        var utilisateurAccessor = new UtilisateurAccessor();
+        var context = new AppDbContext(options, provinceAccessor, utilisateurAccessor);
         await context.Database.EnsureCreatedAsync();
 
-        return new TestDatabase(connection, context, provinceAccessor);
+        return new TestDatabase(connection, context, provinceAccessor, utilisateurAccessor);
     }
 
     /// <inheritdoc />

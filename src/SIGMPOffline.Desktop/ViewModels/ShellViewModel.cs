@@ -28,7 +28,7 @@ public partial class ShellViewModel : ViewModelBase
     private readonly GestionComptesViewModel _gestionComptes;
     private Task _chargementPage = Task.CompletedTask;
 
-    [ObservableProperty] private NavigationItem _selectedItem;
+    [ObservableProperty] private NavigationItem? _selectedItem;
     [ObservableProperty] private ViewModelBase _currentPage;
 
     /// <summary>Indique si le thème sombre est actif (pilote l'icône de bascule).</summary>
@@ -43,6 +43,9 @@ public partial class ShellViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PeutGererComptes))]
     private bool _estAdministrateur;
+
+    /// <summary>Indique si la page de gestion des comptes est affichée.</summary>
+    [ObservableProperty] private bool _gestionComptesEstSelectionnee;
 
     /// <summary>Nom du responsable PRMP / propriétaire (affiché dans l'en-tête).</summary>
     [ObservableProperty] private string _nomProprietaire = string.Empty;
@@ -88,7 +91,7 @@ public partial class ShellViewModel : ViewModelBase
         _gestionComptes = gestionComptes ?? throw new ArgumentNullException(nameof(gestionComptes));
 
         NavigationItems = CreerNavigationItems(
-            estAdministrateur: false, _dashboard, _ppm, _dao, _marches, _suivi, _backup, _gestionComptes);
+            estAdministrateur: false, _dashboard, _ppm, _dao, _marches, _suivi, _backup);
 
         _selectedItem = NavigationItems[0];
         _currentPage = _selectedItem.ViewModel;
@@ -128,7 +131,7 @@ public partial class ShellViewModel : ViewModelBase
         EstAdministrateur = _auth.EstAdministrateur;
         EstLectureSeule = !_auth.PeutModifier;
         NavigationItems = CreerNavigationItems(
-            EstAdministrateur, _dashboard, _ppm, _dao, _marches, _suivi, _backup, _gestionComptes);
+            EstAdministrateur, _dashboard, _ppm, _dao, _marches, _suivi, _backup);
         OnPropertyChanged(nameof(NavigationItems));
         OnPropertyChanged(nameof(PeutBasculerLectureSeule));
         OnPropertyChanged(nameof(PeutGererComptes));
@@ -158,6 +161,24 @@ public partial class ShellViewModel : ViewModelBase
         var versSombre = app.ActualThemeVariant != ThemeVariant.Dark;
         app.RequestedThemeVariant = versSombre ? ThemeVariant.Dark : ThemeVariant.Light;
         EstThemeSombre = versSombre;
+    }
+
+    /// <summary>Ouvre la page de gestion des comptes depuis le raccourci de la barre latérale.</summary>
+    [RelayCommand]
+    private async Task OuvrirGestionComptes()
+    {
+        if (!EstAdministrateur)
+        {
+            return;
+        }
+
+        SelectedItem = null;
+        CurrentPage = _gestionComptes;
+        GestionComptesEstSelectionnee = true;
+
+        var precedent = _chargementPage;
+        _chargementPage = ChargerPageEnSerieAsync(precedent, _gestionComptes);
+        await _chargementPage;
     }
 
     /// <summary>Crée une nouvelle province, réservée à l'administrateur PRMP.</summary>
@@ -311,8 +332,7 @@ public partial class ShellViewModel : ViewModelBase
         DossierDaoViewModel dao,
         MarcheViewModel marches,
         SuiviViewModel suivi,
-        BackupViewModel backup,
-        GestionComptesViewModel gestionComptes)
+        BackupViewModel backup)
     {
         var items = new List<NavigationItem>
         {
@@ -325,15 +345,15 @@ public partial class ShellViewModel : ViewModelBase
 
         if (estAdministrateur)
         {
-            items.Add(new NavigationItem("Comptes & permissions", Icones.Utilisateur, gestionComptes));
             items.Add(new NavigationItem("Sauvegarde", Icones.Sauvegarde, backup));
         }
 
         return items;
     }
 
-    partial void OnSelectedItemChanged(NavigationItem value)
+    partial void OnSelectedItemChanged(NavigationItem? value)
     {
+        GestionComptesEstSelectionnee = false;
         if (value is null)
         {
             return;

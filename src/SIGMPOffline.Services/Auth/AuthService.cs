@@ -28,16 +28,21 @@ public class AuthService : IAuthService
 
     private readonly IScopeRunner _scopeRunner;
     private readonly IProvinceAccessor _provinceAccessor;
+    private readonly IUtilisateurAccessor _utilisateurAccessor;
 
     private ConfigurationApp? _configuration;
     private Province? _provinceActive;
     private Utilisateur? _utilisateurActif;
     private bool _peutModifier;
 
-    public AuthService(IScopeRunner scopeRunner, IProvinceAccessor provinceAccessor)
+    public AuthService(
+        IScopeRunner scopeRunner,
+        IProvinceAccessor provinceAccessor,
+        IUtilisateurAccessor utilisateurAccessor)
     {
         _scopeRunner = scopeRunner ?? throw new ArgumentNullException(nameof(scopeRunner));
         _provinceAccessor = provinceAccessor ?? throw new ArgumentNullException(nameof(provinceAccessor));
+        _utilisateurAccessor = utilisateurAccessor ?? throw new ArgumentNullException(nameof(utilisateurAccessor));
     }
 
     public bool EstAuthentifie => _utilisateurActif is not null && _provinceActive is not null;
@@ -130,9 +135,10 @@ public class AuthService : IAuthService
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             await DbSeeder.AdopterDonneesSansProvinceAsync(context, province.IdProvince, cancellationToken);
-            OuvrirSession(configuration, province, administrateur, peutModifier: true);
+            OuvrirSession(configuration, province, administrateur, peutModifier: true, definirAuteur: false);
             unitOfWork.DetacherTout();
             await DbSeeder.SeedAsync(context, cancellationToken);
+            DefinirAuteurActif();
         });
     }
 
@@ -185,6 +191,22 @@ public class AuthService : IAuthService
     }
 
     /// <inheritdoc />
+    public async Task<IReadOnlyList<HistoriqueEvenement>> ListerHistoriqueAsync(
+        int limite = 500,
+        CancellationToken cancellationToken = default)
+    {
+        ExigerAdministrateur();
+        limite = Math.Clamp(limite, 1, 2000);
+
+        return await _scopeRunner.ExecuterAsync<AppDbContext, IReadOnlyList<HistoriqueEvenement>>(
+            async context => await context.HistoriqueEvenements.AsNoTracking()
+                .OrderByDescending(x => x.DateEvenement)
+                .ThenByDescending(x => x.IdHistorique)
+                .Take(limite)
+                .ToListAsync(cancellationToken));
+    }
+
+    /// <inheritdoc />
     public async Task<string> ModifierNomProprietaireAsync(
         string nomProprietaire,
         CancellationToken cancellationToken = default)
@@ -218,6 +240,7 @@ public class AuthService : IAuthService
         });
 
         _utilisateurActif!.NomUtilisateur = nom;
+        DefinirAuteurActif();
         if (_configuration is not null)
         {
             _configuration.NomProprietairePRMP = nom;
@@ -271,6 +294,7 @@ public class AuthService : IAuthService
                 x => x.NomUtilisateur == identifiant && x.EstActif, cancellationToken);
             if (utilisateur is null || !PasswordHasher.Verifier(motDePasse, utilisateur.PasswordHash, utilisateur.Salt))
             {
+                await JournaliserEchecConnexionAsync(identifiant, idProvince, cancellationToken);
                 throw new DomainException("Nom d'utilisateur, mot de passe ou province incorrect.");
             }
 
@@ -278,6 +302,7 @@ public class AuthService : IAuthService
                 x => x.IdProvince == idProvince, cancellationToken);
             if (province is null)
             {
+                await JournaliserEchecConnexionAsync(identifiant, idProvince, cancellationToken);
                 throw new DomainException("Nom d'utilisateur, mot de passe ou province incorrect.");
             }
 
@@ -288,11 +313,15 @@ public class AuthService : IAuthService
                     cancellationToken);
             if (!utilisateur.EstAdministrateur && droit is null)
             {
+                await JournaliserEchecConnexionAsync(identifiant, idProvince, cancellationToken);
                 throw new DomainException("Nom d'utilisateur, mot de passe ou province incorrect.");
             }
 
             _configuration ??= await context.Configurations.FirstOrDefaultAsync(cancellationToken);
             OuvrirSession(_configuration, province, utilisateur, utilisateur.EstAdministrateur || droit!.PeutModifier);
+            await JournaliserEvenementSessionAsync(
+                "Connexion réussie", "Authentification", idProvince.ToString(), province.IdProvince, province.NomProvince,
+                cancellationToken);
             return province;
         });
     }
@@ -321,6 +350,9 @@ public class AuthService : IAuthService
             }
 
             OuvrirSession(_configuration, province, _utilisateurActif!, EstAdministrateur || droit!.PeutModifier);
+            await JournaliserEvenementSessionAsync(
+                "Changement de province", "Authentification", idProvince.ToString(), province.IdProvince,
+                province.NomProvince, cancellationToken);
             return province;
         });
     }
@@ -489,27 +521,106 @@ public class AuthService : IAuthService
     }
 
     /// <inheritdoc />
-    public Task DeconnecterAsync(CancellationToken cancellationToken = default)
+    public async Task DeconnecterAsync(CancellationToken cancellationToken = default)
     {
+        if (EstAuthentifie)
+        {
+            try
+            {
+                await JournaliserEvenementSessionAsync(
+                    "Déconnexion", "Authentification", null, _provinceActive!.IdProvince,
+                    _provinceActive.NomProvince, cancellationToken);
+            }
+            catch
+            {
+                // La déconnexion ne doit pas être bloquée si le journal est indisponible.
+            }
+        }
+
         _provinceActive = null;
         _utilisateurActif = null;
         _peutModifier = false;
         _provinceAccessor.DefinirProvince(null);
-        return Task.CompletedTask;
+        _utilisateurAccessor.DefinirUtilisateur(null, null);
     }
 
     private void OuvrirSession(
         ConfigurationApp? configuration,
         Province province,
         Utilisateur utilisateur,
-        bool peutModifier)
+        bool peutModifier,
+        bool definirAuteur = true)
     {
         _configuration = configuration;
         _provinceActive = province;
         _utilisateurActif = utilisateur;
         _peutModifier = peutModifier;
         _provinceAccessor.DefinirProvince(province.IdProvince);
+        if (definirAuteur)
+        {
+            DefinirAuteurActif();
+        }
     }
+
+    private void DefinirAuteurActif()
+        => _utilisateurAccessor.DefinirUtilisateur(
+            _utilisateurActif?.IdUtilisateur,
+            _utilisateurActif?.NomUtilisateur,
+            _provinceActive?.NomProvince);
+
+    private Task JournaliserEvenementSessionAsync(
+        string action,
+        string typeEntite,
+        string? referenceEntite,
+        int? idProvince,
+        string? nomProvince,
+        CancellationToken cancellationToken)
+    {
+        var utilisateur = _utilisateurActif;
+        if (utilisateur is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        return _scopeRunner.ExecuterAsync<AppDbContext>(async context =>
+        {
+            context.HistoriqueEvenements.Add(new HistoriqueEvenement
+            {
+                DateEvenement = DateTime.Now,
+                IdUtilisateur = utilisateur.IdUtilisateur,
+                NomUtilisateur = utilisateur.NomUtilisateur,
+                IdProvince = idProvince,
+                NomProvince = nomProvince,
+                Action = action,
+                TypeEntite = typeEntite,
+                ReferenceEntite = referenceEntite
+            });
+            await context.SaveChangesAsync(cancellationToken);
+        });
+    }
+
+    private Task JournaliserEchecConnexionAsync(
+        string nomUtilisateur,
+        int idProvince,
+        CancellationToken cancellationToken)
+        => _scopeRunner.ExecuterAsync<AppDbContext>(async context =>
+        {
+            var province = await context.Provinces.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.IdProvince == idProvince, cancellationToken);
+            context.HistoriqueEvenements.Add(new HistoriqueEvenement
+            {
+                DateEvenement = DateTime.Now,
+                NomUtilisateur = nomUtilisateur.Length <= LongueurMaxNomUtilisateur
+                    ? nomUtilisateur
+                    : nomUtilisateur[..LongueurMaxNomUtilisateur],
+                IdProvince = idProvince,
+                NomProvince = province?.NomProvince,
+                Action = "Échec de connexion",
+                TypeEntite = "Authentification",
+                ReferenceEntite = idProvince.ToString()
+            });
+            await context.SaveChangesAsync(cancellationToken);
+        });
 
     private void ExigerSession()
     {

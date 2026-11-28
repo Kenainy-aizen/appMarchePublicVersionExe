@@ -9,7 +9,8 @@ namespace SIGMPOffline.Services.Tests;
 /// <summary>Authentification par compte et contrôle des permissions par province.</summary>
 public class AuthServiceTests
 {
-    private static AuthService Creer(TestDatabase db) => new(db.ScopeRunner, db.ProvinceAccessor);
+    private static AuthService Creer(TestDatabase db)
+        => new(db.ScopeRunner, db.ProvinceAccessor, db.UtilisateurAccessor);
 
     private static Task InitialiserAsync(AuthService auth)
         => auth.InitialiserAsync("PRMP Jean", "Province A", "admin-secret");
@@ -239,5 +240,32 @@ public class AuthServiceTests
         Assert.Null(auth.UtilisateurActif);
         Assert.Null(auth.ProvinceActive);
         Assert.Null(db.ProvinceAccessor.IdProvince);
+    }
+
+    [Fact]
+    public async Task Historique_enregistre_les_operations_metier_avec_leur_auteur()
+    {
+        await using var db = await TestDatabase.CreateAsync();
+        var auth = Creer(db);
+        await InitialiserAsync(auth);
+        var provinceId = auth.ProvinceActive!.IdProvince;
+        var idAdmin = auth.UtilisateurActif!.IdUtilisateur;
+
+        var compte = await auth.CreerUtilisateurAsync(
+            "Agent DAO", "agent-secret", new Dictionary<int, bool> { [provinceId] = false });
+        var ppm = await db.Context.PpmEntetes.FirstAsync();
+        ppm.AutoriteContractante += " - modifié";
+        await db.Context.SaveChangesAsync();
+
+        var evenements = await auth.ListerHistoriqueAsync();
+        var modificationPpm = Assert.Single(evenements, x =>
+            x.TypeEntite == "PpmEntete" && x.Action == "Modification");
+        Assert.Equal(idAdmin, modificationPpm.IdUtilisateur);
+        Assert.Equal("PRMP Jean", modificationPpm.NomUtilisateur);
+        Assert.Equal(provinceId, modificationPpm.IdProvince);
+        Assert.Contains(ppm.NumPPM, modificationPpm.ReferenceEntite);
+        Assert.Contains(evenements, x => x.TypeEntite == "Utilisateur"
+            && x.Action == "Création" && x.ReferenceEntite!.Contains(compte.IdUtilisateur.ToString()));
+        Assert.DoesNotContain(evenements, x => x.Detail?.Contains("PasswordHash") == true);
     }
 }

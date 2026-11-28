@@ -29,6 +29,9 @@ au démarrage.
 | 10 | `Avenant` | `Avenant` | `IdAvenant` | `RefMarche → Marche` | Avenants au marché |
 | 11 | `Province` | `Province` | `IdProvince` | — | Province gérée (mot de passe, isolation des données) |
 | 12 | `ConfigurationApp` | `ConfigurationApp` | `Id` | — | Configuration globale (propriétaire PRMP) |
+| 13 | `Utilisateur` | `Utilisateur` | `IdUtilisateur` | — | Compte utilisateur (identifiant, mot de passe haché, rôle admin) |
+| 14 | `PermissionProvince` | `PermissionProvince` | `IdPermission` | `IdUtilisateur → Utilisateur`, `IdProvince → Province` | Droit de consultation ou modification par province |
+| 15 | `HistoriqueEvenement` | `HistoriqueEvenement` | `IdHistorique` | — | Journal d'audit : auteur, province, action, entité et référence |
 
 ## Schéma relationnel (texte)
 
@@ -222,19 +225,26 @@ lisibles directement en base.
 | `20261016193904_TitulaireMarcheVersAcheteur` | Titulaire du marché via `AcheteurDAO` |
 | `20261017051217_AuthEtProvinces` | Provinces, authentification et `IdProvince` |
 | `20261121120000_PpmDetailComplet` | Comptes, dates prévisionnelles, responsable de procédure et table `PPMBeneficiaire` |
+| `20261125185738_AccesVisiteur` | Anciens accès visiteurs par province |
+| `20261127182401_UtilisateursEtPermissions` | Comptes utilisateurs et droits par province (conversion des anciens accès) |
+| `20261128112505_HistoriqueEvenements` | Table `HistoriqueEvenement` (audit des opérations) |
 
 ## Authentification et isolation (multi-provinces)
 
 - **Premier lancement** (aucune configuration) : un assistant crée `ConfigurationApp`
-  puis la première `Province`, et ouvre immédiatement sa session.
-- **Lancements suivants** : écran de connexion — choix de la province + mot de passe.
+  puis la première `Province` et le compte administrateur PRMP, et ouvre sa session.
+- **Lancements suivants** : écran de connexion — nom d'utilisateur + mot de passe + province.
 - **Mots de passe** : hachés avec **PBKDF2** (HMAC-SHA-256, 120 000 itérations, sel de
   16 octets, condensat de 32 octets) ; comparaison à temps constant. Aucun mot de passe
   en clair n'est stocké.
 - **Isolation** : filtres de requête globaux EF Core basés sur la province active ;
   les nouvelles entités sont automatiquement rattachées à la province ouverte.
-- **Gestion** : créer une province, changer de province (mot de passe requis) et
-  changer le mot de passe d'une province.
+- **Gestion** (administrateur PRMP) : créer des provinces, créer/modifier/supprimer
+  des comptes, attribuer la consultation ou la modification province par province,
+  et changer son mot de passe.
+- **Audit** : `HistoriqueEvenement` enregistre les événements de session et chaque
+  création/modification/suppression métier avec l'auteur connecté. Aucun mot de
+  passe ni hachage n'y est consigné. Consultable dans **Comptes & permissions → Historique**.
 
 ## Règles métier clés (Suivi d'exécution)
 

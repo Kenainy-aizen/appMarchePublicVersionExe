@@ -12,9 +12,14 @@
                            Text="Créez les comptes et définissez, province par province, s'ils peuvent consulter ou modifier les données." />
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <Button Content="Comptes" Command="{Binding AfficherComptesCommand}"
+                        Classes.accent="{Binding !EstHistoriqueAffiche}" />
+                <Button Content="Historique" Command="{Binding AfficherHistoriqueCommand}"
+                        Classes.accent="{Binding EstHistoriqueAffiche}" />
                 <Button Content="Actualiser" Command="{Binding ChargerCommand}" />
                 <Button Content="Nouveau compte" Classes="accent"
                         Command="{Binding CreerCompteCommand}"
+                        IsVisible="{Binding !EstHistoriqueAffiche}"
                         IsEnabled="{Binding PeutModifier}" />
             </StackPanel>
         </Grid>
@@ -24,7 +29,8 @@
             <TextBlock Text="{Binding Erreur}" TextWrapping="Wrap" />
         </Border>
 
-        <Grid Grid.Row="2" ColumnDefinitions="300,*" ColumnSpacing="14">
+        <Grid Grid.Row="2" ColumnDefinitions="300,*" ColumnSpacing="14"
+              IsVisible="{Binding !EstHistoriqueAffiche}">
             <Border Classes="card" Padding="0">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top" Classes="section-title"
@@ -90,5 +96,58 @@
                 </DockPanel>
             </Border>
         </Grid>
+
+        <Border Grid.Row="2" Classes="card" Padding="0"
+                IsVisible="{Binding EstHistoriqueAffiche}">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Classes="section-title"
+                           Margin="14,12" Text="HISTORIQUE RÉCENT — AUTEUR, PROVINCE ET OBJET" />
+                <Border DockPanel.Dock="Top" Classes="list-header">
+                    <Grid ColumnDefinitions="150,*,150,160,150,*" ColumnSpacing="10">
+                        <TextBlock Text="Date et heure" />
+                        <TextBlock Grid.Column="1" Text="Utilisateur" />
+                        <TextBlock Grid.Column="2" Text="Province" />
+                        <TextBlock Grid.Column="3" Text="Action" />
+                        <TextBlock Grid.Column="4" Text="Type" />
+                        <TextBlock Grid.Column="5" Text="Référence / détails" />
+                    </Grid>
+                </Border>
+                <Border Classes="empty-state" Margin="12"
+                        IsVisible="{Binding !Historique.Count}">
+                    <TextBlock Text="Aucun événement enregistré pour le moment."
+                               HorizontalAlignment="Center" />
+                </Border>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Historique}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="ent:HistoriqueEvenement">
+                                <Border Classes="card" Margin="8,4" Padding="10">
+                                    <Grid ColumnDefinitions="150,*,150,160,150,*" ColumnSpacing="10">
+                                        <TextBlock Text="{Binding DateEvenement, StringFormat='{}{0:dd/MM/yyyy HH:mm:ss}'}"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="{Binding NomUtilisateur}"
+                                                   FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2">
+                                            <TextBlock Text="{Binding NomProvince}" TextWrapping="Wrap" />
+                                            <TextBlock Classes="auth-caption"
+                                                       Text="{Binding IdProvince, StringFormat='ID {0}'}" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="3" Text="{Binding Action}"
+                                                   TextWrapping="Wrap" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="4" Text="{Binding TypeEntite}"
+                                                   TextWrapping="Wrap" VerticalAlignment="Center" />
+                                        <StackPanel Grid.Column="5" VerticalAlignment="Center" Spacing="2">
+                                            <TextBlock Text="{Binding ReferenceEntite}" TextWrapping="Wrap" />
+                                            <TextBlock Classes="auth-caption" Text="{Binding Detail}"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
     </Grid>
 </UserControl>

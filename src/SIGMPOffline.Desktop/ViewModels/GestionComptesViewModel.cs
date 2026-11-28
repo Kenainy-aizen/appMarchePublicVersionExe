@@ -33,6 +33,9 @@ public partial class GestionComptesViewModel : PageViewModelBase
 
     public override string Titre => "Comptes & permissions";
     public ObservableCollection<Utilisateur> Utilisateurs { get; } = new();
+    public ObservableCollection<HistoriqueEvenement> Historique { get; } = new();
+
+    [ObservableProperty] private bool _estHistoriqueAffiche;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CompteSelectionneEstModifiable))]
@@ -58,16 +61,27 @@ public partial class GestionComptesViewModel : PageViewModelBase
         {
             EstOccupe = true;
             Erreur = null;
-            var selection = CompteSelectionne?.IdUtilisateur;
-            var comptes = await _auth.ListerUtilisateursAsync();
-            Utilisateurs.Clear();
-            foreach (var compte in comptes)
+            if (EstHistoriqueAffiche)
             {
-                Utilisateurs.Add(compte);
+                Historique.Clear();
+                foreach (var evenement in await _auth.ListerHistoriqueAsync())
+                {
+                    Historique.Add(evenement);
+                }
             }
+            else
+            {
+                var selection = CompteSelectionne?.IdUtilisateur;
+                var comptes = await _auth.ListerUtilisateursAsync();
+                Utilisateurs.Clear();
+                foreach (var compte in comptes)
+                {
+                    Utilisateurs.Add(compte);
+                }
 
-            CompteSelectionne = Utilisateurs.FirstOrDefault(x => x.IdUtilisateur == selection)
-                ?? Utilisateurs.FirstOrDefault();
+                CompteSelectionne = Utilisateurs.FirstOrDefault(x => x.IdUtilisateur == selection)
+                    ?? Utilisateurs.FirstOrDefault();
+            }
         }
         catch (Exception ex)
         {
@@ -77,6 +91,20 @@ public partial class GestionComptesViewModel : PageViewModelBase
         {
             EstOccupe = false;
         }
+    }
+
+    [RelayCommand]
+    private async Task AfficherComptes()
+    {
+        EstHistoriqueAffiche = false;
+        await ChargerAsync();
+    }
+
+    [RelayCommand]
+    private async Task AfficherHistorique()
+    {
+        EstHistoriqueAffiche = true;
+        await ChargerAsync();
     }
 
     [RelayCommand]
